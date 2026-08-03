@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Track Order</title>
+
+    <style>
+        body{
+            font-family:Arial, sans-serif;
+            background:#f4f4f4;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+            margin:0;
+        }
+
+        .card{
+            background:white;
+            width:420px;
+            padding:30px;
+            border-radius:15px;
+            box-shadow:0 10px 25px rgba(0,0,0,.15);
+            text-align:center;
+        }
+
+        h1{
+            color:#2c3e50;
+        }
+
+        h2{
+            color:#27ae60;
+        }
+
+        p{
+            font-size:18px;
+            margin:12px 0;
+        }
+
+        .status{
+            background:#27ae60;
+            color:white;
+            padding:10px;
+            border-radius:8px;
+            font-size:20px;
+            margin-top:20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+
+    <h1>🍽 Order Tracking</h1>
+
+    <h2>Order #{{ order.id }}</h2>
+
+    <p><strong>Table:</strong> {{ order.table_number }}</p>
+
+    <p><strong>👨‍🍳 Waiter:</strong> {{ order.waiter_name }}</p>
+
+    <div class="status">
+        Status: {{ order.status }}
+    </div>
+
+    <p style="margin-top:20px;">
+        This page refreshes every 5 seconds.
+    </p>
+
+</div>
+
+<script>
+setTimeout(function(){
+    location.reload();
+},5000);
+</script>
+
+</body>
+</html>
