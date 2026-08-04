@@ -11,7 +11,8 @@ def connect_to_db():
         user=os.getenv("MYSQLUSER", "root"),
         password=os.getenv("MYSQLPASSWORD", "5002"),
         database=os.getenv("MYSQLDATABASE", "hotelqr"),
-        port=int(os.getenv("MYSQLPORT", 3306))
+        port=int(os.getenv("MYSQLPORT", 3306)),
+        ssl_disabled=False
     )
 
 db = connect_to_db()
