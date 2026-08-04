@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, jsonify, redirect
+from flask import Flask, render_template, request, jsonify, redirect, g
 import mysql.connector
 
 app = Flask(__name__)
@@ -15,16 +15,18 @@ def connect_to_db():
         ssl_disabled=False
     )
 
-db = connect_to_db()
-
+# Get a database connection unique to the CURRENT HTTP request
 def get_db():
-    global db
-    try:
-        if not db.is_connected():
-            db.reconnect(attempts=3, delay=2)
-    except Exception:
-        db = connect_to_db()
-    return db
+    if 'db' not in g:
+        g.db = connect_to_db()
+    return g.db
+
+# Automatically close the database connection when the request completes
+@app.teardown_appcontext
+def close_db(exception=None):
+    db = g.pop('db', None)
+    if db is not None and db.is_connected():
+        db.close()
 
 
 @app.route('/')
