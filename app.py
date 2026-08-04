@@ -1,35 +1,37 @@
-
+import os
 from flask import Flask, render_template, request, jsonify, redirect
 import mysql.connector
 
 app = Flask(__name__)
 
-# Database connection
+# Dynamic Database Connection (Reads from Render Environment Variables)
+def connect_to_db():
+    return mysql.connector.connect(
+        host=os.getenv("MYSQLHOST", "localhost"),
+        user=os.getenv("MYSQLUSER", "root"),
+        password=os.getenv("MYSQLPASSWORD", "5002"),
+        database=os.getenv("MYSQLDATABASE", "hotelqr"),
+        port=int(os.getenv("MYSQLPORT", 3306))
+    )
 
-db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="5002",
-    database="hotelqr"
-)
+db = connect_to_db()
 
 def get_db():
     global db
-
-    if not db.is_connected():
-        db.reconnect(attempts=3, delay=2)
-
+    try:
+        if not db.is_connected():
+            db.reconnect(attempts=3, delay=2)
+    except Exception:
+        db = connect_to_db()
     return db
-
-
 
 
 @app.route('/')
 def index():
-
+    database = get_db()
     table = request.args.get("table")
 
-    cursor = db.cursor(dictionary=True)
+    cursor = database.cursor(dictionary=True)
 
     cursor.execute("""
         SELECT id,name,category,description,price,image
@@ -47,7 +49,7 @@ def index():
 
 @app.route("/place_order", methods=["POST"])
 def place_order():
-
+    database = get_db()
     data = request.get_json()
 
     customer_name = data["customer_name"]
@@ -55,7 +57,7 @@ def place_order():
     cart = data["cart"]
     total = data["total"]
 
-    cursor = db.cursor(dictionary=True)
+    cursor = database.cursor(dictionary=True)
 
     # Find the waiter assigned to this table
     cursor.execute("""
@@ -98,17 +100,18 @@ def place_order():
             item["price"]
         ))
 
-    db.commit()
+    database.commit()
 
     return jsonify({
         "message": "Order placed successfully!",
         "order_id": order_id
     })
 
+
 @app.route("/waiter")
 def waiter():
-
-    cursor = db.cursor(dictionary=True)
+    database = get_db()
+    cursor = database.cursor(dictionary=True)
 
     cursor.execute("""
         SELECT
@@ -132,15 +135,15 @@ def waiter():
         order["items"] = cursor.fetchall()
 
     return render_template(
-    "waiter.html",
-    orders=orders
-)
+        "waiter.html",
+        orders=orders
+    )
 
 
 @app.route("/kitchen_data")
 def kitchen_data():
-
-    cursor = db.cursor(dictionary=True)
+    database = get_db()
+    cursor = database.cursor(dictionary=True)
 
     cursor.execute("""
         SELECT
@@ -165,25 +168,29 @@ def kitchen_data():
 
     return jsonify(orders)
 
+
 @app.route("/complete/<int:order_id>")
 def complete_order(order_id):
-    cursor = db.cursor()
+    database = get_db()
+    cursor = database.cursor()
     cursor.execute("UPDATE orders SET status='Completed' WHERE id=%s", (order_id,))
-    db.commit()
+    database.commit()
     return redirect("/kitchen")
 
 
 @app.route("/preparing/<int:order_id>")
 def preparing_order(order_id):
-    cursor = db.cursor()
+    database = get_db()
+    cursor = database.cursor()
     cursor.execute("UPDATE orders SET status='Preparing' WHERE id=%s", (order_id,))
-    db.commit()
+    database.commit()
     return redirect("/kitchen")
 
 
 @app.route("/admin")
 def admin():
-    cursor = db.cursor(dictionary=True)
+    database = get_db()
+    cursor = database.cursor(dictionary=True)
 
     # Total orders
     cursor.execute("SELECT COUNT(*) AS total FROM orders")
@@ -213,6 +220,7 @@ def admin():
 
 @app.route("/add_menu", methods=["GET", "POST"])
 def add_menu():
+    database = get_db()
     if request.method == "POST":
         name = request.form["name"]
         category = request.form["category"]
@@ -220,12 +228,12 @@ def add_menu():
         price = request.form["price"]
         image = request.form["image"]
 
-        cursor = db.cursor()
+        cursor = database.cursor()
         cursor.execute("""
             INSERT INTO menu (name, category, description, price, image)
             VALUES (%s, %s, %s, %s, %s)
         """, (name, category, description, price, image))
-        db.commit()
+        database.commit()
         return redirect("/admin")
 
     return render_template("add_menu.html")
@@ -233,7 +241,8 @@ def add_menu():
 
 @app.route("/manage_menu")
 def manage_menu():
-    cursor = db.cursor(dictionary=True)
+    database = get_db()
+    cursor = database.cursor(dictionary=True)
     cursor.execute("SELECT * FROM menu")
     menu = cursor.fetchall()
     return render_template("manage_menu.html", menu=menu)
@@ -241,7 +250,8 @@ def manage_menu():
 
 @app.route("/edit_menu/<int:item_id>", methods=["GET", "POST"])
 def edit_menu(item_id):
-    cursor = db.cursor(dictionary=True)
+    database = get_db()
+    cursor = database.cursor(dictionary=True)
 
     if request.method == "POST":
         name = request.form["name"]
@@ -250,7 +260,7 @@ def edit_menu(item_id):
         cursor.execute("""
             UPDATE menu SET name=%s, price=%s WHERE id=%s
         """, (name, price, item_id))
-        db.commit()
+        database.commit()
         return redirect("/manage_menu")
 
     cursor.execute("SELECT * FROM menu WHERE id=%s", (item_id,))
@@ -260,7 +270,8 @@ def edit_menu(item_id):
 
 @app.route("/delete_menu/<int:item_id>")
 def delete_menu(item_id):
-    cursor = db.cursor()
+    database = get_db()
+    cursor = database.cursor()
 
     # Delete related order items first (if any)
     cursor.execute("""
@@ -270,15 +281,15 @@ def delete_menu(item_id):
 
     # Delete the menu item
     cursor.execute("DELETE FROM menu WHERE id=%s", (item_id,))
-    db.commit()
+    database.commit()
 
     return redirect("/manage_menu")
 
 
 @app.route("/track/<int:order_id>")
 def track_order(order_id):
-
-    cursor = db.cursor(dictionary=True)
+    database = get_db()
+    cursor = database.cursor(dictionary=True)
 
     cursor.execute("""
         SELECT
@@ -297,10 +308,11 @@ def track_order(order_id):
         order=order
     )
 
+
 @app.route("/receipt/<int:order_id>")
 def receipt(order_id):
-
-    cursor = db.cursor(dictionary=True)
+    database = get_db()
+    cursor = database.cursor(dictionary=True)
 
     # Automatically mark the order as Printed
     cursor.execute("""
@@ -308,7 +320,7 @@ def receipt(order_id):
         SET status='Printed'
         WHERE id=%s
     """, (order_id,))
-    db.commit()
+    database.commit()
 
     # Get order details
     cursor.execute("""
@@ -338,5 +350,7 @@ def receipt(order_id):
         items=items
     )
 
+
 if __name__ == '__main__':
-    app.run(host="0.0.0.0",port=5000,debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
