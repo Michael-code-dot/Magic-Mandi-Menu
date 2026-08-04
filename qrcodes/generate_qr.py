@@ -1,6 +1,6 @@
 import qrcode
 
-base_url = "http://192.168.1.100:5000"
+base_url = "http://10.0.2.106:5000"
 
 for table in range(1, 55):
 
