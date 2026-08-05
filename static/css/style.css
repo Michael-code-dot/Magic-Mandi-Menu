@@ -238,20 +238,3 @@ footer {
     }
 }
 
-/* Initial state: invisible and shifted upward */
-.food-card {
-    opacity: 0;
-    transform: translateY(-30px); /* Drops down from 30px above */
-    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-}
-
-/* Revealed state: fully visible and in original position */
-.food-card.show {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* Optional delay for staggering elements */
-.food-card:nth-child(even) {
-    transition-delay: 0.15s;
-}

@@ -91,24 +91,5 @@
     <p style="color:#FFD700;">Taste The Legacy</p>
 </footer>
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    // Set up the intersection observer to watch for elements on screen
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('show'); // Triggers the CSS animation
-            }
-        });
-    }, {
-        threshold: 0.15 // Triggers when 15% of the item is visible on screen
-    });
-
-    // Target all food cards or menu items
-    const foodCards = document.querySelectorAll('.food-card');
-    foodCards.forEach(card => observer.observe(card));
-});
-</script>
-
 </body>
 </html>
