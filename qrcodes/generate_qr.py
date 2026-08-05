@@ -1,7 +1,7 @@
 import qrcode
 
-# Your live Render website URL
-base_url = "https://magic-mandi-menu.onrender.com"
+# Your permanent GitHub Pages URL (instead of Render directly)
+base_url = "https://michael-code-dot.github.io/hotel-qr-redirect"
 
 # Generates QR codes for Table 1 up to Table 54
 for table in range(1, 55):
@@ -10,4 +10,4 @@ for table in range(1, 55):
     qr = qrcode.make(url)
     qr.save(f"Table_{table}.png")
 
-print("✅ All 54 QR Codes Generated Successfully!")
+print("✅ All 54 Permanent QR Codes Generated Successfully!")
