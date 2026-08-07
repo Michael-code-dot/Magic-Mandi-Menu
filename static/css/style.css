@@ -238,3 +238,98 @@ footer {
     }
 }
 
+/* --- ENHANCED SEARCH BAR --- */
+.search-box {
+    width: 90%;
+    max-width: 900px;
+    margin: 30px auto;
+}
+
+#searchFood {
+    width: 100%;
+    padding: 18px;
+    font-size: 18px;
+    border: 2px solid transparent;
+    border-radius: 40px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    background-color: #fdfdfd;
+    outline: none;
+}
+
+#searchFood:focus {
+    border-color: #ffc107;
+    box-shadow: 0 8px 25px rgba(255, 193, 7, 0.2);
+    transform: translateY(-2px);
+    background-color: #fff;
+}
+
+/* --- MODERN MENU GRID & CARDS --- */
+#menu-section .container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+#menu-section .card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+}
+
+#menu-section .card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+}
+
+#menu-section .food-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+#menu-section .card:hover .food-image {
+    transform: scale(1.05);
+}
+
+/* --- RESPONSIVE CATEGORY NAV --- */
+.category-nav {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.category-nav::-webkit-scrollbar {
+    display: none;
+}
+
+.category-nav button, .category-nav a {
+    padding: 10px 20px;
+    border-radius: 25px;
+    background: white;
+    border: 1px solid #eee;
+    text-decoration: none;
+    color: #333;
+    transition: all 0.2s;
+}
+
+.category-nav button:hover, .category-nav button.active {
+    background: #ffc107;
+    color: white;
+    border-color: #ffc107;
+}
