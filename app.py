@@ -1,12 +1,16 @@
 import os
 import time
-from flask import Flask, render_template, request, jsonify, redirect, g
+from flask import Flask, render_template, request, jsonify, redirect, g, session, url_for
 import mysql.connector
 
 app = Flask(__name__)
 
 # Force browser to cache static images/CSS locally for 7 days
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 604800 
+
+# Security configuration for admin session login
+app.secret_key = 'magic_mandi_super_secret_key_change_this'
+ADMIN_PASSWORD = "mandi123_secure"  # Change this password whenever you want
 
 
 # ==========================================================
@@ -224,8 +228,35 @@ def preparing_order(order_id):
     return redirect("/kitchen")
 
 
+# ==========================================================
+# 🔐 ADMIN AUTHENTICATION ROUTES
+# ==========================================================
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    error = None
+    if request.method == 'POST':
+        if request.form.get('password') == ADMIN_PASSWORD:
+            session['admin_logged_in'] = True
+            return redirect(url_for('admin'))
+        else:
+            error = 'Incorrect Password. Please try again.'
+    return render_template('admin_login.html', error=error)
+
+
+@app.route('/admin/logout')
+def admin_logout():
+    session.pop('admin_logged_in', None)
+    return redirect(url_for('admin_login'))
+
+
+# ==========================================================
+# 🛠️ PROTECTED ADMIN & MENU MANAGEMENT ROUTES
+# ==========================================================
 @app.route("/admin")
 def admin():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+
     database = get_db()
     cursor = database.cursor(dictionary=True)
 
@@ -257,6 +288,9 @@ def admin():
 
 @app.route("/add_menu", methods=["GET", "POST"])
 def add_menu():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+
     global MENU_CACHE
     database = get_db()
     if request.method == "POST":
@@ -283,6 +317,9 @@ def add_menu():
 
 @app.route("/manage_menu")
 def manage_menu():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+
     database = get_db()
     cursor = database.cursor(dictionary=True)
     cursor.execute("SELECT * FROM menu")
@@ -292,6 +329,9 @@ def manage_menu():
 
 @app.route("/edit_menu/<int:item_id>", methods=["GET", "POST"])
 def edit_menu(item_id):
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+
     global MENU_CACHE
     database = get_db()
     cursor = database.cursor(dictionary=True)
@@ -317,6 +357,9 @@ def edit_menu(item_id):
 
 @app.route("/delete_menu/<int:item_id>")
 def delete_menu(item_id):
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+
     global MENU_CACHE
     database = get_db()
     cursor = database.cursor()
