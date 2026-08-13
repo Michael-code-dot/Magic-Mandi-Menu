@@ -1,8 +1,23 @@
 import os
+import time
 from flask import Flask, render_template, request, jsonify, redirect, g
 import mysql.connector
 
 app = Flask(__name__)
+
+# Force browser to cache static images/CSS locally for 7 days
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 604800 
+
+
+# ==========================================================
+# ⚡ IN-MEMORY CACHE CONFIGURATION
+# ==========================================================
+MENU_CACHE = {
+    "data": None,
+    "timestamp": 0
+}
+CACHE_DURATION = 300  # 300 seconds = 5 Minutes
+
 
 # Dynamic Database Connection (Reads from Render Environment Variables)
 def connect_to_db():
@@ -29,19 +44,38 @@ def close_db(exception=None):
         db.close()
 
 
+# ==========================================================
+# 🏨 CUSTOMER MENU ROUTE (CACHED FOR 200+ SCANS)
+# ==========================================================
 @app.route('/')
 def index():
-    database = get_db()
     table = request.args.get("table")
+    current_time = time.time()
 
-    cursor = database.cursor(dictionary=True)
+    # 1. SERVE FROM RAM CACHE IF VALID
+    if MENU_CACHE["data"] is not None and (current_time - MENU_CACHE["timestamp"] < CACHE_DURATION):
+        seconds_left = int(CACHE_DURATION - (current_time - MENU_CACHE["timestamp"]))
+        print(f"⚡ [CACHE HIT] Serving menu from RAM in 0.001s! (Cache updates in {seconds_left}s)")
+        menu = MENU_CACHE["data"]
 
-    cursor.execute("""
-        SELECT id,name,category,description,price,image
-        FROM menu
-    """)
+    # 2. CACHE EXPIRED OR FIRST RUN -> QUERY MYSQL
+    else:
+        print("🐢 [CACHE EXPIRED/MISS] Querying Aiven MySQL Cloud Database...")
+        database = get_db()
+        cursor = database.cursor(dictionary=True)
 
-    menu = cursor.fetchall()
+        cursor.execute("""
+            SELECT id,name,category,description,price,image
+            FROM menu
+        """)
+
+        menu = cursor.fetchall()
+        cursor.close()
+
+        # 3. SAVE FRESH DATA TO RAM CACHE
+        MENU_CACHE["data"] = menu
+        MENU_CACHE["timestamp"] = current_time
+        print("✅ [CACHE UPDATED] Fresh menu saved to server memory!")
 
     return render_template(
         "index.html",
@@ -223,6 +257,7 @@ def admin():
 
 @app.route("/add_menu", methods=["GET", "POST"])
 def add_menu():
+    global MENU_CACHE
     database = get_db()
     if request.method == "POST":
         name = request.form["name"]
@@ -237,6 +272,10 @@ def add_menu():
             VALUES (%s, %s, %s, %s, %s)
         """, (name, category, description, price, image))
         database.commit()
+
+        # 🔄 CLEAR CACHE SO NEW ITEM SHOWS IMMEDIATELY
+        MENU_CACHE["data"] = None
+
         return redirect("/admin")
 
     return render_template("add_menu.html")
@@ -253,6 +292,7 @@ def manage_menu():
 
 @app.route("/edit_menu/<int:item_id>", methods=["GET", "POST"])
 def edit_menu(item_id):
+    global MENU_CACHE
     database = get_db()
     cursor = database.cursor(dictionary=True)
 
@@ -264,6 +304,10 @@ def edit_menu(item_id):
             UPDATE menu SET name=%s, price=%s WHERE id=%s
         """, (name, price, item_id))
         database.commit()
+
+        # 🔄 CLEAR CACHE SO PRICE EDITS SHOW IMMEDIATELY
+        MENU_CACHE["data"] = None
+
         return redirect("/manage_menu")
 
     cursor.execute("SELECT * FROM menu WHERE id=%s", (item_id,))
@@ -273,6 +317,7 @@ def edit_menu(item_id):
 
 @app.route("/delete_menu/<int:item_id>")
 def delete_menu(item_id):
+    global MENU_CACHE
     database = get_db()
     cursor = database.cursor()
 
@@ -285,6 +330,9 @@ def delete_menu(item_id):
     # Delete the menu item
     cursor.execute("DELETE FROM menu WHERE id=%s", (item_id,))
     database.commit()
+
+    # 🔄 CLEAR CACHE SO DELETED ITEM REMOVES IMMEDIATELY
+    MENU_CACHE["data"] = None
 
     return redirect("/manage_menu")
 
