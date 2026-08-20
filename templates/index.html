@@ -60,13 +60,13 @@
         {% for item in menu %}
         <div class="card" data-category="{{ item.category }}">
             {% if item.image %}
-            <img
-                src="{{ url_for('static', filename='images/' + item.image) }}"
-                class="food-image">
+                {% if item.image.startswith('http') %}
+                    <img src="{{ item.image }}" class="food-image" alt="{{ item.name }}">
+                {% else %}
+                    <img src="{{ url_for('static', filename='images/' + item.image) }}" class="food-image" alt="{{ item.name }}">
+                {% endif %}
             {% else %}
-            <img
-                src="{{ url_for('static', filename='images/default.jpg') }}"
-                class="food-image">
+                <img src="{{ url_for('static', filename='images/default.jpg') }}" class="food-image" alt="Default Image">
             {% endif %}
 
             <div class="card-body">
