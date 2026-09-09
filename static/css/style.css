@@ -26,6 +26,19 @@ body {
     margin: 0 auto;
 }
 
+/* DEBASA QR Brand Tag under Hero Banner */
+.debasa-brand {
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #FFD700;
+    letter-spacing: 1.2px;
+    padding: 10px 0;
+    text-transform: uppercase;
+    background: #0b0b0b;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+}
+
 /* ================= SEARCH ================= */
 
 .search-box {
@@ -34,14 +47,24 @@ body {
     margin: 30px auto;
 }
 
-.search-box input {
+#searchFood {
     width: 100%;
     padding: 18px;
-    border-radius: 40px;
-    border: none;
     font-size: 18px;
-    box-shadow: 0 5px 15px rgba(0,0,0,.15);
+    border: 2px solid transparent;
+    border-radius: 40px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    background-color: #fdfdfd;
     outline: none;
+}
+
+#searchFood:focus {
+    border-color: #ffc107;
+    box-shadow: 0 8px 25px rgba(255, 193, 7, 0.2);
+    transform: translateY(-2px);
+    background-color: #fff;
 }
 
 /* ================= CATEGORY BUTTONS ================= */
@@ -115,6 +138,8 @@ body {
     overflow: hidden;
     box-shadow: 0 8px 25px rgba(0,0,0,.15);
     transition: .3s;
+    display: flex;
+    flex-direction: column;
 }
 
 .card:hover {
@@ -134,10 +159,14 @@ body {
 
 .card-body {
     padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
 }
 
 .category {
     display: inline-block;
+    align-self: flex-start;
     background: #C62828;
     color: #FFD700;
     padding: 6px 14px;
@@ -151,16 +180,19 @@ body {
     margin-bottom: 10px;
 }
 
+/* Fixed Price Overlap: Replaced fixed height with min-height & dynamic spacing */
 .description {
     color: #666;
     line-height: 1.6;
-    height: 65px;
+    min-height: 60px;
+    margin-bottom: 15px;
 }
 
 .card h3 {
-    margin-top: 20px;
+    margin-top: auto;
     color: #C62828;
     font-size: 24px;
+    font-weight: bold;
 }
 
 /* ================= BUTTON ================= */
@@ -226,79 +258,34 @@ footer {
     padding: 30px;
 }
 
-/* ================= MOBILE ================= */
-
-@media(max-width:768px) {
-    .container {
-        grid-template-columns: 1fr;
-    }
-
-    .card {
-        margin-bottom: 20px;
-    }
-}
-
-/* --- ENHANCED SEARCH BAR --- */
-.search-box {
-    width: 90%;
-    max-width: 900px;
-    margin: 30px auto;
-}
-
-#searchFood {
-    width: 100%;
-    padding: 18px;
-    font-size: 18px;
-    border: 2px solid transparent;
-    border-radius: 40px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    box-sizing: border-box;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    background-color: #fdfdfd;
-    outline: none;
-}
-
-#searchFood:focus {
-    border-color: #ffc107;
-    box-shadow: 0 8px 25px rgba(255, 193, 7, 0.2);
-    transform: translateY(-2px);
-    background-color: #fff;
-}
-
 /* ================= DEBASA QR PREMIUM FOOTER ================= */
 
 .debasa-footer {
     margin-top: 50px;
     padding: 35px 20px;
     text-align: center;
-
     background: linear-gradient(
         135deg,
         #0b0b0b 0%,
         #171717 50%,
         #050505 100%
     );
-
     border-top: 1px solid rgba(255, 215, 0, 0.35);
     box-shadow:
         0 -5px 25px rgba(0, 0, 0, 0.35),
         0 -1px 12px rgba(255, 215, 0, 0.08);
-
     position: relative;
     overflow: hidden;
 }
 
-/* Golden glow across the top */
 .debasa-footer::before {
     content: "";
     position: absolute;
     top: 0;
     left: 50%;
     transform: translateX(-50%);
-
     width: 180px;
     height: 2px;
-
     background: linear-gradient(
         90deg,
         transparent,
@@ -307,11 +294,9 @@ footer {
         #FFD700,
         transparent
     );
-
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
 }
 
-/* Hotel name */
 .footer-hotel {
     color: #ffffff;
     font-size: 15px;
@@ -320,7 +305,6 @@ footer {
     margin-bottom: 8px;
 }
 
-/* Hotel slogan */
 .footer-tagline {
     color: #FFD700;
     font-family: 'Great Vibes', cursive;
@@ -329,19 +313,14 @@ footer {
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.25);
 }
 
-/* Debasa branding */
 .footer-powered {
     display: inline-flex;
     align-items: center;
     gap: 7px;
-
     padding: 8px 16px;
-
     border: 1px solid rgba(255, 215, 0, 0.35);
     border-radius: 30px;
-
     background: rgba(255, 215, 0, 0.05);
-
     font-size: 12px;
     letter-spacing: 0.7px;
 }
@@ -354,14 +333,22 @@ footer {
     color: #FFD700;
     font-size: 13px;
     letter-spacing: 1.5px;
-
-    text-shadow:
-        0 0 8px rgba(255, 215, 0, 0.45);
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.45);
 }
 
-/* Mobile adjustment */
-@media (max-width: 600px) {
+/* ================= MOBILE ================= */
 
+@media(max-width:768px) {
+    .container {
+        grid-template-columns: 1fr;
+    }
+
+    .card {
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 600px) {
     .debasa-footer {
         margin-top: 35px;
         padding: 30px 15px;
