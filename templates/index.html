@@ -36,7 +36,7 @@
     <button onclick="filterCategory('Salads')">🥗 Salads</button>
     <button onclick="filterCategory('Magic Mandi Corner')">🍛 Mandi</button>
     <button onclick="filterCategory('Pasta')">🍝 Pasta</button>
-    <button onclick="filterCategory('Grill Point')">🔥 Grill</button>                                                           
+    <button onclick="filterCategory('Grill Point')">🔥 Grill</button>
     <button onclick="filterCategory('Curries')">🍛 Curries</button>
     <button onclick="filterCategory('Pizza')">🍕 Pizza</button>
     <button onclick="filterCategory('Fries & Burgers')">🍔 Burgers</button>
@@ -86,10 +86,22 @@
 
 <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 
-<footer>
-    <p>© 2026 Magic Mandi & Grill</p>
-    <p style="color:#FFD700;">Taste The Legacy</p>
-    <p>Powered by DEBASA QR</p>
+<!-- ================= DEBASA QR FOOTER ================= -->
+<footer class="debasa-footer">
+
+    <div class="footer-hotel">
+        © 2026 Magic Mandi & Grill
+    </div>
+
+    <div class="footer-tagline">
+        Taste The Legacy
+    </div>
+
+    <div class="footer-powered">
+        <span>Powered by</span>
+        <strong>DEBASA QR</strong>
+    </div>
+
 </footer>
 
 </body>
