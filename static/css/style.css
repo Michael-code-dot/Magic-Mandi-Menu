@@ -1,21 +1,34 @@
+:root {
+    --bg-primary: #0a0c10;
+    --bg-surface: #141720;
+    --bg-card: #1c212c;
+    --text-main: #f3f4f6;
+    --text-muted: #9ca3af;
+    --brand-red: #d32f2f;
+    --brand-dark-red: #8b0000;
+    --accent-gold: #ffd700;
+    --accent-gold-glow: rgba(255, 215, 0, 0.2);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+}
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 body {
-    background: #f5f5f5;
+    background: var(--bg-primary);
+    color: var(--text-main);
+    overflow-x: hidden;
 }
 
 /* ================= HERO / HEADER BANNER ================= */
 
 .hero {
     width: 100%;
-    background-color: #000000;
-    padding: 0;
-    margin: 0;
+    background-color: var(--bg-primary);
 }
 
 .header-banner {
@@ -26,45 +39,48 @@ body {
     margin: 0 auto;
 }
 
-/* DEBASA QR Brand Tag under Hero Banner */
 .debasa-brand {
     text-align: center;
     font-size: 0.85rem;
     font-weight: 700;
-    color: #FFD700;
-    letter-spacing: 1.2px;
-    padding: 10px 0;
+    color: var(--accent-gold);
+    letter-spacing: 2px;
+    padding: 12px 0;
     text-transform: uppercase;
-    background: #0b0b0b;
-    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+    background: linear-gradient(180deg, #050505, #0b0b0b);
+    border-bottom: 1px solid rgba(255, 215, 0, 0.15);
 }
 
 /* ================= SEARCH ================= */
 
 .search-box {
     width: 90%;
-    max-width: 900px;
-    margin: 30px auto;
+    max-width: 800px;
+    margin: 35px auto;
 }
 
 #searchFood {
     width: 100%;
-    padding: 18px;
-    font-size: 18px;
-    border: 2px solid transparent;
-    border-radius: 40px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    box-sizing: border-box;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    background-color: #fdfdfd;
+    padding: 18px 24px;
+    font-size: 16px;
+    color: var(--text-main);
+    border: 1px solid var(--border-subtle);
+    border-radius: 50px;
+    background-color: var(--bg-surface);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
     outline: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#searchFood::placeholder {
+    color: var(--text-muted);
 }
 
 #searchFood:focus {
-    border-color: #ffc107;
-    box-shadow: 0 8px 25px rgba(255, 193, 7, 0.2);
+    border-color: var(--accent-gold);
+    box-shadow: 0 15px 40px var(--accent-gold-glow);
     transform: translateY(-2px);
-    background-color: #fff;
+    background-color: var(--bg-card);
 }
 
 /* ================= CATEGORY BUTTONS ================= */
@@ -74,91 +90,97 @@ body {
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
-    gap: 18px;
-    margin: 25px auto 35px;
+    gap: 14px;
+    margin: 25px auto 40px;
     padding: 0 20px;
 }
 
 .category-nav button {
-    background: #ffffff;
-    color: #C62828;
-    border: 2px solid #FFD700;
-    padding: 14px 24px;
-    border-radius: 40px;
-    font-size: 16px;
-    font-weight: bold;
+    background: var(--bg-surface);
+    color: #ff8a80;
+    border: 1px solid rgba(211, 47, 47, 0.4);
+    padding: 12px 22px;
+    border-radius: 50px;
+    font-size: 15px;
+    font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 5px 15px rgba(0,0,0,.15);
-    transition: .3s;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .category-nav button:hover {
-    background: #C62828;
+    background: var(--brand-red);
     color: #ffffff;
-    border: 2px solid #C62828;
-    transform: translateY(-4px);
-    box-shadow: 0 10px 20px rgba(198,40,40,.3);
+    border-color: var(--brand-red);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(211, 47, 47, 0.4);
 }
 
 .category-nav button:active {
-    transform: scale(.96);
+    transform: scale(0.96);
 }
 
 /* ================= TABLE ================= */
 
 .table-card {
     width: 90%;
-    max-width: 900px;
-    margin: auto;
-    background: white;
-    padding: 20px;
-    border-radius: 15px;
+    max-width: 800px;
+    margin: 0 auto 35px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    padding: 24px;
+    border-radius: 20px;
     text-align: center;
-    box-shadow: 0 5px 15px rgba(0,0,0,.1);
-    margin-bottom: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .table-card h2 {
-    color: #8B0000;
+    color: var(--accent-gold);
+    font-size: 1.5rem;
+    letter-spacing: 0.5px;
 }
 
 /* ================= MENU GRID ================= */
 
 .container {
     width: 90%;
+    max-width: 1200px;
     margin: auto;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 30px;
 }
 
 .card {
-    background: white;
-    border-radius: 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 24px;
     overflow: hidden;
-    box-shadow: 0 8px 25px rgba(0,0,0,.15);
-    transition: .3s;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
 }
 
 .card:hover {
-    transform: translateY(-10px);
+    transform: translateY(-8px);
+    border-color: rgba(255, 215, 0, 0.3);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 20px var(--accent-gold-glow);
 }
 
 .food-image {
     width: 100%;
-    height: 240px;
+    height: 220px;
     object-fit: cover;
-    transition: .4s;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card:hover .food-image {
-    transform: scale(1.08);
+    transform: scale(1.06);
 }
 
 .card-body {
-    padding: 20px;
+    padding: 24px;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
@@ -167,113 +189,123 @@ body {
 .category {
     display: inline-block;
     align-self: flex-start;
-    background: #C62828;
-    color: #FFD700;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 13px;
-    margin-bottom: 10px;
+    background: rgba(211, 47, 47, 0.15);
+    color: #ff8a80;
+    border: 1px solid rgba(211, 47, 47, 0.3);
+    padding: 5px 12px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
 }
 
 .card h2 {
-    color: #2c3e50;
+    color: var(--text-main);
+    font-size: 1.25rem;
+    font-weight: 700;
     margin-bottom: 10px;
 }
 
-/* Fixed Price Overlap: Replaced fixed height with min-height & dynamic spacing */
 .description {
-    color: #666;
+    color: var(--text-muted);
+    font-size: 0.92rem;
     line-height: 1.6;
-    min-height: 60px;
-    margin-bottom: 15px;
+    min-height: 55px;
+    margin-bottom: 20px;
 }
 
 .card h3 {
     margin-top: auto;
-    color: #C62828;
-    font-size: 24px;
-    font-weight: bold;
+    color: var(--accent-gold);
+    font-size: 1.35rem;
+    font-weight: 700;
 }
 
 /* ================= BUTTON ================= */
 
 .add-btn {
     width: 100%;
-    margin-top: 20px;
-    padding: 15px;
+    margin-top: 18px;
+    padding: 14px;
     border: none;
-    background: #8B0000;
+    background: linear-gradient(135deg, var(--brand-red), var(--brand-dark-red));
     color: white;
-    font-size: 18px;
-    border-radius: 40px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 50px;
     cursor: pointer;
-    transition: .3s;
+    box-shadow: 0 4px 15px rgba(211, 47, 47, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .add-btn:hover {
-    background: #c59d5f;
+    background: linear-gradient(135deg, #e53935, var(--brand-red));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(211, 47, 47, 0.5);
 }
 
 /* ================= CART ================= */
 
 .cart-box {
     width: 90%;
-    max-width: 900px;
-    margin: 40px auto;
-    background: white;
-    padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0 8px 25px rgba(0,0,0,.15);
+    max-width: 800px;
+    margin: 50px auto;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    padding: 35px;
+    border-radius: 24px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
 }
 
 .cart-box h2 {
-    color: #8B0000;
+    color: var(--accent-gold);
     margin-bottom: 20px;
+    font-size: 1.5rem;
 }
 
 .checkout {
     width: 100%;
-    padding: 18px;
+    padding: 16px;
     margin-top: 20px;
-    background: #27ae60;
+    background: linear-gradient(135deg, #2e7d32, #1b5e20);
     color: white;
     border: none;
-    border-radius: 40px;
-    font-size: 22px;
+    border-radius: 50px;
+    font-size: 18px;
+    font-weight: 700;
     cursor: pointer;
-    transition: .3s;
+    box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .checkout:hover {
-    background: #219150;
+    background: linear-gradient(135deg, #388e3c, #2e7d32);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(46, 125, 50, 0.5);
 }
 
 /* ================= FOOTER ================= */
 
 footer {
-    margin-top: 60px;
-    background: #222;
-    color: white;
+    margin-top: 80px;
+    background: #0d0f12;
+    color: var(--text-muted);
     text-align: center;
     padding: 30px;
+    border-top: 1px solid var(--border-subtle);
 }
 
 /* ================= DEBASA QR PREMIUM FOOTER ================= */
 
 .debasa-footer {
-    margin-top: 50px;
-    padding: 35px 20px;
+    margin-top: 60px;
+    padding: 40px 20px;
     text-align: center;
-    background: linear-gradient(
-        135deg,
-        #0b0b0b 0%,
-        #171717 50%,
-        #050505 100%
-    );
-    border-top: 1px solid rgba(255, 215, 0, 0.35);
-    box-shadow:
-        0 -5px 25px rgba(0, 0, 0, 0.35),
-        0 -1px 12px rgba(255, 215, 0, 0.08);
+    background: linear-gradient(135deg, #0a0c10 0%, #141720 50%, #0a0c10 100%);
+    border-top: 1px solid rgba(255, 215, 0, 0.3);
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
     position: relative;
     overflow: hidden;
 }
@@ -284,81 +316,60 @@ footer {
     top: 0;
     left: 50%;
     transform: translateX(-50%);
-    width: 180px;
+    width: 200px;
     height: 2px;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        #FFD700,
-        #FFF3A0,
-        #FFD700,
-        transparent
-    );
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+    background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+    box-shadow: 0 0 15px var(--accent-gold);
 }
 
 .footer-hotel {
     color: #ffffff;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 600;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
     margin-bottom: 8px;
 }
 
 .footer-tagline {
-    color: #FFD700;
-    font-family: 'Great Vibes', cursive;
-    font-size: 25px;
-    margin-bottom: 18px;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.25);
+    color: var(--accent-gold);
+    font-style: italic;
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    text-shadow: 0 0 12px var(--accent-gold-glow);
 }
 
 .footer-powered {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    padding: 8px 16px;
-    border: 1px solid rgba(255, 215, 0, 0.35);
-    border-radius: 30px;
-    background: rgba(255, 215, 0, 0.05);
+    gap: 8px;
+    padding: 10px 20px;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 50px;
+    background: rgba(255, 215, 0, 0.04);
     font-size: 12px;
-    letter-spacing: 0.7px;
+    letter-spacing: 0.8px;
 }
 
 .footer-powered span {
-    color: #bdbdbd;
+    color: var(--text-muted);
 }
 
 .footer-powered strong {
-    color: #FFD700;
+    color: var(--accent-gold);
     font-size: 13px;
     letter-spacing: 1.5px;
-    text-shadow: 0 0 8px rgba(255, 215, 0, 0.45);
+    text-shadow: 0 0 8px var(--accent-gold-glow);
 }
 
-/* ================= MOBILE ================= */
+/* ================= MOBILE RESPONSIVE ================= */
 
-@media(max-width:768px) {
+@media(max-width: 768px) {
     .container {
         grid-template-columns: 1fr;
+        width: 92%;
     }
 
     .card {
-        margin-bottom: 20px;
-    }
-}
-
-@media (max-width: 600px) {
-    .debasa-footer {
-        margin-top: 35px;
-        padding: 30px 15px;
-    }
-
-    .footer-tagline {
-        font-size: 22px;
-    }
-
-    .footer-powered {
-        padding: 7px 14px;
+        margin-bottom: 10px;
     }
 }
