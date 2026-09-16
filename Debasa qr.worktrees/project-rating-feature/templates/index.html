@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Magic Mandi & Grill | Powered by DEBASA QR</title>
+    <title>Magic Mandi & Grill</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
@@ -36,7 +36,7 @@
     <button onclick="filterCategory('Salads')">🥗 Salads</button>
     <button onclick="filterCategory('Magic Mandi Corner')">🍛 Mandi</button>
     <button onclick="filterCategory('Pasta')">🍝 Pasta</button>
-    <button onclick="filterCategory('Grill Point')">🔥 Grill</button>
+    <button onclick="filterCategory('Grill Point')">🔥 Grill</button>                                                           
     <button onclick="filterCategory('Curries')">🍛 Curries</button>
     <button onclick="filterCategory('Pizza')">🍕 Pizza</button>
     <button onclick="filterCategory('Fries & Burgers')">🍔 Burgers</button>
@@ -47,7 +47,6 @@
     <button onclick="filterCategory('Lemonades')">🍋 Lemonades</button>
     <button onclick="filterCategory('Mojitos')">🍸 Mojitos</button>
     <button onclick="filterCategory('Kids Special Menu')">🧒 Kids</button>
-    <button onclick="filterCategory('Specials')">🍰 Specials</button>
 </div>
 
 <!-- ================= TABLE ================= -->
@@ -61,13 +60,13 @@
         {% for item in menu %}
         <div class="card" data-category="{{ item.category }}">
             {% if item.image %}
-                {% if item.image.startswith('http') %}
-                    <img src="{{ item.image }}" class="food-image" alt="{{ item.name }}">
-                {% else %}
-                    <img src="{{ url_for('static', filename='images/' + item.image) }}" class="food-image" alt="{{ item.name }}">
-                {% endif %}
+            <img
+                src="{{ url_for('static', filename='images/' + item.image) }}"
+                class="food-image">
             {% else %}
-                <img src="{{ url_for('static', filename='images/default.jpg') }}" class="food-image" alt="Default Image">
+            <img
+                src="{{ url_for('static', filename='images/default.jpg') }}"
+                class="food-image">
             {% endif %}
 
             <div class="card-body">
@@ -87,22 +86,9 @@
 
 <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 
-<footer class="debasa-footer">
-    <div class="signature-line"></div>
-    
-    <div class="footer-hotel">
-        © 2026 Magic Mandi & Grill
-    </div>
-    
-    <div class="footer-divider"></div>
-    
-    <div class="footer-tagline">
-        Taste The Legacy
-    </div>
-
-    <div class="footer-powered">
-        Powered by <span class="boss-span">DEBASA QR</span>
-    </div>
+<footer>
+    <p>© 2026 Magic Mandi & Grill</p>
+    <p style="color:#FFD700;">Taste The Legacy</p>
 </footer>
 
 </body>
