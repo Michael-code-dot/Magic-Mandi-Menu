@@ -1,118 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add New Dish - Magic Mandi & Grill</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background: linear-gradient(-45deg, #1e3c72, #2a5298, #ff6a00, #ee0979);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            color: white;
-            min-height: 100vh;
-        }
-        @keyframes gradientBG { 0% {background-position: 0% 50%;} 50% {background-position: 100% 50%;} 100% {background-position: 0% 50%;} }
-        
-        .glass-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
-        }
-        .glass-header {
-            background: rgba(0, 0, 0, 0.2);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px 20px 0 0;
-        }
-        .glass-input {
-            background: rgba(255, 255, 255, 0.15) !important;
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
-            color: white !important;
-            border-radius: 10px;
-        }
-        .glass-input:focus {
-            background: rgba(255, 255, 255, 0.25) !important;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-            border-color: white !important;
-        }
-        .glass-input::placeholder { color: rgba(255,255,255,0.6) !important; }
-        
-        select.glass-input option {
-            background: #2a5298;
-            color: white;
-        }
-        
-        label { font-weight: 500; letter-spacing: 0.5px; color: rgba(255,255,255,0.9) !important; }
-    </style>
+
+    <title>Magic Mandi & Grill | Powered by DEBASA QR</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body class="d-flex align-items-center justify-content-center">
 
-<div class="container mt-5 mb-5" style="max-width: 600px;">
-    <div class="glass-card">
-        <div class="glass-header p-4 text-center">
-            <h3 class="mb-0 fw-bold">➕ Add New Menu Item</h3>
-        </div>
-        <div class="card-body p-4 p-md-5">
-            
-            <form action="/add_menu" method="POST">
-                <div class="mb-4">
-                    <label class="form-label">Dish Name</label>
-                    <input type="text" class="form-control glass-input py-2" name="name" placeholder="e.g. Chicken Mandi" required>
-                </div>
+<body>
 
-                <div class="mb-4">
-                    <label class="form-label">Category</label>
-                    <select class="form-select glass-input py-2" name="category" required>
-                        <option value="Soups">🍲 Soups</option>
-                        <option value="Breakfast">🍳 Breakfast</option>
-                        <option value="Salads">🥗 Salads</option>
-                        <option value="Mandi">🍛 Mandi</option>
-                        <option value="Pasta">🍝 Pasta</option>
-                        <option value="Grill">🔥 Grill</option>
-                        <option value="Curries">🍛 Curries</option>
-                        <option value="Pizza">🍕 Pizza</option>
-                        <option value="Burgers">🍔 Burgers</option>
-                        <option value="Hot Drinks">☕ Hot Drinks</option>
-                        <option value="Milkshakes">🥤 Milkshakes</option>
-                        <option value="Smoothies">🍹 Smoothies</option>
-                        <option value="Fresh Juices">🧃 Fresh Juices</option>
-                        <option value="Lemonades">🍋 Lemonades</option>
-                        <option value="Mojitos">🍸 Mojitos</option>
-                        <option value="Kids">🧒 Kids</option>
-                        <option value="Specials">👌Specials</option>
-                    </select>
+<!-- ================= HEADER ================= -->
+<header class="hero">
+    <img 
+        src="{{ url_for('static', filename='images/header-banner.jpg') }}" 
+        alt="Magic Mandi & Grill" 
+        class="header-banner">
+</header>
 
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label">Description (Optional)</label>
-                    <textarea class="form-control glass-input" name="description" rows="2" placeholder="Delicious slow-cooked chicken..."></textarea>
-                </div>
-                
-                <div class="mb-4">
-                    <label class="form-label">Price (KSh)</label>
-                    <input type="number" step="0.01" class="form-control glass-input py-2" name="price" placeholder="e.g. 1200" required>
-                </div>
-
-                <div class="mb-5">
-                    <label class="form-label">Image Filename</label>
-                    <input type="text" class="form-control glass-input py-2" name="image" placeholder="e.g. chicken_mandi.jpg" required>
-                    <small style="color: rgba(255,255,255,0.6);">Make sure this image is in your static/images folder.</small>
-                </div>
-
-                <div class="d-flex justify-content-between mt-4">
-                    <a href="/manage_menu" class="btn btn-outline-light rounded-pill px-4">Cancel</a>
-                    <button type="submit" class="btn btn-light fw-bold rounded-pill px-5 text-dark shadow">Save Dish</button>
-                </div>
-            </form>
-
-        </div>
-    </div>
+<!-- ================= SEARCH ================= -->
+<div class="search-box">
+    <input
+        type="text"
+        id="searchFood"
+        placeholder="🔍 Search meals or drinks...">
 </div>
+
+<!-- ================= CATEGORY MENU ================= -->
+<div class="category-nav">
+    <button onclick="filterCategory('All')">🍽 All</button>
+    <button onclick="filterCategory('Mandi')">🍛 Mandi</button>
+    <button onclick="filterCategory('Grill')">🔥 Grill</button>
+    <button onclick="filterCategory('Breakfast')">🍳 Breakfast</button>
+    <button onclick="filterCategory('Coffee')">☕ Coffee</button>
+    <button onclick="filterCategory('Iced Coffee')">🧊 Iced Coffee</button>
+    <button onclick="filterCategory('Juices')">🍹 Juices</button>
+    <button onclick="filterCategory('Milkshakes')">🥤 Milkshakes</button>
+    <button onclick="filterCategory('Smoothies')">🥤 Smoothies</button>
+    <button onclick="filterCategory('Mocktails')">🍸 Mocktails</button>
+    <button onclick="filterCategory('Lemonades')">🍋 Lemonades</button>
+    <button onclick="filterCategory('Fruit Chillers')">🍧 Fruit Chillers</button>
+    <button onclick="filterCategory('Burgers')">🍔 Burgers</button>
+    <button onclick="filterCategory('Pizzas')">🍕 Pizzas</button>
+    <button onclick="filterCategory('Pastas')">🍝 Pastas</button>
+    <button onclick="filterCategory('Salads')">🥗 Salads</button>
+    <button onclick="filterCategory('Specials')">👌 Specials</button>
+    <button onclick="filterCategory('Snacks')">🥟 Snacks</button>
+    <button onclick="filterCategory('Accompaniments')">🍟 Accompaniments</button>
+    <button onclick="filterCategory('Seafood')">🦞 Seafood</button>
+    <button onclick="filterCategory('Biryani')">🍲 Biryani</button>
+    <button onclick="filterCategory('Cakes')">🍰 Cakes</button>
+    <button onclick="filterCategory('Ice Cream')">🍨 Ice Cream</button>
+    <button onclick="filterCategory('Kids Menu')">🧒 Kids Menu</button>
+    <button onclick="filterCategory('Soft drinks')">🥤 Soft drinks</button>
+</div>
+
+<!-- ================= TABLE ================= -->
+<div class="table-card">
+    <h2>📍 Table {{ table }}</h2>
+</div>
+
+<!-- ================= MENU ================= -->
+<section id="menu-section">
+    <div class="container">
+        {% for item in menu %}
+        <div class="card" data-category="{{ item.category }}">
+            {% if item.image %}
+                {% if item.image.startswith('http') %}
+                    <img src="{{ item.image }}" class="food-image" alt="{{ item.name }}">
+                {% else %}
+                    <img src="https://raw.githubusercontent.com/Michael-code-dot/hotel-qr-redirect/refs/heads/main/image/{{ item.image }}" class="food-image" alt="{{ item.name }}">
+                {% endif %}
+            {% else %}
+                <img src="{{ url_for('static', filename='images/default.jpg') }}" class="food-image" alt="Default Image">
+            {% endif %}
+
+            <div class="card-body">
+                <span class="category">
+                    {{ item.category }}
+                </span>
+                <h2>{{ item.name }}</h2>
+                <p class="description">
+                    {{ item.description }}
+                </p>
+                <h3>KSh {{ item.price }}</h3>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+<footer class="debasa-footer">
+    <div class="signature-line"></div>
+    
+    <div class="footer-hotel">
+        © 2026 Magic Mandi & Grill
+    </div>
+    
+    <div class="footer-divider"></div>
+    
+    <div class="footer-tagline">
+        Taste The Legacy
+    </div>
+
+    <div class="footer-powered">
+        Powered by <span class="boss-span">DEBASA QR</span>
+    </div>
+</footer>
 
 </body>
 </html>

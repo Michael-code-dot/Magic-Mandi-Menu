@@ -31,23 +31,30 @@
 <!-- ================= CATEGORY MENU ================= -->
 <div class="category-nav">
     <button onclick="filterCategory('All')">🍽 All</button>
-    <button onclick="filterCategory('Soups')">🍲 Soups</button>
-    <button onclick="filterCategory('Classic Breakfast')">🍳 Breakfast</button>
-    <button onclick="filterCategory('Salads')">🥗 Salads</button>
-    <button onclick="filterCategory('Magic Mandi Corner')">🍛 Mandi</button>
-    <button onclick="filterCategory('Pasta')">🍝 Pasta</button>
-    <button onclick="filterCategory('Grill Point')">🔥 Grill</button>
-    <button onclick="filterCategory('Curries')">🍛 Curries</button>
-    <button onclick="filterCategory('Pizza')">🍕 Pizza</button>
-    <button onclick="filterCategory('Fries & Burgers')">🍔 Burgers</button>
-    <button onclick="filterCategory('Hot Drinks')">☕ Hot Drinks</button>
+    <button onclick="filterCategory('Mandi')">🍛 Mandi</button>
+    <button onclick="filterCategory('Grill')">🔥 Grill</button>
+    <button onclick="filterCategory('Breakfast')">🍳 Breakfast</button>
+    <button onclick="filterCategory('Coffee')">☕ Coffee</button>
+    <button onclick="filterCategory('Iced Coffee')">🧊 Iced Coffee</button>
+    <button onclick="filterCategory('Juices')">🍹 Juices</button>
     <button onclick="filterCategory('Milkshakes')">🥤 Milkshakes</button>
     <button onclick="filterCategory('Smoothies')">🥤 Smoothies</button>
-    <button onclick="filterCategory('Fresh Juice')">🍹 Fresh Juices</button>
+    <button onclick="filterCategory('Mocktails')">🍸 Mocktails</button>
     <button onclick="filterCategory('Lemonades')">🍋 Lemonades</button>
-    <button onclick="filterCategory('Mojitos')">🍸 Mojitos</button>
-    <button onclick="filterCategory('Kids Special Menu')">🧒 Kids</button>
-    <button onclick="filterCategory('Specials')">👌Specials</button>
+    <button onclick="filterCategory('Fruit Chillers')">🍧 Fruit Chillers</button>
+    <button onclick="filterCategory('Burgers')">🍔 Burgers</button>
+    <button onclick="filterCategory('Pizzas')">🍕 Pizzas</button>
+    <button onclick="filterCategory('Pastas')">🍝 Pastas</button>
+    <button onclick="filterCategory('Salads')">🥗 Salads</button>
+    <button onclick="filterCategory('Specials')">👌 Specials</button>
+    <button onclick="filterCategory('Snacks')">🥟 Snacks</button>
+    <button onclick="filterCategory('Accompaniments')">🍟 Accompaniments</button>
+    <button onclick="filterCategory('Seafood')">🦞 Seafood</button>
+    <button onclick="filterCategory('Biryani')">🍲 Biryani</button>
+    <button onclick="filterCategory('Cakes')">🍰 Cakes</button>
+    <button onclick="filterCategory('Ice Cream')">🍨 Ice Cream</button>
+    <button onclick="filterCategory('Kids Menu')">🧒 Kids Menu</button>
+    <button onclick="filterCategory('Soft drinks')">🥤 Soft drinks</button>
 </div>
 
 <!-- ================= TABLE ================= -->
@@ -64,7 +71,7 @@
                 {% if item.image.startswith('http') %}
                     <img src="{{ item.image }}" class="food-image" alt="{{ item.name }}">
                 {% else %}
-                    <img src="{{ url_for('static', filename='images/' + item.image) }}" class="food-image" alt="{{ item.name }}">
+                    <img src="https://raw.githubusercontent.com/Michael-code-dot/hotel-qr-redirect/refs/heads/main/image/{{ item.image }}" class="food-image" alt="{{ item.name }}">
                 {% endif %}
             {% else %}
                 <img src="{{ url_for('static', filename='images/default.jpg') }}" class="food-image" alt="Default Image">
