@@ -298,14 +298,7 @@ def add_menu():
         category = request.form["category"]
         description = request.form["description"]
         price = request.form["price"]
-        image_input = request.form["image"].strip()
-
-        # ⚡ AUTOMATIC GITHUB RAW URL FORMATTING
-        github_base = "https://raw.githubusercontent.com/Michael-code-dot/hotel-qr-redirect/refs/heads/main/image/"
-        if image_input and not image_input.startswith('http'):
-            image = github_base + image_input
-        else:
-            image = image_input
+        image = request.form["image"]
 
         cursor = database.cursor()
         cursor.execute("""
