@@ -5,27 +5,18 @@ import mysql.connector
 
 app = Flask(__name__)
 
-# Force browser to cache static images/CSS locally for 7 days
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 604800 
-
-# Security configuration for admin session login
 app.secret_key = 'magic_mandi_super_secret_key_change_this'
-ADMIN_PASSWORD = "mandi123_secure"  # Change this password whenever you want
+ADMIN_PASSWORD = "mandi123_secure"
 
-
-# ==========================================================
-# ⚡ IN-MEMORY CACHE CONFIGURATION
-# ==========================================================
 MENU_CACHE = {
     "data": None,
     "timestamp": 0
 }
-CACHE_DURATION = 300  # 300 seconds = 5 Minutes
+CACHE_DURATION = 300
 
-
-# Dynamic Database Connection (Reads from Environment Variables with Aiven Cloud Fallbacks)
 def connect_to_db():
-    return mysql.connector.connect(
+    db = mysql.connector.connect(
         host=os.getenv("MYSQLHOST", "magic-mandi-db-lekantrevon-f36c.h.aivencloud.com"),
         user=os.getenv("MYSQLUSER", "avnadmin"),
         password=os.getenv("MYSQLPASSWORD"),
@@ -33,60 +24,74 @@ def connect_to_db():
         port=int(os.getenv("MYSQLPORT", 15691)),
         ssl_disabled=False
     )
+    # Automatically initialize tables if they don't exist
+    cursor = db.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS menu (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255),
+        category VARCHAR(100),
+        description TEXT,
+        price DECIMAL(10,2),
+        image VARCHAR(255)
+    )''')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS orders (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        customer_name VARCHAR(255),
+        table_number INT,
+        total DECIMAL(10,2),
+        waiter_id INT,
+        status VARCHAR(50) DEFAULT 'Pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )''')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS order_items (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        order_id INT,
+        menu_name VARCHAR(255),
+        quantity INT,
+        price DECIMAL(10,2)
+    )''')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS waiters (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255)
+    )''')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS table_assignments (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        table_number INT,
+        waiter_id INT
+    )''')
+    db.commit()
+    cursor.close()
+    return db
 
-# Get a database connection unique to the CURRENT HTTP request
 def get_db():
     if 'db' not in g:
         g.db = connect_to_db()
     return g.db
 
-# Automatically close the database connection when the request completes
 @app.teardown_appcontext
 def close_db(exception=None):
     db = g.pop('db', None)
     if db is not None and db.is_connected():
         db.close()
 
-
-# ==========================================================
-# 🏨 CUSTOMER MENU ROUTE (CACHED FOR 200+ SCANS)
-# ==========================================================
 @app.route('/')
 def index():
     table = request.args.get("table")
     current_time = time.time()
 
-    # 1. SERVE FROM RAM CACHE IF VALID
     if MENU_CACHE["data"] is not None and (current_time - MENU_CACHE["timestamp"] < CACHE_DURATION):
-        seconds_left = int(CACHE_DURATION - (current_time - MENU_CACHE["timestamp"]))
-        print(f"⚡ [CACHE HIT] Serving menu from RAM in 0.001s! (Cache updates in {seconds_left}s)")
         menu = MENU_CACHE["data"]
-
-    # 2. CACHE EXPIRED OR FIRST RUN -> QUERY MYSQL
     else:
-        print("🐢 [CACHE EXPIRED/MISS] Querying Aiven MySQL Cloud Database...")
         database = get_db()
         cursor = database.cursor(dictionary=True)
-
-        cursor.execute("""
-            SELECT id,name,category,description,price,image
-            FROM menu
-        """)
-
+        cursor.execute("SELECT id, name, category, description, price, image FROM menu")
         menu = cursor.fetchall()
         cursor.close()
 
-        # 3. SAVE FRESH DATA TO RAM CACHE
         MENU_CACHE["data"] = menu
         MENU_CACHE["timestamp"] = current_time
-        print("✅ [CACHE UPDATED] Fresh menu saved to server memory!")
 
-    return render_template(
-        "index.html",
-        menu=menu,
-        table=table
-    )
-
+    return render_template("index.html", menu=menu, table=table)
 
 @app.route("/place_order", methods=["POST"])
 def place_order():
@@ -99,138 +104,29 @@ def place_order():
     total = data["total"]
 
     cursor = database.cursor(dictionary=True)
-
-    # Find the waiter assigned to this table
-    cursor.execute("""
-        SELECT waiter_id
-        FROM table_assignments
-        WHERE table_number=%s
-    """, (table_number,))
-
+    cursor.execute("SELECT waiter_id FROM table_assignments WHERE table_number=%s", (table_number,))
     assignment = cursor.fetchone()
 
-    if assignment is None:
-        return jsonify({"message": "No waiter assigned to this table."}), 400
+    waiter_id = assignment["waiter_id"] if assignment else 1
 
-    waiter_id = assignment["waiter_id"]
-
-    # Save the order
     cursor.execute("""
-        INSERT INTO orders
-        (customer_name, table_number, total, waiter_id)
+        INSERT INTO orders (customer_name, table_number, total, waiter_id)
         VALUES (%s, %s, %s, %s)
-    """, (
-        customer_name,
-        table_number,
-        total,
-        waiter_id
-    ))
+    """, (customer_name, table_number, total, waiter_id))
 
     order_id = cursor.lastrowid
 
-    # Save ordered items
     for item in cart:
         cursor.execute("""
-            INSERT INTO order_items
-            (order_id, menu_name, quantity, price)
+            INSERT INTO order_items (order_id, menu_name, quantity, price)
             VALUES (%s, %s, %s, %s)
-        """, (
-            order_id,
-            item["name"],
-            item["quantity"],
-            item["price"]
-        ))
+        """, (order_id, item["name"], item["quantity"], item["price"]))
 
     database.commit()
+    cursor.close()
 
-    return jsonify({
-        "message": "Order placed successfully!",
-        "order_id": order_id
-    })
+    return jsonify({"message": "Order placed successfully!", "order_id": order_id})
 
-
-@app.route("/waiter")
-def waiter():
-    database = get_db()
-    cursor = database.cursor(dictionary=True)
-
-    cursor.execute("""
-        SELECT
-            orders.*,
-            waiters.name AS waiter_name
-        FROM orders
-        LEFT JOIN waiters
-        ON orders.waiter_id = waiters.id
-        ORDER BY orders.created_at DESC
-    """)
-
-    orders = cursor.fetchall()
-
-    for order in orders:
-        cursor.execute("""
-            SELECT menu_name, quantity, price
-            FROM order_items
-            WHERE order_id=%s
-        """, (order["id"],))
-
-        order["items"] = cursor.fetchall()
-
-    return render_template(
-        "waiter.html",
-        orders=orders
-    )
-
-
-@app.route("/kitchen_data")
-def kitchen_data():
-    database = get_db()
-    cursor = database.cursor(dictionary=True)
-
-    cursor.execute("""
-        SELECT
-            orders.*,
-            waiters.name AS waiter_name
-        FROM orders
-        LEFT JOIN waiters
-        ON orders.waiter_id = waiters.id
-        ORDER BY orders.created_at DESC
-    """)
-
-    orders = cursor.fetchall()
-
-    for order in orders:
-        cursor.execute("""
-            SELECT menu_name, quantity, price
-            FROM order_items
-            WHERE order_id=%s
-        """, (order["id"],))
-
-        order["items"] = cursor.fetchall()
-
-    return jsonify(orders)
-
-
-@app.route("/complete/<int:order_id>")
-def complete_order(order_id):
-    database = get_db()
-    cursor = database.cursor()
-    cursor.execute("UPDATE orders SET status='Completed' WHERE id=%s", (order_id,))
-    database.commit()
-    return redirect("/kitchen")
-
-
-@app.route("/preparing/<int:order_id>")
-def preparing_order(order_id):
-    database = get_db()
-    cursor = database.cursor()
-    cursor.execute("UPDATE orders SET status='Preparing' WHERE id=%s", (order_id,))
-    database.commit()
-    return redirect("/kitchen")
-
-
-# ==========================================================
-# 🔐 ADMIN AUTHENTICATION ROUTES
-# ==========================================================
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     error = None
@@ -242,16 +138,11 @@ def admin_login():
             error = 'Incorrect Password. Please try again.'
     return render_template('admin_login.html', error=error)
 
-
 @app.route('/admin/logout')
 def admin_logout():
     session.pop('admin_logged_in', None)
     return redirect(url_for('admin_login'))
 
-
-# ==========================================================
-# 🛠️ PROTECTED ADMIN & MENU MANAGEMENT ROUTES
-# ==========================================================
 @app.route("/admin")
 def admin():
     if not session.get('admin_logged_in'):
@@ -260,22 +151,19 @@ def admin():
     database = get_db()
     cursor = database.cursor(dictionary=True)
 
-    # Total orders
     cursor.execute("SELECT COUNT(*) AS total FROM orders")
     total_orders = cursor.fetchone()["total"]
 
-    # Total revenue
     cursor.execute("SELECT SUM(total) AS revenue FROM orders")
     result = cursor.fetchone()
-    revenue = result["revenue"] if result["revenue"] else 0
+    revenue = result["revenue"] if result["revenue"] and result["revenue"] else 0
 
-    # Preparing orders
     cursor.execute("SELECT COUNT(*) AS total FROM orders WHERE status='Preparing'")
     preparing = cursor.fetchone()["total"]
 
-    # Completed orders
     cursor.execute("SELECT COUNT(*) AS total FROM orders WHERE status='Completed'")
     completed = cursor.fetchone()["total"]
+    cursor.close()
 
     return render_template(
         "admin.html",
@@ -285,6 +173,17 @@ def admin():
         completed=completed
     )
 
+@app.route("/manage_menu")
+def manage_menu():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+
+    database = get_db()
+    cursor = database.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM menu")
+    menu = cursor.fetchall()
+    cursor.close()
+    return render_template("manage_menu.html", menu=menu)
 
 @app.route("/add_menu", methods=["GET", "POST"])
 def add_menu():
@@ -306,144 +205,12 @@ def add_menu():
             VALUES (%s, %s, %s, %s, %s)
         """, (name, category, description, price, image))
         database.commit()
+        cursor.close()
 
-        # 🔄 CLEAR CACHE SO NEW ITEM SHOWS IMMEDIATELY
         MENU_CACHE["data"] = None
-
         return redirect("/admin")
 
     return render_template("add_menu.html")
-
-
-@app.route("/manage_menu")
-def manage_menu():
-    if not session.get('admin_logged_in'):
-        return redirect(url_for('admin_login'))
-
-    database = get_db()
-    cursor = database.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM menu")
-    menu = cursor.fetchall()
-    return render_template("manage_menu.html", menu=menu)
-
-
-@app.route("/edit_menu/<int:item_id>", methods=["GET", "POST"])
-def edit_menu(item_id):
-    if not session.get('admin_logged_in'):
-        return redirect(url_for('admin_login'))
-
-    global MENU_CACHE
-    database = get_db()
-    cursor = database.cursor(dictionary=True)
-
-    if request.method == "POST":
-        name = request.form["name"]
-        price = request.form["price"]
-
-        cursor.execute("""
-            UPDATE menu SET name=%s, price=%s WHERE id=%s
-        """, (name, price, item_id))
-        database.commit()
-
-        # 🔄 CLEAR CACHE SO PRICE EDITS SHOW IMMEDIATELY
-        MENU_CACHE["data"] = None
-
-        return redirect("/manage_menu")
-
-    cursor.execute("SELECT * FROM menu WHERE id=%s", (item_id,))
-    item = cursor.fetchone()
-    return render_template("edit_menu.html", item=item)
-
-
-@app.route("/delete_menu/<int:item_id>")
-def delete_menu(item_id):
-    if not session.get('admin_logged_in'):
-        return redirect(url_for('admin_login'))
-
-    global MENU_CACHE
-    database = get_db()
-    cursor = database.cursor()
-
-    # Delete related order items first (if any)
-    cursor.execute("""
-        DELETE FROM order_items 
-        WHERE menu_name = (SELECT name FROM menu WHERE id=%s)
-    """, (item_id,))
-
-    # Delete the menu item
-    cursor.execute("DELETE FROM menu WHERE id=%s", (item_id,))
-    database.commit()
-
-    # 🔄 CLEAR CACHE SO DELETED ITEM REMOVES IMMEDIATELY
-    MENU_CACHE["data"] = None
-
-    return redirect("/manage_menu")
-
-
-@app.route("/track/<int:order_id>")
-def track_order(order_id):
-    database = get_db()
-    cursor = database.cursor(dictionary=True)
-
-    cursor.execute("""
-        SELECT
-            orders.*,
-            waiters.name AS waiter_name
-        FROM orders
-        LEFT JOIN waiters
-        ON orders.waiter_id = waiters.id
-        WHERE orders.id=%s
-    """, (order_id,))
-
-    order = cursor.fetchone()
-
-    return render_template(
-        "track_order.html",
-        order=order
-    )
-
-
-@app.route("/receipt/<int:order_id>")
-def receipt(order_id):
-    database = get_db()
-    cursor = database.cursor(dictionary=True)
-
-    # Automatically mark the order as Printed
-    cursor.execute("""
-        UPDATE orders
-        SET status='Printed'
-        WHERE id=%s
-    """, (order_id,))
-    database.commit()
-
-    # Get order details
-    cursor.execute("""
-        SELECT
-            orders.*,
-            waiters.name AS waiter_name
-        FROM orders
-        LEFT JOIN waiters
-        ON orders.waiter_id = waiters.id
-        WHERE orders.id=%s
-    """, (order_id,))
-
-    order = cursor.fetchone()
-
-    # Get ordered items
-    cursor.execute("""
-        SELECT *
-        FROM order_items
-        WHERE order_id=%s
-    """, (order_id,))
-
-    items = cursor.fetchall()
-
-    return render_template(
-        "receipt.html",
-        order=order,
-        items=items
-    )
-
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
