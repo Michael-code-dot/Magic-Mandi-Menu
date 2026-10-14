@@ -28,7 +28,7 @@ def connect_to_db():
     return mysql.connector.connect(
         host=os.getenv("MYSQLHOST", "magic-mandi-db-lekantrevon-f36c.h.aivencloud.com"),
         user=os.getenv("MYSQLUSER", "avnadmin"),
-        password=os.getenv("MYSQLPASSWORD",),
+        password=os.getenv("MYSQLPASSWORD"),
         database=os.getenv("MYSQLDATABASE", "defaultdb"),
         port=int(os.getenv("MYSQLPORT", 15691)),
         ssl_disabled=False
