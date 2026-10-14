@@ -1,3 +1,4 @@
+
 import os
 import pandas as pd
 import mysql.connector
@@ -10,7 +11,7 @@ def connect_to_db():
     return mysql.connector.connect(
         host="magic-mandi-db-lekantrevon-f36c.h.aivencloud.com",
         user="avnadmin",
-        password=os.getenv("AVNS_8xXaa5hiRPWImuuF7cS"),
+        password=os.getenv("MYSQLPASSWORD"),
         database="defaultdb",
         port=15691,
         ssl_disabled=False
@@ -54,12 +55,10 @@ for index, row in df.iterrows():
 
     description = f"Delicious {name} freshly prepared."
     price = float(row['Sales Price'])
-    image = "default.jpg"
-
-    clean_name = name . lower().replace(" ", "-").replace("/", "").replace("'", "").replace("(", "").replace(")", "").replace("&", "and")
+    
+    clean_name = name.lower().replace(" ", "-").replace("/", "").replace("'", "").replace("(", "").replace(")", "").replace("&", "and")
     image = f"{clean_name}.jpg"
 
-    
     cursor.execute("""
         INSERT INTO menu (name, category, description, price, image)
         VALUES (%s, %s, %s, %s, %s)
@@ -70,5 +69,3 @@ cursor.close()
 db.close()
 
 print(f"✅ Success! All {len(df)} menu items imported into Aiven MySQL database.")
-
-
