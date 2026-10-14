@@ -69,3 +69,5 @@ cursor.close()
 db.close()
 
 print(f"✅ Success! All {len(df)} menu items imported into Aiven MySQL database.")
+
+
