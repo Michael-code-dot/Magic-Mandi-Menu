@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -31,29 +31,38 @@
 <!-- ================= CATEGORY MENU ================= -->
 <div class="category-nav">
     <button onclick="filterCategory('All')">🍽 All</button>
-    <button onclick="filterCategory('Soups')">🍲 Soups</button>
-    <button onclick="filterCategory('Classic Breakfast')">🍳 Breakfast</button>
-    <button onclick="filterCategory('Salads')">🥗 Salads</button>
-    <button onclick="filterCategory('Magic Mandi Corner')">🍛 Mandi</button>
-    <button onclick="filterCategory('Pasta')">🍝 Pasta</button>
-    <button onclick="filterCategory('Grill Point')">🔥 Grill</button>
-    <button onclick="filterCategory('Curries')">🍛 Curries</button>
-    <button onclick="filterCategory('Pizza')">🍕 Pizza</button>
-    <button onclick="filterCategory('Fries & Burgers')">🍔 Burgers</button>
-    <button onclick="filterCategory('Hot Drinks')">☕ Hot Drinks</button>
+    <button onclick="filterCategory('Mandi')">🍛 Mandi</button>
+    <button onclick="filterCategory('Grill')">🔥 Grill</button>
+    <button onclick="filterCategory('Breakfast')">🍳 Breakfast</button>
+    <button onclick="filterCategory('Coffee')">☕ Coffee</button>
+    <button onclick="filterCategory('Iced Coffee')">🧊 Iced Coffee</button>
+    <button onclick="filterCategory('Juices')">🍹 Juices</button>
     <button onclick="filterCategory('Milkshakes')">🥤 Milkshakes</button>
     <button onclick="filterCategory('Smoothies')">🥤 Smoothies</button>
-    <button onclick="filterCategory('Fresh Juice')">🍹 Fresh Juices</button>
+    <button onclick="filterCategory('Mocktails')">🍸 Mocktails</button>
     <button onclick="filterCategory('Lemonades')">🍋 Lemonades</button>
-    <button onclick="filterCategory('Mojitos')">🍸 Mojitos</button>
-    <button onclick="filterCategory('Kids Special Menu')">🧒 Kids</button>
-    <button onclick="filterCategory('Specials')">👌Specials</button>
+    <button onclick="filterCategory('Fruit Chillers')">🍧 Fruit Chillers</button>
+    <button onclick="filterCategory('Burgers')">🍔 Burgers</button>
+    <button onclick="filterCategory('Pizzas')">🍕 Pizzas</button>
+    <button onclick="filterCategory('Pastas')">🍝 Pastas</button>
+    <button onclick="filterCategory('Salads')">🥗 Salads</button>
+    <button onclick="filterCategory('Specials')">👌 Specials</button>
+    <button onclick="filterCategory('Snacks')">🥟 Snacks</button>
+    <button onclick="filterCategory('Accompaniments')">🍟 Accompaniments</button>
+    <button onclick="filterCategory('Seafood')">🦞 Seafood</button>
+    <button onclick="filterCategory('Biryani')">🍲 Biryani</button>
+    <button onclick="filterCategory('Cakes')">🍰 Cakes</button>
+    <button onclick="filterCategory('Ice Cream')">🍨 Ice Cream</button>
+    <button onclick="filterCategory('Kids Menu')">🧒 Kids Menu</button>
+    <button onclick="filterCategory('Soft drinks')">🥤 Soft drinks</button>
 </div>
 
 <!-- ================= TABLE ================= -->
+{% if table %}
 <div class="table-card">
     <h2>📍 Table {{ table }}</h2>
 </div>
+{% endif %}
 
 <!-- ================= MENU ================= -->
 <section id="menu-section">
@@ -62,12 +71,12 @@
         <div class="card" data-category="{{ item.category }}">
             {% if item.image %}
                 {% if item.image.startswith('http') %}
-                    <img src="{{ item.image }}" class="food-image" alt="{{ item.name }}">
+                    <img src="{{ item.image }}" class="food-image" alt="{{ item.name }}" loading="lazy">
                 {% else %}
-                    <img src="{{ url_for('static', filename='images/' + item.image) }}" class="food-image" alt="{{ item.name }}">
+                    <img src="https://raw.githubusercontent.com/Michael-code-dot/hotel-qr-redirect/refs/heads/main/image/{{ item.image }}" class="food-image" alt="{{ item.name }}" loading="lazy">
                 {% endif %}
             {% else %}
-                <img src="{{ url_for('static', filename='images/default.jpg') }}" class="food-image" alt="Default Image">
+                <img src="{{ url_for('static', filename='images/default.jpg') }}" class="food-image" alt="Default Image" loading="lazy">
             {% endif %}
 
             <div class="card-body">
@@ -84,8 +93,6 @@
         {% endfor %}
     </div>
 </section>
-
-<script src="{{ url_for('static', filename='js/script.js') }}"></script>
 
 <footer class="debasa-footer">
     <div class="signature-line"></div>
@@ -104,6 +111,8 @@
         Powered by <span class="boss-span">DEBASA QR</span>
     </div>
 </footer>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
 
 </body>
 </html>
