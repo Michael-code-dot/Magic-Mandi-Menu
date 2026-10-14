@@ -10,7 +10,7 @@ def connect_to_db():
     return mysql.connector.connect(
         host="magic-mandi-db-lekantrevon-f36c.h.aivencloud.com",
         user="avnadmin",
-        password=os.getenv("MYSQL_PASSWORD"),
+        password=os.getenv("MYSQLPASSWORD"),
         database="defaultdb",
         port=15691,
         ssl_disabled=False
