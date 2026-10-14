@@ -1,116 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Magic Mandi & Grill | Powered by DEBASA QR</title>
-
+    <title>Add Menu Item | DEBASA Systems Admin</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+<body class="admin-body">
 
-<body>
+<div class="admin-container">
+    <h2>➕ Add New Menu Item</h2>
+    
+    <form action="/add_menu" method="POST" class="admin-form">
+        <label for="name">Item Name</label>
+        <input type="text" id="name" name="name" required placeholder="e.g. Camel Meat Kalankal">
 
-<!-- ================= HEADER ================= -->
-<header class="hero">
-    <img 
-        src="{{ url_for('static', filename='images/header-banner.jpg') }}" 
-        alt="Magic Mandi & Grill" 
-        class="header-banner">
-</header>
+        <label for="category">Category</label>
+        <select name="category" id="category" required>
+            <option value="" disabled selected>Select Category</option>
+            <option value="Mandi">Mandi</option>
+            <option value="Grill">Grill</option>
+            <option value="Breakfast">Breakfast</option>
+            <option value="Coffee">Coffee</option>
+            <option value="Iced Coffee">Iced Coffee</option>
+            <option value="Juices">Juices</option>
+            <option value="Milkshakes">Milkshakes</option>
+            <option value="Smoothies">Smoothies</option>
+            <option value="Mocktails">Mocktails</option>
+            <option value="Lemonades">Lemonades</option>
+            <option value="Fruit Chillers">Fruit Chillers</option>
+            <option value="Burgers">Burgers</option>
+            <option value="Pizzas">Pizzas</option>
+            <option value="Pastas">Pastas</option>
+            <option value="Salads">Salads</option>
+            <option value="Specials">Specials</option>
+            <option value="Snacks">Snacks</option>
+            <option value="Accompaniments">Accompaniments</option>
+            <option value="Seafood">Seafood</option>
+            <option value="Biryani">Biryani</option>
+            <option value="Cakes">Cakes</option>
+            <option value="Ice Cream">Ice Cream</option>
+            <option value="Kids Menu">Kids Menu</option>
+            <option value="Soft drinks">Soft drinks</option>
+            <option value="Extra">Extra</option>
+            <option value="Add ons">Add ons</option>
+        </select>
 
-<!-- ================= SEARCH ================= -->
-<div class="search-box">
-    <input
-        type="text"
-        id="searchFood"
-        placeholder="🔍 Search meals or drinks...">
-</div>
+        <label for="description">Description</label>
+        <textarea id="description" name="description" placeholder="Short description of the meal..."></textarea>
 
-<!-- ================= CATEGORY MENU ================= -->
-<div class="category-nav">
-    <button onclick="filterCategory('All')">🍽 All</button>
-    <button onclick="filterCategory('Mandi')">🍛 Mandi</button>
-    <button onclick="filterCategory('Grill')">🔥 Grill</button>
-    <button onclick="filterCategory('Breakfast')">🍳 Breakfast</button>
-    <button onclick="filterCategory('Coffee')">☕ Coffee</button>
-    <button onclick="filterCategory('Iced Coffee')">🧊 Iced Coffee</button>
-    <button onclick="filterCategory('Juices')">🍹 Juices</button>
-    <button onclick="filterCategory('Milkshakes')">🥤 Milkshakes</button>
-    <button onclick="filterCategory('Smoothies')">🥤 Smoothies</button>
-    <button onclick="filterCategory('Mocktails')">🍸 Mocktails</button>
-    <button onclick="filterCategory('Lemonades')">🍋 Lemonades</button>
-    <button onclick="filterCategory('Fruit Chillers')">🍧 Fruit Chillers</button>
-    <button onclick="filterCategory('Burgers')">🍔 Burgers</button>
-    <button onclick="filterCategory('Pizzas')">🍕 Pizzas</button>
-    <button onclick="filterCategory('Pastas')">🍝 Pastas</button>
-    <button onclick="filterCategory('Salads')">🥗 Salads</button>
-    <button onclick="filterCategory('Specials')">👌 Specials</button>
-    <button onclick="filterCategory('Snacks')">🥟 Snacks</button>
-    <button onclick="filterCategory('Accompaniments')">🍟 Accompaniments</button>
-    <button onclick="filterCategory('Seafood')">🦞 Seafood</button>
-    <button onclick="filterCategory('Biryani')">🍲 Biryani</button>
-    <button onclick="filterCategory('Cakes')">🍰 Cakes</button>
-    <button onclick="filterCategory('Ice Cream')">🍨 Ice Cream</button>
-    <button onclick="filterCategory('Kids Menu')">🧒 Kids Menu</button>
-    <button onclick="filterCategory('Soft drinks')">🥤 Soft drinks</button>
-</div>
+        <label for="price">Price (KSh)</label>
+        <input type="number" id="price" name="price" required placeholder="e.g. 900">
 
-<!-- ================= TABLE ================= -->
-<div class="table-card">
-    <h2>📍 Table {{ table }}</h2>
-</div>
+        <label for="image">Image Filename or URL</label>
+        <input type="text" id="image" name="image" placeholder="e.g. rice.jpg (or full URL)">
+        <small class="form-hint">Tip: Just type the filename like <code>camelmeatkalankal.jpg</code> and the system handles the rest automatically!</small>
 
-<!-- ================= MENU ================= -->
-<section id="menu-section">
-    <div class="container">
-        {% for item in menu %}
-        <div class="card" data-category="{{ item.category }}">
-            {% if item.image %}
-                {% if item.image.startswith('http') %}
-                    <img src="{{ item.image }}" class="food-image" alt="{{ item.name }}">
-                {% else %}
-                    <img src="https://raw.githubusercontent.com/Michael-code-dot/hotel-qr-redirect/refs/heads/main/image/{{ item.image }}" class="food-image" alt="{{ item.name }}">
-                {% endif %}
-            {% else %}
-                <img src="{{ url_for('static', filename='images/default.jpg') }}" class="food-image" alt="Default Image">
-            {% endif %}
-
-            <div class="card-body">
-                <span class="category">
-                    {{ item.category }}
-                </span>
-                <h2>{{ item.name }}</h2>
-                <p class="description">
-                    {{ item.description }}
-                </p>
-                <h3>KSh {{ item.price }}</h3>
-            </div>
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">Save Item</button>
+            <a href="/admin" class="btn-secondary">Cancel</a>
         </div>
-        {% endfor %}
-    </div>
-</section>
-
-<script src="{{ url_for('static', filename='js/script.js') }}"></script>
-
-<footer class="debasa-footer">
-    <div class="signature-line"></div>
-    
-    <div class="footer-hotel">
-        © 2026 Magic Mandi & Grill
-    </div>
-    
-    <div class="footer-divider"></div>
-    
-    <div class="footer-tagline">
-        Taste The Legacy
-    </div>
-
-    <div class="footer-powered">
-        Powered by <span class="boss-span">DEBASA QR</span>
-    </div>
-</footer>
+    </form>
+</div>
 
 </body>
 </html>
