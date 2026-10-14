@@ -1,25 +1,35 @@
-
 import os
 import pandas as pd
 import mysql.connector
 
-# Exact filename matching your file explorer
 excel_file = "Product (product.template) (1) (1).xlsx"
 df = pd.read_excel(excel_file)
 print(f"Loaded {len(df)} items from Excel spreadsheet.")
 
 def connect_to_db():
     return mysql.connector.connect(
-        host=os.getenv("MYSQLHOST", "localhost"),
-        user=os.getenv("MYSQLUSER", "root"),
-        password=os.getenv("MYSQLPASSWORD", "5002"),
-        database=os.getenv("MYSQLDATABASE", "hotelqr"),
-        port=int(os.getenv("MYSQLPORT", 3306)),
+        host="magic-mandi-db-lekantrevon-f36c.h.aivencloud.com",
+        user="avnadmin",
+        password="AVNS_lFMZmF-bKQGptmeM92H",
+        database="defaultdb",
+        port=15691,
         ssl_disabled=False
     )
 
 db = connect_to_db()
 cursor = db.cursor()
+
+# Automatically create the menu table if it doesn't exist
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS menu (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255),
+        category VARCHAR(100),
+        description TEXT,
+        price DECIMAL(10, 2),
+        image VARCHAR(255)
+    )
+""")
 
 # Clear old entries to prevent duplicates
 cursor.execute("TRUNCATE TABLE menu")
@@ -55,4 +65,4 @@ db.commit()
 cursor.close()
 db.close()
 
-print(f"✅ Success! All {len(df)} menu items imported into MySQL database.")
+print(f"✅ Success! All {len(df)} menu items imported into Aiven MySQL database.")
