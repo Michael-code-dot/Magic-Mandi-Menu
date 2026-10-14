@@ -56,6 +56,10 @@ for index, row in df.iterrows():
     price = float(row['Sales Price'])
     image = "default.jpg"
 
+    clean_name = name . lower().replace(" ", "-").replace("/", "").replace("'", "").replace("(", "").replace(")", "").replace("&", "and")
+    image = f"{clean_name}.jpg"
+
+    
     cursor.execute("""
         INSERT INTO menu (name, category, description, price, image)
         VALUES (%s, %s, %s, %s, %s)
