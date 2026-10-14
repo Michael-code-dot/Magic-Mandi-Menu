@@ -1,60 +1,246 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Menu Item | DEBASA Systems Admin</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --oled-bg: #050505;
+            --card-bg: #121212;
+            --card-border: #222222;
+            --accent-green: #10b981;
+            --accent-glow: rgba(16, 185, 129, 0.2);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --input-bg: #1a1a1a;
+            --input-border: #2d2d2d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--oled-bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .admin-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 580px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(16, 185, 129, 0.05);
+            backdrop-filter: blur(10px);
+        }
+
+        .header-section {
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .brand-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: var(--accent-green);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.3px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 12px;
+            padding: 0.875rem 1rem;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 4px var(--accent-glow);
+            background: #202020;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%20%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.2rem;
+        }
+
+        .form-hint {
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-top: 0.2rem;
+        }
+
+        .form-hint code {
+            color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn-primary {
+            flex: 2;
+            background: var(--accent-green);
+            color: #000000;
+            font-weight: 700;
+            font-size: 0.95rem;
+            padding: 0.9rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        .btn-primary:hover {
+            background: #34d399;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #1a1a1a;
+            color: #ffffff;
+        }
+    </style>
 </head>
-<body class="admin-body">
+<body>
 
-<div class="admin-container">
-    <h2>➕ Add New Menu Item</h2>
+<div class="admin-card">
+    <div class="header-section">
+        <span class="brand-badge">DEBASA Systems Admin</span>
+        <h2>Add New Menu Item</h2>
+    </div>
     
-    <form action="/add_menu" method="POST" class="admin-form">
-        <label for="name">Item Name</label>
-        <input type="text" id="name" name="name" required placeholder="e.g. Camel Meat Kalankal">
+    <form action="/add_menu" method="POST">
+        <div class="form-group">
+            <label for="name">Item Name</label>
+            <input type="text" id="name" name="name" required placeholder="e.g. Camel Meat Kalankal">
+        </div>
 
-        <label for="category">Category</label>
-        <select name="category" id="category" required>
-            <option value="" disabled selected>Select Category</option>
-            <option value="Mandi">Mandi</option>
-            <option value="Grill">Grill</option>
-            <option value="Breakfast">Breakfast</option>
-            <option value="Coffee">Coffee</option>
-            <option value="Iced Coffee">Iced Coffee</option>
-            <option value="Juices">Juices</option>
-            <option value="Milkshakes">Milkshakes</option>
-            <option value="Smoothies">Smoothies</option>
-            <option value="Mocktails">Mocktails</option>
-            <option value="Lemonades">Lemonades</option>
-            <option value="Fruit Chillers">Fruit Chillers</option>
-            <option value="Burgers">Burgers</option>
-            <option value="Pizzas">Pizzas</option>
-            <option value="Pastas">Pastas</option>
-            <option value="Salads">Salads</option>
-            <option value="Specials">Specials</option>
-            <option value="Snacks">Snacks</option>
-            <option value="Accompaniments">Accompaniments</option>
-            <option value="Seafood">Seafood</option>
-            <option value="Biryani">Biryani</option>
-            <option value="Cakes">Cakes</option>
-            <option value="Ice Cream">Ice Cream</option>
-            <option value="Kids Menu">Kids Menu</option>
-            <option value="Soft drinks">Soft drinks</option>
-            <option value="Extra">Extra</option>
-            <option value="Add ons">Add ons</option>
-        </select>
+        <div class="form-group">
+            <label for="category">Category</label>
+            <select name="category" id="category" required>
+                <option value="" disabled selected>Select Category</option>
+                <option value="Mandi">Mandi</option>
+                <option value="Grill">Grill</option>
+                <option value="Breakfast">Breakfast</option>
+                <option value="Coffee">Coffee</option>
+                <option value="Iced Coffee">Iced Coffee</option>
+                <option value="Juices">Juices</option>
+                <option value="Milkshakes">Milkshakes</option>
+                <option value="Smoothies">Smoothies</option>
+                <option value="Mocktails">Mocktails</option>
+                <option value="Lemonades">Lemonades</option>
+                <option value="Fruit Chillers">Fruit Chillers</option>
+                <option value="Burgers">Burgers</option>
+                <option value="Pizzas">Pizzas</option>
+                <option value="Pastas">Pastas</option>
+                <option value="Salads">Salads</option>
+                <option value="Specials">Specials</option>
+                <option value="Snacks">Snacks</option>
+                <option value="Accompaniments">Accompaniments</option>
+                <option value="Seafood">Seafood</option>
+                <option value="Biryani">Biryani</option>
+                <option value="Cakes">Cakes</option>
+                <option value="Ice Cream">Ice Cream</option>
+                <option value="Kids Menu">Kids Menu</option>
+                <option value="Soft drinks">Soft drinks</option>
+                <option value="Extra">Extra</option>
+                <option value="Add ons">Add ons</option>
+            </select>
+        </div>
 
-        <label for="description">Description</label>
-        <textarea id="description" name="description" placeholder="Short description of the meal..."></textarea>
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" placeholder="Short description of the meal..."></textarea>
+        </div>
 
-        <label for="price">Price (KSh)</label>
-        <input type="number" id="price" name="price" required placeholder="e.g. 900">
+        <div class="form-group">
+            <label for="price">Price (KSh)</label>
+            <input type="number" id="price" name="price" required placeholder="e.g. 900">
+        </div>
 
-        <label for="image">Image Filename or URL</label>
-        <input type="text" id="image" name="image" placeholder="e.g. rice.jpg (or full URL)">
-        <small class="form-hint">Tip: Just type the filename like <code>camelmeatkalankal.jpg</code> and the system handles the rest automatically!</small>
+        <div class="form-group">
+            <label for="image">Image Filename or URL</label>
+            <input type="text" id="image" name="image" placeholder="e.g. camelmeatkalankal.jpg">
+            <small class="form-hint">Tip: Type <code>camelmeatkalankal.jpg</code> and GitHub URL formats automatically!</small>
+        </div>
 
         <div class="form-actions">
             <button type="submit" class="btn-primary">Save Item</button>
