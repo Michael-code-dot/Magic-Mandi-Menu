@@ -23,7 +23,7 @@ MENU_CACHE = {
 CACHE_DURATION = 300  # 300 seconds = 5 Minutes
 
 
-# Dynamic Database Connection (Configured with your Aiven details)
+# Dynamic Database Connection (Reads from Environment Variables with Aiven Cloud Fallbacks)
 def connect_to_db():
     return mysql.connector.connect(
         host=os.getenv("MYSQLHOST", "magic-mandi-db-lekantrevon-f36c.h.aivencloud.com"),
