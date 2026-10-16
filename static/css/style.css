@@ -320,6 +320,7 @@ footer {
 .gold-text {
   background: linear-gradient(90deg, #8A6E2F 0%, #CBB067 25%, #FFFFFF 50%, #CBB067 75%, #8A6E2F 100%);
   background-size: 200% auto;
+    background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: shine 4s linear infinite;
