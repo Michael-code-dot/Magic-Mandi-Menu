@@ -287,7 +287,7 @@ body {
 }
 
 
-
+footer {
 @keyframes float {
   0%, 100% { 
     transform: translateY(0px) scale(1); 
@@ -330,4 +330,4 @@ body {
 .floating-unit {
   animation: float 5s ease-in-out infinite;
   text-align: center;
-}
+}}

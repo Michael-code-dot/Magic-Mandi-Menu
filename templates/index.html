@@ -93,6 +93,7 @@
         {% endfor %}
     </div>
 </section>
+
 <footer class="debasa-footer">
   <div class="floating-unit">
     <!-- Restaurant Name -->
@@ -122,6 +123,51 @@
       </div>
     </div>
   </div>
+  
+<div stlye= "@keyframes float {
+  0%, 100% { 
+    transform: translateY(0px) scale(1); 
+    filter: drop-shadow(0 5px 15px rgba(255, 215, 0, 0.2)); 
+  }
+  50% { 
+    transform: translateY(-10px) scale(1.02); 
+    filter: drop-shadow(0 20px 30px rgba(255, 215, 0, 0.4)); 
+  }
+}
+
+@keyframes shine {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.debasa-footer {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  padding: 80px 20px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+  overflow: hidden !important;
+  font-family: 'Inter', sans-serif;
+}
+
+.gold-text {
+  background: linear-gradient(90deg, #8A6E2F 0%, #CBB067 25%, #FFFFFF 50%, #CBB067 75%, #8A6E2F 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 4s linear infinite;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.floating-unit {
+  animation: float 5s ease-in-out infinite;
+  text-align: center;
+}
+
 </footer>
 
 <script src="{{ url_for('static', filename='js/script.js') }}"></script>
