@@ -93,30 +93,35 @@
         {% endfor %}
     </div>
 </section>
-
 <footer class="debasa-footer">
-    <div class="signature-line"></div>
-    
-    <div class="footer-hotel">
-        © 2026 Magic Mandi & Grill
+  <div class="floating-unit">
+    <!-- Restaurant Name -->
+    <div class="footer-hotel gold-text" style="font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 5px;">
+      © 2026 Magic Mandi & Grill
     </div>
     
-    <div class="footer-divider"></div>
-    
-    <div class="footer-tagline">
-        Taste The Legacy
+    <!-- Tagline -->
+    <div class="footer-tagline" style="font-size: 0.8rem; letter-spacing: 6px; color: #888; text-transform: uppercase; margin-bottom: 30px;">
+      Taste The Legacy
     </div>
 
+    <!-- Decorative Divider -->
+    <div style="margin: 20px auto; width: 60px; height: 1px; background: rgba(255,215,0,0.3);"></div>
+
+    <!-- DEBASA QR Product -->
     <div class="footer-powered">
-     <span class="boss-span">DEBASA QR</span>
-
+      <div class="gold-text" style="font-size: 2.8rem; letter-spacing: -1px; line-height: 1;">
+        DEBASA QR
+      </div>
     </div>
-
-<div class="footer-powered">
-        Powered by <span class="boss-span">DEBASA  SYSTEMS</span>
-
+    
+    <!-- DEBASA SYSTEMS Parent Company -->
+    <div class="footer-powered" style="margin-top: 15px;">
+      <div style="font-size: 0.9rem; letter-spacing: 3px; color: #666; text-transform: uppercase;">
+        Powered by <span class="gold-text" style="font-size: 1rem; animation-duration: 6s;">DEBASA SYSTEMS</span>
+      </div>
     </div>
-
+  </div>
 </footer>
 
 <script src="{{ url_for('static', filename='js/script.js') }}"></script>
