@@ -286,8 +286,8 @@ body {
     box-shadow: 0 8px 25px rgba(46, 125, 50, 0.5);
 }
 
+/* ================= ANIMATIONS & FOOTER ================= */
 
-footer {
 @keyframes float {
   0%, 100% { 
     transform: translateY(0px) scale(1); 
@@ -320,7 +320,7 @@ footer {
 .gold-text {
   background: linear-gradient(90deg, #8A6E2F 0%, #CBB067 25%, #FFFFFF 50%, #CBB067 75%, #8A6E2F 100%);
   background-size: 200% auto;
-    background-clip: text;
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: shine 4s linear infinite;
@@ -331,4 +331,4 @@ footer {
 .floating-unit {
   animation: float 5s ease-in-out infinite;
   text-align: center;
-}}
+}
