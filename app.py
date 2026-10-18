@@ -87,7 +87,8 @@ def index():
             cursor.execute("SELECT id, name, category, description, price, image FROM menu")
             menu = cursor.fetchall()
             cursor.close()
-        except Exception:
+        except Exception as e:
+            print("DATABASE ERROR IN INDEX ROUTE:", str(e))
             menu = []
 
         MENU_CACHE["data"] = menu
@@ -170,7 +171,8 @@ def admin():
         comp_res = cursor.fetchone()
         completed = comp_res["total"] if comp_res and comp_res["total"] is not None else 0
         cursor.close()
-    except Exception:
+    except Exception as e:
+        print("DATABASE ERROR IN ADMIN ROUTE:", str(e))
         total_orders = 0
         revenue = 0
         preparing = 0
@@ -189,24 +191,29 @@ def manage_menu():
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
 
-    database = get_db()
-    cursor = database.cursor(dictionary=True)
-    
-    # Auto-populate sample dishes if the table is completely empty
-    cursor.execute("SELECT COUNT(*) AS count FROM menu")
-    res = cursor.fetchone()
-    if res['count'] == 0:
-        cursor.execute("""
-            INSERT INTO menu (name, category, description, price, image) VALUES 
-            ('Grilled Chicken', 'Main Meal', 'Delicious grilled chicken served with fries and salad.', 700.00, 'images/chicken.jpg'),
-            ('Cheese Pizza', 'Fast Food', 'Fresh pizza prepared with cheese and vegetables.', 900.00, 'images/pizza.jpg'),
-            ('Fresh Juice', 'Drinks', 'Best fresh juice in town!', 250.00, 'images/chicken pilau.jpg')
-        """)
-        database.commit()
+    try:
+        database = get_db()
+        cursor = database.cursor(dictionary=True)
+        
+        # Check if table has items; if not, insert initial default dishes automatically
+        cursor.execute("SELECT COUNT(*) AS count FROM menu")
+        res = cursor.fetchone()
+        if res and res['count'] == 0:
+            cursor.execute("""
+                INSERT INTO menu (name, category, description, price, image) VALUES 
+                ('Grilled Chicken', 'Main Meal', 'Delicious grilled chicken served with fries and salad.', 700.00, 'images/chicken.jpg'),
+                ('Cheese Pizza', 'Fast Food', 'Fresh pizza prepared with cheese and vegetables.', 900.00, 'images/pizza.jpg'),
+                ('Fresh Juice', 'Drinks', 'Best fresh juice in town!', 250.00, 'images/chicken pilau.jpg')
+            """)
+            database.commit()
 
-    cursor.execute("SELECT * FROM menu")
-    menu = cursor.fetchall()
-    cursor.close()
+        cursor.execute("SELECT * FROM menu")
+        menu = cursor.fetchall()
+        cursor.close()
+        print("SUCCESSFULLY LOADED MENU ITEMS:", menu)
+    except Exception as e:
+        print("DATABASE ERROR IN MANAGE_MENU:", str(e))
+        menu = []
     
     return render_template("manage_menu.html", menu=menu)
 
