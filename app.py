@@ -189,15 +189,25 @@ def manage_menu():
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
 
-    try:
-        database = get_db()
-        cursor = database.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM menu")
-        menu = cursor.fetchall()
-        cursor.close()
-    except Exception:
-        menu = []
-        
+    database = get_db()
+    cursor = database.cursor(dictionary=True)
+    
+    # Auto-populate sample dishes if the table is completely empty
+    cursor.execute("SELECT COUNT(*) AS count FROM menu")
+    res = cursor.fetchone()
+    if res['count'] == 0:
+        cursor.execute("""
+            INSERT INTO menu (name, category, description, price, image) VALUES 
+            ('Grilled Chicken', 'Main Meal', 'Delicious grilled chicken served with fries and salad.', 700.00, 'images/chicken.jpg'),
+            ('Cheese Pizza', 'Fast Food', 'Fresh pizza prepared with cheese and vegetables.', 900.00, 'images/pizza.jpg'),
+            ('Fresh Juice', 'Drinks', 'Best fresh juice in town!', 250.00, 'images/chicken pilau.jpg')
+        """)
+        database.commit()
+
+    cursor.execute("SELECT * FROM menu")
+    menu = cursor.fetchall()
+    cursor.close()
+    
     return render_template("manage_menu.html", menu=menu)
 
 @app.route("/add_menu", methods=["GET", "POST"])
