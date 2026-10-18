@@ -3,234 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard | DEBASA SYSTEMS</title>
+    <title>Admin Login | DEBASA SYSTEMS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-base: #030407;
-            --bg-surface: #0b0f17;
-            --bg-elevated: #131824;
-            --accent-gold: #f59e0b;
-            --accent-gold-hover: #fbbf24;
-            --border-glass: rgba(255, 255, 255, 0.07);
-            --border-glass-hover: rgba(245, 158, 11, 0.3);
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
+            --bg-primary: #0a0c10;
+            --bg-surface: #141720;
+            --accent-gold: #ffd700;
+            --brand-red: #d32f2f;
+            --brand-dark-red: #8b0000;
+            --border-subtle: rgba(255, 255, 255, 0.08);
         }
 
         body {
-            background-color: var(--bg-base);
-            background-image: 
-                radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.04) 0%, transparent 50%),
-                radial-gradient(circle at 100% 100%, rgba(15, 23, 42, 0.8) 0%, transparent 100%);
-            color: var(--text-primary);
-            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-primary);
+            color: #f3f4f6;
+            font-family: 'Inter', system-ui, sans-serif;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0;
-            padding: 24px 16px;
+            padding: 20px 0;
         }
 
-        .dashboard-container {
-            width: 100%;
-            max-width: 500px;
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
         }
 
-        .executive-card {
+        .glass-card {
             background: var(--bg-surface);
-            border: 1px solid var(--border-glass);
+            border: 1px solid var(--border-subtle);
             border-radius: 24px;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+            width: 100%;
+            max-width: 450px;
             overflow: hidden;
-            position: relative;
         }
 
-        .executive-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+        .glass-header {
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--border-subtle);
         }
 
-        .card-header-custom {
-            padding: 32px 32px 24px;
-            background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%);
-            border-bottom: 1px solid var(--border-glass);
-            text-align: left;
-        }
-
-        .brand-tag {
-            font-size: 0.65rem;
+        .debasa-badge {
+            color: var(--accent-gold);
             font-weight: 800;
-            letter-spacing: 3px;
-            color: var(--accent-gold);
+            letter-spacing: 2px;
+            font-size: 0.75rem;
             text-transform: uppercase;
-            margin-bottom: 6px;
-            display: block;
         }
 
-        .dashboard-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            letter-spacing: -0.5px;
-            margin: 0;
+        .glass-input {
+            background: #1c212c !important;
+            border: 1px solid var(--border-subtle) !important;
+            color: #ffffff !important;
+            border-radius: 12px;
         }
 
-        .card-body-custom {
-            padding: 32px;
+        .glass-input:focus {
+            background: #252c3b !important;
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.2);
+            border-color: var(--accent-gold) !important;
         }
 
-        .system-notice {
-            background: var(--bg-elevated);
-            border: 1px solid var(--border-glass);
-            border-radius: 14px;
-            padding: 16px 20px;
-            margin-bottom: 24px;
-            text-align: left;
-        }
-
-        .system-notice h6 {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 4px;
-        }
-
-        .system-notice p {
-            font-size: 0.775rem;
-            color: var(--text-secondary);
-            margin: 0;
-            line-height: 1.4;
-        }
-
-        .nav-stack {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .btn-executive {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--bg-elevated);
-            border: 1px solid var(--border-glass);
-            color: var(--text-primary);
-            font-weight: 600;
-            font-size: 0.9rem;
-            padding: 14px 20px;
-            border-radius: 14px;
-            text-decoration: none;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .btn-executive:hover {
-            background: #1a2233;
-            border-color: var(--border-glass-hover);
-            color: var(--text-primary);
-            transform: translateY(-1px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-        }
-
-        .btn-executive.primary {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
+        .glass-btn-primary {
+            background: linear-gradient(135deg, var(--brand-red), var(--brand-dark-red));
+            color: white;
             border: none;
-            color: #030407;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(211, 47, 47, 0.3);
+        }
+
+        .glass-btn-primary:hover {
+            transform: translateY(-2px);
+            color: white;
+            box-shadow: 0 8px 25px rgba(211, 47, 47, 0.5);
+        }
+
+        .floating-unit {
+            animation: float 4s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        .gold-text {
+            color: var(--accent-gold) !important;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.25);
             font-weight: 700;
-            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
-        }
-
-        .btn-executive.primary:hover {
-            background: linear-gradient(135deg, #fbbf24, #f59e0b);
-            box-shadow: 0 6px 25px rgba(245, 158, 11, 0.5);
-            color: #030407;
-        }
-
-        .btn-executive.danger {
-            background: rgba(239, 68, 68, 0.05);
-            border-color: rgba(239, 68, 68, 0.15);
-            color: #f87171;
-        }
-
-        .btn-executive.danger:hover {
-            background: rgba(239, 68, 68, 0.12);
-            border-color: rgba(239, 68, 68, 0.3);
-            color: #ef4444;
-        }
-
-        .arrow-icon {
-            opacity: 0.5;
-            transition: transform 0.2s ease;
-        }
-
-        .btn-executive:hover .arrow-icon {
-            transform: translateX(3px);
-            opacity: 1;
-        }
-
-        .executive-footer {
-            margin-top: 32px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-glass);
-            text-align: center;
-            font-size: 0.725rem;
-            color: var(--text-muted);
-            line-height: 1.6;
-        }
-
-        .footer-brand {
-            font-weight: 700;
-            letter-spacing: 1px;
-            color: var(--accent-gold);
             text-transform: uppercase;
+        }
+
+        .admin-footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-subtle);
+            color: #888888;
+            font-size: 0.75rem;
+            line-height: 1.6;
         }
     </style>
 </head>
 <body>
 
-<div class="dashboard-container">
-    <div class="executive-card">
-        <div class="card-header-custom">
-            <span class="brand-tag">DEBASA SYSTEMS • ENTERPRISE</span>
-            <h1 class="dashboard-title">Admin Console</h1>
+<div class="container px-3">
+    <div class="glass-card mx-auto text-center">
+        <div class="glass-header p-4">
+            <span class="debasa-badge d-block mb-1">DEBASA SYSTEMS ADMIN</span>
+            <h3 class="mb-0 fw-bold text-white">🔒 Admin Login</h3>
         </div>
         
-        <div class="card-body-custom">
-            <div class="system-notice">
-                <h6>Menu Architecture</h6>
-                <p>Manage product catalog parameters, pricing matrix, and real-time database endpoints.</p>
-            </div>
-            
-            <div class="nav-stack">
-                <a href="{{ url_for('manage_menu') }}" class="btn-executive primary">
-                    <span>Manage Menu Catalog</span>
-                    <span class="arrow-icon">→</span>
-                </a>
-                <a href="{{ url_for('index') }}" class="btn-executive">
-                    <span>Launch Client Interface</span>
-                    <span class="arrow-icon">→</span>
-                </a>
-                <a href="{{ url_for('admin_logout') }}" class="btn-executive danger">
-                    <span>Terminate Session</span>
-                    <span class="arrow-icon">⏻</span>
-                </a>
-            </div>
-
-            <footer class="executive-footer">
-                <div>© 2026 Magic Mandi & Grill. All Rights Reserved.</div>
-                <div class="mt-1">
-                    Powered by <span class="footer-brand">DEBASA SYSTEMS</span> • QR Architecture
+        <div class="card-body p-4 p-md-5">
+            {% if error %}
+                <div class="alert alert-danger py-2 mb-3 bg-danger bg-opacity-25 border-danger text-white">
+                    {{ error }}
                 </div>
-                <div class="mt-1 text-muted" style="font-size: 0.65rem;">
-                    Secure Node: kingmulkam8@gmail.com
+            {% endif %}
+
+            <form method="POST">
+                <div class="mb-4 text-start">
+                    <label class="form-label text-white fw-bold">Security Password</label>
+                    <input type="password" class="form-control glass-input py-2 px-3" name="password" placeholder="Enter admin password" required>
+                </div>
+
+                <div class="d-grid mb-3">
+                    <button type="submit" class="btn glass-btn-primary fw-bold rounded-pill py-3">Authorize Login</button>
+                </div>
+            </form>
+
+            <a href="{{ url_for('index') }}" class="text-muted text-decoration-none" style="font-size: 0.85rem;">← Back to Live Menu</a>
+
+            <footer class="admin-footer">
+                <div>© 2026 Magic Mandi & Grill. All Rights Reserved.</div>
+                
+                <div class="floating-unit mt-2">
+                    <div class="gold-text" style="font-size: 0.95rem; letter-spacing: 1px;">DEBASA QR</div>
+                    <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px;">
+                        Powered by <span class="gold-text">DEBASA SYSTEMS</span>
+                    </div>
+                </div>
+
+                <div class="mt-2" style="font-size: 0.7rem; color: #666;">
+                    Technical Support: kingmulkam8@gmail.com
                 </div>
             </footer>
         </div>
