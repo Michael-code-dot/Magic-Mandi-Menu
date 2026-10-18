@@ -73,4 +73,95 @@
             background: linear-gradient(135deg, #2e7d32, #1b5e20);
             color: #ffffff;
             border: none;
-            transition: all 0.3s ease;}
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
+        }
+
+        .btn-success-custom:hover {
+            transform: translateY(-2px);
+            color: #ffffff;
+            box-shadow: 0 8px 25px rgba(46, 125, 50, 0.5);
+        }
+
+        .btn-secondary-custom {
+            background: #1c212c;
+            border: 1px solid var(--border-subtle);
+            color: #9ca3af;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary-custom:hover {
+            background: #252c3b;
+            color: #ffffff;
+            border-color: rgba(255, 215, 0, 0.3);
+        }
+
+        .floating-unit {
+            animation: float 4s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        .gold-text {
+            color: var(--accent-gold) !important;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.25);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .admin-footer {
+            margin-top: 25px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border-subtle);
+            color: #888888;
+            font-size: 0.75rem;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container px-3">
+    <div class="glass-card mx-auto">
+        <div class="glass-header p-4 text-center">
+            <span class="debasa-badge d-block mb-1">DEBASA SYSTEMS ADMIN</span>
+            <h4 class="mb-0 fw-bold text-white">✏️ Edit Dish Details</h4>
+        </div>
+        
+        <div class="card-body p-4 p-md-5">
+            <form action="/edit_menu/{{ item.id }}" method="POST">
+                <div class="mb-3 text-start">
+                    <label class="form-label text-white fw-semibold" style="font-size: 0.85rem;">Dish Name</label>
+                    <input type="text" class="form-control glass-input py-2 px-3" name="name" value="{{ item.name }}" required>
+                </div>
+                
+                <div class="mb-4 text-start">
+                    <label class="form-label text-white fw-semibold" style="font-size: 0.85rem;">Price (KSh)</label>
+                    <input type="number" step="0.01" class="form-control glass-input py-2 px-3" name="price" value="{{ item.price }}" required>
+                </div>
+
+                <div class="d-flex justify-content-between gap-3">
+                    <a href="/manage_menu" class="btn btn-secondary-custom rounded-pill py-2 px-4 w-50 fw-semibold text-center text-decoration-none">Cancel</a>
+                    <button type="submit" class="btn btn-success-custom rounded-pill py-2 px-4 w-50 fw-bold">Save Changes</button>
+                </div>
+            </form>
+
+            <footer class="admin-footer text-center">
+                <div>© 2026 Magic Mandi & Grill. All Rights Reserved.</div>
+                
+                <div class="floating-unit mt-2">
+                    <div class="gold-text" style="font-size: 0.9rem; letter-spacing: 1px;">DEBASA QR</div>
+                    <div style="font-size: 0.65rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px;">
+                        Powered by <span class="gold-text">DEBASA SYSTEMS</span>
+                    </div>
+                </div>
+
+                <div class="mt-2" style="font-size: 0.7rem; color: #666;">
+                    Technical Support: contact@debasasystems.com
+                </div>
+            </footer>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
