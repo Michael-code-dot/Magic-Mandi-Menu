@@ -24,7 +24,7 @@ def connect_to_db():
         port=int(os.getenv("MYSQLPORT", 15691)),
         ssl_disabled=False
     )
-    # Automatically initialize tables if they don't exist
+    # Initialize all necessary tables safely
     cursor = db.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS menu (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -82,11 +82,14 @@ def index():
     if MENU_CACHE["data"] is not None and (current_time - MENU_CACHE["timestamp"] < CACHE_DURATION):
         menu = MENU_CACHE["data"]
     else:
-        database = get_db()
-        cursor = database.cursor(dictionary=True)
-        cursor.execute("SELECT id, name, category, description, price, image FROM menu")
-        menu = cursor.fetchall()
-        cursor.close()
+        try:
+            database = get_db()
+            cursor = database.cursor(dictionary=True)
+            cursor.execute("SELECT id, name, category, description, price, image FROM menu")
+            menu = cursor.fetchall()
+            cursor.close()
+        except Exception:
+            menu = []
 
         MENU_CACHE["data"] = menu
         MENU_CACHE["timestamp"] = current_time
@@ -148,22 +151,31 @@ def admin():
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
 
-    database = get_db()
-    cursor = database.cursor(dictionary=True)
+    try:
+        database = get_db()
+        cursor = database.cursor(dictionary=True)
 
-    cursor.execute("SELECT COUNT(*) AS total FROM orders")
-    total_orders = cursor.fetchone()["total"]
+        cursor.execute("SELECT COUNT(*) AS total FROM orders")
+        total_orders_res = cursor.fetchone()
+        total_orders = total_orders_res["total"] if total_orders_res and total_orders_res["total"] is not None else 0
 
-    cursor.execute("SELECT SUM(total) AS revenue FROM orders")
-    result = cursor.fetchone()
-    revenue = result["revenue"] if result["revenue"] and result["revenue"] else 0
+        cursor.execute("SELECT SUM(total) AS revenue FROM orders")
+        result = cursor.fetchone()
+        revenue = result["revenue"] if result and result["revenue"] is not None else 0
 
-    cursor.execute("SELECT COUNT(*) AS total FROM orders WHERE status='Preparing'")
-    preparing = cursor.fetchone()["total"]
+        cursor.execute("SELECT COUNT(*) AS total FROM orders WHERE status='Preparing'")
+        prep_res = cursor.fetchone()
+        preparing = prep_res["total"] if prep_res and prep_res["total"] is not None else 0
 
-    cursor.execute("SELECT COUNT(*) AS total FROM orders WHERE status='Completed'")
-    completed = cursor.fetchone()["total"]
-    cursor.close()
+        cursor.execute("SELECT COUNT(*) AS total FROM orders WHERE status='Completed'")
+        comp_res = cursor.fetchone()
+        completed = comp_res["total"] if comp_res and comp_res["total"] is not None else 0
+        cursor.close()
+    except Exception:
+        total_orders = 0
+        revenue = 0
+        preparing = 0
+        completed = 0
 
     return render_template(
         "admin.html",
@@ -178,11 +190,15 @@ def manage_menu():
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
 
-    database = get_db()
-    cursor = database.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM menu")
-    menu = cursor.fetchall()
-    cursor.close()
+    try:
+        database = get_db()
+        cursor = database.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM menu")
+        menu = cursor.fetchall()
+        cursor.close()
+    except Exception:
+        menu = []
+        
     return render_template("manage_menu.html", menu=menu)
 
 @app.route("/add_menu", methods=["GET", "POST"])
