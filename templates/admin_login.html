@@ -3,146 +3,234 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Authentication | DEBASA SYSTEMS</title>
+    <title>Admin Dashboard | DEBASA SYSTEMS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #07090e;
-            --bg-surface: #11151c;
+            --bg-base: #030407;
+            --bg-surface: #0b0f17;
+            --bg-elevated: #131824;
             --accent-gold: #f59e0b;
-            --brand-red: #dc2626;
-            --brand-dark-red: #991b1b;
-            --border-subtle: rgba(255, 255, 255, 0.08);
-            --text-muted: #94a3b8;
+            --accent-gold-hover: #fbbf24;
+            --border-glass: rgba(255, 255, 255, 0.07);
+            --border-glass-hover: rgba(245, 158, 11, 0.3);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
         }
 
         body {
-            background-color: var(--bg-primary);
-            color: #f8fafc;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.04) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(15, 23, 42, 0.8) 0%, transparent 100%);
+            color: var(--text-primary);
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0;
-            padding: 24px 0;
+            padding: 24px 16px;
         }
 
-        .glass-card {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-subtle);
-            border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+        .dashboard-container {
             width: 100%;
-            max-width: 440px;
+            max-width: 500px;
+        }
+
+        .executive-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-glass);
+            border-radius: 24px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.05);
             overflow: hidden;
+            position: relative;
         }
 
-        .glass-header {
-            background: rgba(0, 0, 0, 0.4);
-            border-bottom: 1px solid var(--border-subtle);
-            padding: 28px 20px;
+        .executive-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
         }
 
-        .debasa-badge {
-            color: var(--accent-gold);
+        .card-header-custom {
+            padding: 32px 32px 24px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+            border-bottom: 1px solid var(--border-glass);
+            text-align: left;
+        }
+
+        .brand-tag {
+            font-size: 0.65rem;
             font-weight: 800;
-            letter-spacing: 2.5px;
-            font-size: 0.7rem;
+            letter-spacing: 3px;
+            color: var(--accent-gold);
             text-transform: uppercase;
+            margin-bottom: 6px;
+            display: block;
         }
 
-        .glass-input {
-            background: #171d28 !important;
-            border: 1px solid var(--border-subtle) !important;
-            color: #ffffff !important;
-            border-radius: 12px;
-            padding: 12px 16px;
-            font-size: 0.95rem;
-        }
-
-        .glass-input:focus {
-            background: #1d2533 !important;
-            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
-            border-color: var(--accent-gold) !important;
-        }
-
-        .btn-auth-custom {
-            background: linear-gradient(135deg, var(--brand-red), var(--brand-dark-red));
-            color: #ffffff;
-            border: none;
-            font-weight: 600;
-            padding: 12px 20px;
-            border-radius: 12px;
-            transition: all 0.25s ease;
-            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.35);
-        }
-
-        .btn-auth-custom:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 22px rgba(220, 38, 38, 0.5);
-            color: #ffffff;
-        }
-
-        .gold-text {
-            color: var(--accent-gold) !important;
+        .dashboard-title {
+            font-size: 1.5rem;
             font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+            margin: 0;
         }
 
-        .admin-footer {
-            margin-top: 30px;
+        .card-body-custom {
+            padding: 32px;
+        }
+
+        .system-notice {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-glass);
+            border-radius: 14px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .system-notice h6 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .system-notice p {
+            font-size: 0.775rem;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .nav-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn-executive {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-glass);
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 14px 20px;
+            border-radius: 14px;
+            text-decoration: none;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .btn-executive:hover {
+            background: #1a2233;
+            border-color: var(--border-glass-hover);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+
+        .btn-executive.primary {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border: none;
+            color: #030407;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-executive.primary:hover {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            box-shadow: 0 6px 25px rgba(245, 158, 11, 0.5);
+            color: #030407;
+        }
+
+        .btn-executive.danger {
+            background: rgba(239, 68, 68, 0.05);
+            border-color: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+        }
+
+        .btn-executive.danger:hover {
+            background: rgba(239, 68, 68, 0.12);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+
+        .arrow-icon {
+            opacity: 0.5;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-executive:hover .arrow-icon {
+            transform: translateX(3px);
+            opacity: 1;
+        }
+
+        .executive-footer {
+            margin-top: 32px;
             padding-top: 20px;
-            border-top: 1px solid var(--border-subtle);
-            color: #64748b;
-            font-size: 0.75rem;
-            line-height: 1.5;
+            border-top: 1px solid var(--border-glass);
+            text-align: center;
+            font-size: 0.725rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .footer-brand {
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--accent-gold);
+            text-transform: uppercase;
         }
     </style>
 </head>
 <body>
 
-<div class="container px-3">
-    <div class="glass-card mx-auto text-center">
-        <div class="glass-header">
-            <span class="debasa-badge d-block mb-1">DEBASA SYSTEMS</span>
-            <h4 class="mb-0 fw-bold text-white">Restricted Access</h4>
+<div class="dashboard-container">
+    <div class="executive-card">
+        <div class="card-header-custom">
+            <span class="brand-tag">DEBASA SYSTEMS • ENTERPRISE</span>
+            <h1 class="dashboard-title">Admin Console</h1>
         </div>
         
-        <div class="card-body p-4 p-md-4">
-            {% if error %}
-                <div class="alert alert-danger py-2 mb-3 bg-danger bg-opacity-10 border-danger border-opacity-25 text-danger" style="font-size: 0.85rem;">
-                    {{ error }}
-                </div>
-            {% endif %}
-
-            <form method="POST">
-                <div class="mb-3 text-start">
-                    <label class="form-label text-muted fw-medium" style="font-size: 0.8rem;">ADMIN SECURITY CREDENTIAL</label>
-                    <input type="password" class="form-control glass-input" name="password" placeholder="Enter secure key..." required autocomplete="current-password">
-                </div>
-
-                <div class="d-grid mb-3">
-                    <button type="submit" class="btn btn-auth-custom">Authorize Session</button>
-                </div>
-            </form>
-
-            <div class="text-center mt-3">
-                <a href="{{ url_for('index') }}" class="text-secondary text-decoration-none" style="font-size: 0.8rem;">← Return to Client Portal</a>
+        <div class="card-body-custom">
+            <div class="system-notice">
+                <h6>Menu Architecture</h6>
+                <p>Manage product catalog parameters, pricing matrix, and real-time database endpoints.</p>
+            </div>
+            
+            <div class="nav-stack">
+                <a href="{{ url_for('manage_menu') }}" class="btn-executive primary">
+                    <span>Manage Menu Catalog</span>
+                    <span class="arrow-icon">→</span>
+                </a>
+                <a href="{{ url_for('index') }}" class="btn-executive">
+                    <span>Launch Client Interface</span>
+                    <span class="arrow-icon">→</span>
+                </a>
+                <a href="{{ url_for('admin_logout') }}" class="btn-executive danger">
+                    <span>Terminate Session</span>
+                    <span class="arrow-icon">⏻</span>
+                </a>
             </div>
 
-            <footer class="admin-footer text-center">
+            <footer class="executive-footer">
                 <div>© 2026 Magic Mandi & Grill. All Rights Reserved.</div>
-                
-                <div class="mt-2">
-                    <span class="gold-text" style="font-size: 0.8rem;">DEBASA QR ENGINE</span>
-                    <div style="font-size: 0.7rem; color: #64748b; text-transform: uppercase;">
-                        Architecture by <span class="text-white fw-medium">DEBASA SYSTEMS</span>
-                    </div>
+                <div class="mt-1">
+                    Powered by <span class="footer-brand">DEBASA SYSTEMS</span> • QR Architecture
                 </div>
-
-                <div class="mt-2 text-secondary" style="font-size: 0.68rem;">
-                    Support Contact: kingmulkam8@gmail.com
+                <div class="mt-1 text-muted" style="font-size: 0.65rem;">
+                    Secure Node: kingmulkam8@gmail.com
                 </div>
             </footer>
         </div>
