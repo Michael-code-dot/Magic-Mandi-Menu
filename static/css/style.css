@@ -286,49 +286,71 @@ body {
     box-shadow: 0 8px 25px rgba(46, 125, 50, 0.5);
 }
 
-/* ================= ANIMATIONS & FOOTER ================= */
+/* ================= FOOTER & ANIMATIONS ================= */
 
 @keyframes float {
   0%, 100% { 
-    transform: translateY(0px) scale(1); 
-    filter: drop-shadow(0 5px 15px rgba(255, 215, 0, 0.2)); 
+    transform: translateY(0px); 
   }
   50% { 
-    transform: translateY(-10px) scale(1.02); 
-    filter: drop-shadow(0 20px 30px rgba(255, 215, 0, 0.4)); 
+    transform: translateY(-5px); 
   }
-}
-
-@keyframes shine {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
 }
 
 .debasa-footer {
   background-color: #000000 !important;
   color: #ffffff !important;
-  padding: 80px 20px !important;
+  padding: 40px 20px !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
-  position: relative !important;
-  overflow: hidden !important;
-  font-family: 'Inter', sans-serif;
+  text-align: center;
 }
 
-.gold-text {
-  background: linear-gradient(90deg, #8A6E2F 0%, #CBB067 25%, #FFFFFF 50%, #CBB067 75%, #8A6E2F 100%);
-  background-size: 200% auto;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: shine 4s linear infinite;
-  font-weight: 900;
-  text-transform: uppercase;
+.footer-hotel {
+  font-size: 0.85rem !important; 
+  letter-spacing: 1.5px; 
+  color: #bbb;
+  margin-bottom: 4px;
+}
+
+.footer-tagline {
+  font-size: 0.6rem; 
+  letter-spacing: 3px; 
+  color: #666; 
+  text-transform: uppercase; 
+  margin-bottom: 15px;
+}
+
+.footer-divider {
+  margin: 12px auto; 
+  width: 30px; 
+  height: 1px; 
+  background: rgba(255,215,0,0.2);
 }
 
 .floating-unit {
-  animation: float 5s ease-in-out infinite;
-  text-align: center;
+  animation: float 4s ease-in-out infinite;
+  display: inline-block;
+}
+
+.debasa-qr-title {
+  font-size: 1rem !important;
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+
+.footer-systems {
+  font-size: 0.65rem;
+  letter-spacing: 1.5px;
+  color: #888;
+  text-transform: uppercase;
+}
+
+.gold-text {
+  color: #ffd700 !important;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.25);
+  font-weight: 700;
+  text-transform: uppercase;
 }
