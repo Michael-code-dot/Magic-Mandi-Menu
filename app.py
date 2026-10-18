@@ -33,31 +33,6 @@ def connect_to_db():
         price DECIMAL(10,2),
         image VARCHAR(255)
     )''')
-    cursor.execute('''CREATE TABLE IF NOT EXISTS orders (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        customer_name VARCHAR(255),
-        table_number INT,
-        total DECIMAL(10,2),
-        waiter_id INT,
-        status VARCHAR(50) DEFAULT 'Pending',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )''')
-    cursor.execute('''CREATE TABLE IF NOT EXISTS order_items (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        order_id INT,
-        menu_name VARCHAR(255),
-        quantity INT,
-        price DECIMAL(10,2)
-    )''')
-    cursor.execute('''CREATE TABLE IF NOT EXISTS waiters (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255)
-    )''')
-    cursor.execute('''CREATE TABLE IF NOT EXISTS table_assignments (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        table_number INT,
-        waiter_id INT
-    )''')
     db.commit()
     cursor.close()
     return db
@@ -96,45 +71,12 @@ def index():
 
     return render_template("index.html", menu=menu, table=table)
 
-@app.route("/place_order", methods=["POST"])
-def place_order():
-    database = get_db()
-    data = request.get_json()
-
-    customer_name = data["customer_name"]
-    table_number = data["table_number"]
-    cart = data["cart"]
-    total = data["total"]
-
-    cursor = database.cursor(dictionary=True)
-    cursor.execute("SELECT waiter_id FROM table_assignments WHERE table_number=%s", (table_number,))
-    assignment = cursor.fetchone()
-
-    waiter_id = assignment["waiter_id"] if assignment else 1
-
-    cursor.execute("""
-        INSERT INTO orders (customer_name, table_number, total, waiter_id)
-        VALUES (%s, %s, %s, %s)
-    """, (customer_name, table_number, total, waiter_id))
-
-    order_id = cursor.lastrowid
-
-    for item in cart:
-        cursor.execute("""
-            INSERT INTO order_items (order_id, menu_name, quantity, price)
-            VALUES (%s, %s, %s, %s)
-        """, (order_id, item["name"], item["quantity"], item["price"]))
-
-    database.commit()
-    cursor.close()
-
-    return jsonify({"message": "Order placed successfully!", "order_id": order_id})
-
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     error = None
     if request.method == 'POST':
-        if request.form.get('password') == ADMIN_PASSWORD:
+        entered_password = request.form.get('password', '').strip()
+        if entered_password == ADMIN_PASSWORD:
             session['admin_logged_in'] = True
             return redirect(url_for('admin'))
         else:
@@ -151,40 +93,7 @@ def admin():
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
 
-    try:
-        database = get_db()
-        cursor = database.cursor(dictionary=True)
-
-        cursor.execute("SELECT COUNT(*) AS total FROM orders")
-        total_orders_res = cursor.fetchone()
-        total_orders = total_orders_res["total"] if total_orders_res and total_orders_res["total"] is not None else 0
-
-        cursor.execute("SELECT SUM(total) AS revenue FROM orders")
-        result = cursor.fetchone()
-        revenue = result["revenue"] if result and result["revenue"] is not None else 0
-
-        cursor.execute("SELECT COUNT(*) AS total FROM orders WHERE status='Preparing'")
-        prep_res = cursor.fetchone()
-        preparing = prep_res["total"] if prep_res and prep_res["total"] is not None else 0
-
-        cursor.execute("SELECT COUNT(*) AS total FROM orders WHERE status='Completed'")
-        comp_res = cursor.fetchone()
-        completed = comp_res["total"] if comp_res and comp_res["total"] is not None else 0
-        cursor.close()
-    except Exception as e:
-        print("DATABASE ERROR IN ADMIN ROUTE:", str(e))
-        total_orders = 0
-        revenue = 0
-        preparing = 0
-        completed = 0
-
-    return render_template(
-        "admin.html",
-        total_orders=total_orders,
-        revenue=revenue,
-        preparing=preparing,
-        completed=completed
-    )
+    return render_template("admin.html")
 
 @app.route("/manage_menu")
 def manage_menu():
@@ -194,29 +103,26 @@ def manage_menu():
     menu = []
     try:
         database = get_db()
-        
-        # 1. Check count using an isolated cursor
-        check_cursor = database.cursor(dictionary=True)
-        check_cursor.execute("SELECT COUNT(*) AS count FROM menu")
-        res = check_cursor.fetchone()
-        check_cursor.close()
-        
-        if res and res['count'] == 0:
+        cursor = database.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM menu")
+        menu = cursor.fetchall()
+        cursor.close()
+
+        if not menu:
             ins_cursor = database.cursor()
             ins_cursor.execute("""
                 INSERT INTO menu (name, category, description, price, image) VALUES 
-                ('Grilled Chicken', 'Main Meal', 'Delicious grilled chicken served with fries and salad.', 700.00, 'images/chicken.jpg'),
-                ('Cheese Pizza', 'Fast Food', 'Fresh pizza prepared with cheese and vegetables.', 900.00, 'images/pizza.jpg'),
-                ('Fresh Juice', 'Drinks', 'Best fresh juice in town!', 250.00, 'images/chicken pilau.jpg')
+                ('Grilled Chicken', 'Main Meal', 'Delicious grilled chicken served with fries.', 700.00, 'images/chicken.jpg'),
+                ('Cheese Pizza', 'Fast Food', 'Fresh pizza prepared with cheese.', 900.00, 'images/pizza.jpg'),
+                ('Fresh Juice', 'Drinks', 'Fresh passion and orange juice.', 250.00, 'images/juice.jpg')
             """)
             database.commit()
             ins_cursor.close()
 
-        # 2. Fetch all menu items cleanly
-        fetch_cursor = database.cursor(dictionary=True)
-        fetch_cursor.execute("SELECT * FROM menu")
-        menu = fetch_cursor.fetchall()
-        fetch_cursor.close()
+            fetch_cursor = database.cursor(dictionary=True)
+            fetch_cursor.execute("SELECT * FROM menu")
+            menu = fetch_cursor.fetchall()
+            fetch_cursor.close()
     except Exception as e:
         print("DATABASE ERROR IN MANAGE_MENU:", str(e))
         menu = [
