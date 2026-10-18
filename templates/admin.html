@@ -3,153 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard | DEBASA SYSTEMS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.0">
+    <title>Admin Dashboard - Magic Mandi & Grill</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { 
-            font-family: 'Inter', system-ui, sans-serif; 
-            background: #0a0c10; 
-            color: #f3f4f6; 
-            margin: 0; 
-            padding: 30px 20px; 
-        }
-
-        .admin-container { 
-            max-width: 1200px; 
-            margin: 0 auto; 
-            background: #141720; 
-            padding: 35px; 
-            border-radius: 24px; 
-            box-shadow: 0 15px 40px rgba(0,0,0,0.5); 
-            border: 1px solid rgba(255,255,255,0.08);
-        }
-
-        .admin-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-bottom: 1px solid rgba(255,255,255,0.08); 
-            padding-bottom: 25px; 
-            margin-bottom: 30px; 
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .debasa-badge {
-            color: #ffd700;
-            font-weight: 800;
-            letter-spacing: 2px;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-        }
-
-        .admin-header h1 {
-            margin: 4px 0 0;
-            font-size: 1.8rem;
-            color: #ffffff;
-        }
-
-        .admin-actions {
+        body {
+            background: linear-gradient(-45deg, #1e3c72, #2a5298, #ff6a00, #ee0979);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: white;
+            min-height: 100vh;
             display: flex;
-            gap: 12px;
+            align-items: center;
+            justify-content: center;
         }
-
-        .btn { 
-            padding: 12px 20px; 
-            border-radius: 50px; 
-            font-weight: 600; 
-            text-decoration: none; 
-            cursor: pointer; 
-            border: none; 
-            transition: all 0.3s ease;
-            font-size: 14px;
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
-        .btn:hover { transform: translateY(-2px); }
-        .btn-danger { background: #ef4444; color: white; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
-        .btn-primary { background: linear-gradient(135deg, #d32f2f, #8b0000); color: white; box-shadow: 0 4px 15px rgba(211, 47, 47, 0.3); }
-
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            margin-top: 20px;
-        }
-
-        .menu-card {
-            background: #1c212c;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 20px;
-            padding: 30px;
-            text-align: center;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+            width: 100%;
+            max-width: 550px;
+        }
+        .glass-header {
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px 20px 0 0;
+        }
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
             transition: all 0.3s ease;
         }
-
-        .menu-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(255, 215, 0, 0.3);
-        }
-
-        .menu-card h3 {
-            color: #ffd700;
-            font-size: 1.3rem;
-            margin-bottom: 10px;
-        }
-
-        .menu-card p {
-            color: #9ca3af;
-            font-size: 0.9rem;
-            margin-bottom: 20px;
-        }
-
-        .admin-footer {
-            margin-top: 50px;
-            text-align: center;
-            padding-top: 25px;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            color: #9ca3af;
-            font-size: 0.85rem;
-            line-height: 1.6;
-        }
-
-        .gold-text {
-            color: #ffd700;
-            font-weight: 700;
-            text-transform: uppercase;
+        .glass-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+            color: white;
         }
     </style>
 </head>
 <body>
 
-<div class="admin-container">
-    <div class="admin-header">
-        <div>
-            <span class="debasa-badge">DEBASA SYSTEMS ADMIN</span>
-            <h1>Admin Control Panel</h1>
+<div class="container">
+    <div class="glass-card mx-auto text-center">
+        <div class="glass-header p-4">
+            <h3 class="mb-0 fw-bold">✨ Admin Panel</h3>
         </div>
-        <div class="admin-actions">
-            <a href="{{ url_for('index') }}" class="btn btn-primary" target="_blank">View Live Menu</a>
-            <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
-        </div>
-    </div>
-
-    <div class="dashboard-grid">
-        <div class="menu-card">
-            <h3>📖 Menu Management</h3>
-            <p>Add new dishes, update prices, edit categories, or delete items seamlessly.</p>
-            <a href="{{ url_for('manage_menu') }}" class="btn btn-primary" style="display: inline-block;">Manage Menu Items</a>
+        <div class="card-body p-5">
+            <h4 class="mb-3">🍔 Menu Management</h4>
+            <p class="mb-4" style="color: rgba(255,255,255,0.7);">Add, edit, or delete your dishes and prices seamlessly.</p>
+            
+            <div class="d-grid gap-3">
+                <a href="/manage_menu" class="btn btn-light fw-bold rounded-pill py-3 text-dark shadow">📋 Manage Menu Items</a>
+                <a href="/" class="btn glass-btn rounded-pill py-2">🌐 View Live Menu</a>
+            </div>
         </div>
     </div>
-
-    <footer class="admin-footer">
-        <div>© 2026 Magic Mandi & Grill. All Rights Reserved.</div>
-        <div style="margin-top: 6px;">
-            Engineered & Powered by <span class="gold-text">DEBASA SYSTEMS</span> | <span class="gold-text">DEBASA QR</span>
-        </div>
-        <div style="margin-top: 6px; font-size: 0.75rem; color: #666;">
-            Contact Support: contact@debasasystems.com
-        </div>
-    </footer>
 </div>
 
 </body>
