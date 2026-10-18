@@ -3,38 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Menu Item</title>
+    <title>Edit Menu Item | DEBASA SYSTEMS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0c10;
+            --bg-surface: #141720;
+            --accent-gold: #ffd700;
+            --brand-red: #d32f2f;
+            --brand-dark-red: #8b0000;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+        }
 
-<div class="container mt-5" style="max-width: 600px;">
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">✏️ Edit Price & Name</h4>
-        </div>
-        <div class="card-body">
-            
-            <form action="/edit_menu/{{ item.id }}" method="POST">
-                <div class="mb-3">
-                    <label class="form-label text-muted">Current Dish Name</label>
-                    <input type="text" class="form-control" name="name" value="{{ item.name }}" required>
-                </div>
-                
-                <div class="mb-4">
-                    <label class="form-label text-muted">Current Price (KSh)</label>
-                    <input type="number" step="0.01" class="form-control" name="price" value="{{ item.price }}" required>
-                </div>
+        body {
+            background-color: var(--bg-primary);
+            color: #f3f4f6;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px 0;
+        }
 
-                <div class="d-flex justify-content-between">
-                    <a href="/manage_menu" class="btn btn-secondary">Cancel</a>
-                    <button type="submit" class="btn btn-success">Save Changes</button>
-                </div>
-            </form>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
 
-        </div>
-    </div>
-</div>
+        .glass-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 24px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+            width: 100%;
+            max-width: 520px;
+            overflow: hidden;
+        }
 
-</body>
-</html>
+        .glass-header {
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .debasa-badge {
+            color: var(--accent-gold);
+            font-weight: 800;
+            letter-spacing: 2px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .glass-input {
+            background: #1c212c !important;
+            border: 1px solid var(--border-subtle) !important;
+            color: #ffffff !important;
+            border-radius: 12px;
+        }
+
+        .glass-input:focus {
+            background: #252c3b !important;
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.2);
+            border-color: var(--accent-gold) !important;
+        }
+
+        .btn-success-custom {
+            background: linear-gradient(135deg, #2e7d32, #1b5e20);
+            color: #ffffff;
+            border: none;
+            transition:
