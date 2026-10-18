@@ -194,26 +194,31 @@ def manage_menu():
     menu = []
     try:
         database = get_db()
-        cursor = database.cursor(dictionary=True)
         
-        cursor.execute("SELECT COUNT(*) AS count FROM menu")
-        res = cursor.fetchone()
+        # 1. Check count using an isolated cursor
+        check_cursor = database.cursor(dictionary=True)
+        check_cursor.execute("SELECT COUNT(*) AS count FROM menu")
+        res = check_cursor.fetchone()
+        check_cursor.close()
         
         if res and res['count'] == 0:
-            cursor.execute("""
+            ins_cursor = database.cursor()
+            ins_cursor.execute("""
                 INSERT INTO menu (name, category, description, price, image) VALUES 
                 ('Grilled Chicken', 'Main Meal', 'Delicious grilled chicken served with fries and salad.', 700.00, 'images/chicken.jpg'),
                 ('Cheese Pizza', 'Fast Food', 'Fresh pizza prepared with cheese and vegetables.', 900.00, 'images/pizza.jpg'),
                 ('Fresh Juice', 'Drinks', 'Best fresh juice in town!', 250.00, 'images/chicken pilau.jpg')
             """)
             database.commit()
+            ins_cursor.close()
 
-        cursor.execute("SELECT * FROM menu")
-        menu = cursor.fetchall()
-        cursor.close()
+        # 2. Fetch all menu items cleanly
+        fetch_cursor = database.cursor(dictionary=True)
+        fetch_cursor.execute("SELECT * FROM menu")
+        menu = fetch_cursor.fetchall()
+        fetch_cursor.close()
     except Exception as e:
         print("DATABASE ERROR IN MANAGE_MENU:", str(e))
-        # Hardcoded sample data fallback so page NEVER renders black/empty
         menu = [
             {'id': 1, 'name': 'Grilled Chicken', 'category': 'Main Meal', 'price': 700.00},
             {'id': 2, 'name': 'Cheese Pizza', 'category': 'Fast Food', 'price': 900.00},
