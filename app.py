@@ -24,7 +24,6 @@ def connect_to_db():
         port=int(os.getenv("MYSQLPORT", 15691)),
         ssl_disabled=False
     )
-    # Initialize all necessary tables safely
     cursor = db.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS menu (
         id INT AUTO_INCREMENT PRIMARY KEY,
