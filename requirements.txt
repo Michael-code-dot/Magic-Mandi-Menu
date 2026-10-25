@@ -1,6 +1,6 @@
 Flask
 python-dotenv
-Flask-wtf
+Flask-WTF
 Flask-Limiter
 mysql-connector-python
 gunicorn
