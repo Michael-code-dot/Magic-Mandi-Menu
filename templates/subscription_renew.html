@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Renew Subscription | DEBASA QR</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.jpeg') }}">
+
+<style>
+    @property --angle {
+        syntax: "<angle>";
+        initial-value: 0deg;
+        inherits: false;
+    }
+
+    :root {
+        --panel: #060606;
+        --line: rgba(255, 215, 120, 0.12);
+        --line-hi: rgba(255, 215, 120, 0.32);
+        --text: #f6f1e4;
+        --text-2: #b9b09a;
+        --muted: #7d7562;
+        --gold-1: #fff0b8;
+        --gold-2: #f5d77a;
+        --gold-3: #d9ab36;
+        --gold-grad: linear-gradient(135deg, #fff0b8 0%, #f5d77a 28%, #d9ab36 58%, #a8791c 100%);
+        --gold-glow: rgba(245, 200, 90, 0.38);
+        --red: #ff6a82;
+        --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 32px 16px;
+        background: #000;
+        color: var(--text);
+        font-family: "Outfit", -apple-system, "Segoe UI", sans-serif;
+        font-size: 14px;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+    }
+
+    ::selection { background: var(--gold-3); color: #000; }
+
+    .aurora { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+
+    .aurora i {
+        position: absolute;
+        width: 560px; height: 560px;
+        border-radius: 50%;
+        filter: blur(110px);
+        opacity: 0.16;
+        background: radial-gradient(circle, var(--gold-3), transparent 70%);
+        animation: drift 20s ease-in-out infinite alternate;
+    }
+
+    .aurora i:nth-child(1) { top: -240px; right: -100px; }
+    .aurora i:nth-child(2) { bottom: -280px; left: -80px; opacity: 0.1; animation-duration: 26s; animation-direction: alternate-reverse; }
+
+    @keyframes drift { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(-80px, 60px) scale(1.25); } }
+
+    .container { position: relative; width: 100%; max-width: 580px; }
+
+    .brand { text-align: center; margin-bottom: 26px; animation: reveal 1s var(--ease) both; }
+
+    .brand-logo {
+        position: relative;
+        overflow: hidden;
+        width: 54px; height: 54px;
+        display: grid; place-items: center;
+        margin: 0 auto 14px;
+        border-radius: 16px;
+        background: var(--gold-grad);
+        color: #1a1204;
+        font-family: "Playfair Display", serif;
+        font-weight: 800;
+        font-size: 27px;
+        box-shadow: 0 0 0 1px rgba(255,240,184,0.5) inset, 0 0 36px var(--gold-glow);
+    }
+
+    .brand-logo::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.75) 50%, transparent 70%);
+        transform: translateX(-120%);
+        animation: sheen 4s ease-in-out infinite;
+    }
+
+    @keyframes sheen { 0% { transform: translateX(-120%); } 55%,100% { transform: translateX(120%); } }
+
+    .brand h1 {
+        font-family: "Playfair Display", serif;
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: 5px;
+        background: var(--gold-grad);
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .brand p { margin-top: 8px; color: var(--muted); font-size: 11px; letter-spacing: 2.6px; text-transform: uppercase; }
+
+    @keyframes reveal { from { opacity: 0; transform: translateY(26px); filter: blur(8px); } to { opacity: 1; transform: none; filter: none; } }
+
+    /* Card with rotating gold border */
+    .card {
+        position: relative;
+        padding: 34px;
+        border-radius: 26px;
+        background: var(--panel);
+        isolation: isolate;
+        animation: reveal 1.1s var(--ease) 0.15s both;
+    }
+
+    .card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        padding: 1.5px;
+        border-radius: 26px;
+        background: conic-gradient(from var(--angle), transparent 0%, rgba(217,171,54,0.15) 25%, var(--gold-1) 38%, var(--gold-3) 45%, transparent 55%, transparent 100%);
+        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        mask-composite: exclude;
+        animation: spin 6s linear infinite;
+        z-index: -1;
+    }
+
+    @keyframes spin { to { --angle: 360deg; } }
+
+    h2 { font-family: "Playfair Display", serif; font-size: 32px; font-weight: 600; letter-spacing: -1px; color: #fff; }
+
+    h2::after {
+        content: "";
+        display: block;
+        width: 56px; height: 2px;
+        margin-top: 12px;
+        background: var(--gold-grad);
+        box-shadow: 0 0 14px var(--gold-2);
+        animation: grow 1.3s var(--ease) 0.6s both;
+    }
+
+    @keyframes grow { from { width: 0; } to { width: 56px; } }
+
+    .description { margin: 16px 0 26px; color: var(--text-2); font-size: 14px; font-weight: 300; line-height: 1.7; }
+
+    .customer {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 18px;
+        margin-bottom: 26px;
+        border: 1px solid var(--line-hi);
+        border-radius: 18px;
+        background: linear-gradient(135deg, rgba(245,215,122,0.07), rgba(245,215,122,0.01));
+    }
+
+    .customer-icon {
+        width: 50px; height: 50px;
+        flex-shrink: 0;
+        display: grid; place-items: center;
+        border-radius: 15px;
+        background: radial-gradient(circle at 30% 25%, rgba(255,240,184,0.25), rgba(217,171,54,0.05));
+        border: 1px solid var(--line-hi);
+        color: var(--gold-2);
+        font-family: "Playfair Display", serif;
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+    .customer-label { color: var(--muted); font-size: 10.5px; font-weight: 600; letter-spacing: 2.6px; text-transform: uppercase; }
+    .customer-name { margin-top: 3px; font-family: "Playfair Display", serif; font-size: 21px; font-weight: 600; color: #fff; letter-spacing: -0.3px; }
+    .expiry { margin-top: 5px; color: var(--text-2); font-size: 13px; }
+    .expiry strong { color: var(--gold-1); font-weight: 600; }
+
+    .error {
+        margin-bottom: 20px;
+        padding: 13px 16px;
+        color: var(--red);
+        background: rgba(255,106,130,0.08);
+        border: 1px solid rgba(255,106,130,0.35);
+        border-radius: 12px;
+        font-size: 13.5px;
+    }
+
+    .field-label { display: block; margin-bottom: 14px; color: var(--gold-3); font-size: 10.5px; font-weight: 600; letter-spacing: 2.6px; text-transform: uppercase; }
+
+    /* Period tiles (radio buttons, same name="months") */
+    .periods { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+
+    .period { position: relative; }
+
+    .period input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; cursor: pointer; z-index: 2; }
+
+    .period-tile {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        min-height: 92px;
+        padding: 12px 6px;
+        text-align: center;
+        border: 1px solid var(--line-hi);
+        border-radius: 16px;
+        background: #030303;
+        transition: transform 0.4s var(--ease), border-color 0.3s, box-shadow 0.4s, background 0.3s;
+    }
+
+    .period-num { font-family: "Playfair Display", serif; font-size: 30px; font-weight: 700; line-height: 1; color: #fff; transition: color 0.3s; }
+    .period-unit { color: var(--muted); font-size: 10.5px; letter-spacing: 1.6px; text-transform: uppercase; }
+
+    .period:hover .period-tile { transform: translateY(-3px); border-color: var(--gold-2); }
+
+    .period input:checked + .period-tile {
+        border-color: var(--gold-2);
+        background: linear-gradient(160deg, rgba(245,215,122,0.18), rgba(245,215,122,0.04));
+        box-shadow: 0 0 0 1px rgba(255,240,184,0.4) inset, 0 12px 36px rgba(217,171,54,0.25);
+        transform: translateY(-3px);
+    }
+
+    .period input:checked + .period-tile .period-num {
+        background: var(--gold-grad);
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .period input:checked + .period-tile .period-unit { color: var(--gold-2); }
+    .period input:focus-visible + .period-tile { box-shadow: 0 0 0 3px rgba(245,215,122,0.35); }
+
+    /* Live preview */
+    .preview {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 16px 18px;
+        margin-bottom: 22px;
+        border: 1px dashed var(--line-hi);
+        border-radius: 16px;
+        color: var(--muted);
+        font-size: 13px;
+        transition: border-color 0.4s, background 0.4s;
+    }
+
+    .preview.ready { border-style: solid; border-color: var(--gold-2); background: rgba(245,215,122,0.06); }
+
+    .preview-value { font-family: "Playfair Display", serif; font-size: 21px; font-weight: 600; color: var(--gold-1); text-align: right; }
+    .preview-value.pop { animation: pop 0.5s var(--ease); }
+
+    @keyframes pop { 0% { transform: scale(0.85); opacity: 0; } 100% { transform: none; opacity: 1; } }
+
+    .preview-note { display: block; margin-top: 2px; color: var(--muted); font-family: "Outfit", sans-serif; font-size: 10.5px; font-weight: 400; letter-spacing: 0.4px; }
+
+    .button {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 52px;
+        padding: 0 20px;
+        border: 1px solid transparent;
+        border-radius: 15px;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease), background 0.3s, border-color 0.3s;
+    }
+
+    .button:hover { transform: translateY(-3px); }
+    .button:active { transform: translateY(0) scale(0.98); }
+
+    .renew-button {
+        color: #1a1204;
+        background: var(--gold-grad);
+        box-shadow: 0 0 0 1px rgba(255,240,184,0.45) inset, 0 10px 32px rgba(217,171,54,0.3);
+    }
+
+    .renew-button::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(110deg, transparent 35%, rgba(255,255,255,0.7) 50%, transparent 65%);
+        transform: translateX(-130%);
+        animation: sheen 4.5s ease-in-out 1.5s infinite;
+    }
+
+    .renew-button:hover { box-shadow: 0 0 0 1px rgba(255,240,184,0.7) inset, 0 16px 48px rgba(245,200,90,0.55); }
+
+    .cancel-button { margin-top: 12px; color: var(--gold-2); background: transparent; border-color: var(--line-hi); }
+    .cancel-button:hover { background: rgba(245,215,122,0.08); border-color: var(--gold-2); }
+
+    .notice { margin-top: 24px; color: var(--muted); font-size: 10.5px; letter-spacing: 2px; text-transform: uppercase; text-align: center; }
+
+    @media (max-width: 480px) {
+        .card { padding: 24px 20px; }
+        .periods { grid-template-columns: repeat(2, 1fr); }
+        h2 { font-size: 27px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+</style>
+</head>
+
+<body>
+<div class="aurora" aria-hidden="true"><i></i><i></i></div>
+
+<main class="container">
+
+    <header class="brand">
+        <div class="brand-logo">D</div>
+        <h1>DEBASA QR</h1>
+        <p>Subscription Management · DEBASA Systems</p>
+    </header>
+
+    <section class="card">
+        <h2>Renew Subscription</h2>
+
+        <p class="description">
+            Select the renewal period for this hotel or restaurant.
+            The new expiry date will be calculated automatically.
+        </p>
+
+        <div class="customer">
+            <div class="customer-icon">{{ (subscription.customer_name or "?")[:1] | upper }}</div>
+            <div>
+                <div class="customer-label">Hotel or Restaurant</div>
+                <div class="customer-name">{{ subscription.customer_name }}</div>
+                <div class="expiry">
+                    Current expiry date:
+                    <strong>{{ subscription.expiry_date.strftime('%d %b %Y') }}</strong>
+                </div>
+            </div>
+        </div>
+
+        {% if error %}
+            <div class="error" role="alert">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" id="renewForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <span class="field-label">Choose renewal period</span>
+
+            <div class="periods">
+                <label class="period">
+                    <input type="radio" name="months" value="1" required>
+                    <span class="period-tile"><span class="period-num">1</span><span class="period-unit">Month</span></span>
+                </label>
+                <label class="period">
+                    <input type="radio" name="months" value="3">
+                    <span class="period-tile"><span class="period-num">3</span><span class="period-unit">Months</span></span>
+                </label>
+                <label class="period">
+                    <input type="radio" name="months" value="6">
+                    <span class="period-tile"><span class="period-num">6</span><span class="period-unit">Months</span></span>
+                </label>
+                <label class="period">
+                    <input type="radio" name="months" value="12">
+                    <span class="period-tile"><span class="period-num">12</span><span class="period-unit">1 Year</span></span>
+                </label>
+            </div>
+
+            <div class="preview" id="preview">
+                <span>New expiry date</span>
+                <span class="preview-value" id="previewValue">Pick a period</span>
+            </div>
+
+            <button
+                type="submit"
+                class="button renew-button"
+                onclick="return confirm('Are you sure you want to renew this subscription?');"
+            >
+                Confirm Renewal
+            </button>
+        </form>
+
+        <a href="{{ url_for('debasa_subscription') }}" class="button cancel-button">
+            Cancel and Return
+        </a>
+
+        <p class="notice">DEBASA QR · A product of DEBASA Systems</p>
+    </section>
+
+</main>
+
+<script>
+    (function () {
+        /* Preview only. The server calculates the real expiry date. */
+        var currentExpiry = "{{ subscription.expiry_date.isoformat() }}";
+        var preview = document.getElementById("preview");
+        var valueEl = document.getElementById("previewValue");
+        var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+        function parseISO(s) {
+            var p = s.split("-");
+            return new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+        }
+
+        function addMonths(d, months) {
+            var idx = d.getMonth() + months;
+            var year = d.getFullYear() + Math.floor(idx / 12);
+            var month = idx % 12;
+            var lastDay = new Date(year, month + 1, 0).getDate();
+            return new Date(year, month, Math.min(d.getDate(), lastDay));
+        }
+
+        function update(months) {
+            var today = new Date();
+            today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            var expiry = parseISO(currentExpiry);
+            var start = expiry > today ? expiry : today;   // keeps remaining time
+            var result = addMonths(start, months);
+
+            valueEl.innerHTML = result.getDate().toString().padStart(2, "0") + " " +
+                MONTHS[result.getMonth()] + " " + result.getFullYear() +
+                '<span class="preview-note">' +
+                (expiry > today ? "Counted from current expiry" : "Counted from today (already expired)") +
+                "</span>";
+            valueEl.classList.remove("pop");
+            void valueEl.offsetWidth;
+            valueEl.classList.add("pop");
+            preview.classList.add("ready");
+        }
+
+        document.querySelectorAll('input[name="months"]').forEach(function (r) {
+            r.addEventListener("change", function () { update(parseInt(r.value, 10)); });
+        });
+    })();
+</script>
+
+</body>
+</html>
