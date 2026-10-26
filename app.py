@@ -831,11 +831,13 @@ def manage_menu():
         """)
         settings = cursor.fetchone()
 
-        if settings and not settings["menu_enabled"]:
-                return render_template(
-                    "menu_unavailable.html",
-                    restaurant_name=settings["restaurant_name"]
-                )
+        if not settings or not settings["menu_enabled"]:
+            return (
+                "YOUR SUBCRTION HAS EXPIRED. RENEW TO ENABLE MENU MANAGEMENT. "
+                " Menu management is temporarily disabled. "
+                "Contact DEBASA."
+                "PAY YOUR SUBSCRIPTION FEE OF 1000.00 THROUGH YOUR BANK AC:0100017448007."
+            ), 403
     finally:
         cursor.close()
 
