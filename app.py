@@ -834,9 +834,11 @@ def manage_menu():
         if not settings or not settings["menu_enabled"]:
             return (
                 "YOUR SUBSCRIPTION HAS EXPIRED. RENEW TO ENABLE MENU MANAGEMENT. "
-                " MENU IS DISABLED<S. "
+
+                " MENU IS DISABLED. "
+                
                 "Contact DEBASA."
-                "<strong>PAY YOUR SUBSCRIPTION FEE OF 1000.00 THROUGH  BANK AC:0100017448007.</strong>"
+            
             ), 403
     finally:
         cursor.close()
