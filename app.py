@@ -833,12 +833,8 @@ def manage_menu():
 
         if not settings or not settings["menu_enabled"]:
             return (
-                "YOUR SUBSCRIPTION HAS EXPIRED. RENEW TO ENABLE MENU MANAGEMENT. "
-
-                " MENU IS DISABLED. "
-                
-                "Contact DEBASA."
-            
+                "Menu management is temporarily disabled. "
+                "Contact DEBASA Systems Admin."
             ), 403
     finally:
         cursor.close()
