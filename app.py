@@ -836,7 +836,7 @@ def manage_menu():
                 "YOUR SUBCRTION HAS EXPIRED. RENEW TO ENABLE MENU MANAGEMENT. "
                 " Menu management is temporarily disabled. "
                 "Contact DEBASA."
-                "PAY YOUR SUBSCRIPTION FEE OF 1000.00 THROUGH YOUR BANK AC:0100017448007."
+                "PAY YOUR SUBSCRIPTION FEE OF 1000.00 THROUGH  BANK AC:0100017448007."
             ), 403
     finally:
         cursor.close()
