@@ -831,11 +831,11 @@ def manage_menu():
         """)
         settings = cursor.fetchone()
 
-        if not settings or not settings["menu_enabled"]:
-            return (
-                "Menu management is temporarily disabled. "
-                "Contact DEBASA Systems."
-            ), 403
+        if settings and not settings["menu_enabled"]:
+                return render_template(
+                    "menu_unavailable.html",
+                    restaurant_name=settings["restaurant_name"]
+                )
     finally:
         cursor.close()
 
