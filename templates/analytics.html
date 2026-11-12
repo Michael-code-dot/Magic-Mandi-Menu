@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#000000">
+    <title>Scan Analytics | DEBASA QR</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.jpeg') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+    <style>
+        @property --angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+
+        :root {
+            --bg: #000;
+            --panel: #0b0a07;
+            --gold-1: #f6e3a1;
+            --gold-2: #d9a93b;
+            --gold-3: #a8741a;
+            --text: #f5efe0;
+            --muted: #9a917c;
+            --line: rgba(217,169,59,.2);
+            --green: #6fd6a0;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0; min-height: 100vh; color: var(--text);
+            font-family: "Inter", system-ui, sans-serif;
+            background: radial-gradient(900px 500px at 80% -10%, rgba(217,169,59,.13), transparent 60%), var(--bg);
+            overflow-x: hidden;
+        }
+
+        .gold-text {
+            background: linear-gradient(110deg, var(--gold-3), var(--gold-1) 35%, var(--gold-2) 55%, var(--gold-1) 80%, var(--gold-3));
+            background-size: 220% 100%;
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent; color: transparent;
+            animation: shimmer 6s linear infinite;
+        }
+        @keyframes shimmer { to { background-position: -220% 0; } }
+
+        .topbar {
+            position: sticky; top: 0; z-index: 30;
+            display: flex; align-items: center; justify-content: space-between; gap: 16px;
+            padding: 14px 5%;
+            background: rgba(0,0,0,.7);
+            -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--line);
+        }
+        .brand { font-size: 19px; font-weight: 800; letter-spacing: -.5px; text-decoration: none; color: inherit; }
+        .brand small { display: block; margin-top: 3px; color: var(--muted); font-size: 9px; font-weight: 500; letter-spacing: 2.5px; }
+        .nav { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+        .nav a {
+            padding: 9px 15px; border: 1px solid var(--line); border-radius: 10px;
+            color: #d8cfb8; font-size: 12px; font-weight: 600; text-decoration: none;
+            transition: border-color .2s, color .2s, transform .2s;
+        }
+        .nav a:hover { border-color: var(--gold-2); color: #fff; transform: translateY(-1px); }
+
+        main { width: min(1240px, 92%); margin: 44px auto 70px; }
+
+        .eyebrow { color: var(--gold-2); font-size: 11px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; }
+        h1 { margin: 12px 0 8px; font-size: clamp(30px, 5.5vw, 46px); letter-spacing: -1.6px; }
+        .sub { color: var(--muted); font-size: 14px; line-height: 1.7; }
+
+        .live {
+            display: inline-flex; align-items: center; gap: 9px; margin-top: 18px;
+            padding: 9px 16px; border: 1px solid rgba(111,214,160,.3); border-radius: 999px;
+            background: rgba(111,214,160,.07); color: #bfeed5; font-size: 12px; font-weight: 600;
+        }
+        .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 0 rgba(111,214,160,.7); animation: ping 1.8s infinite; }
+        @keyframes ping { 70% { box-shadow: 0 0 0 10px rgba(111,214,160,0); } 100% { box-shadow: 0 0 0 0 rgba(111,214,160,0); } }
+
+        /* KPI cards */
+        .kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; margin-top: 34px; }
+        .kpi {
+            position: relative; padding: 20px 20px 18px; border-radius: 20px; overflow: hidden;
+            background: linear-gradient(160deg, #120f08, #060503);
+            border: 1px solid rgba(217,169,59,.14);
+            transition: transform .3s cubic-bezier(.2,.8,.2,1), border-color .3s;
+        }
+        .kpi::before {
+            content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px;
+            background: conic-gradient(from var(--angle), transparent 0 55%, var(--gold-1) 76%, var(--gold-2) 86%, transparent);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+            mask-composite: exclude;
+            opacity: 0; transition: opacity .3s; animation: spin 4s linear infinite; pointer-events: none;
+        }
+        @keyframes spin { to { --angle: 360deg; } }
+        .kpi:hover { transform: translateY(-4px); }
+        .kpi:hover::before { opacity: 1; }
+        .kpi .label { color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+        .kpi .value { margin-top: 10px; font-size: 34px; font-weight: 800; letter-spacing: -1.5px; font-variant-numeric: tabular-nums; }
+        .kpi .value.small { font-size: 20px; letter-spacing: -.5px; line-height: 1.3; padding-top: 8px; }
+        .kpi .note { margin-top: 6px; color: #7c745f; font-size: 12px; }
+
+        /* cards */
+        .card {
+            margin-top: 22px; padding: 24px; border-radius: 22px;
+            background: linear-gradient(160deg, #0f0d08, #050403);
+            border: 1px solid rgba(217,169,59,.14);
+            box-shadow: 0 24px 70px rgba(0,0,0,.5);
+        }
+        .card h2 { margin: 0; font-size: 16px; font-weight: 700; letter-spacing: -.2px; }
+        .card .hint { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+        .card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+
+        .tabs { display: inline-flex; padding: 4px; border: 1px solid var(--line); border-radius: 12px; background: rgba(0,0,0,.4); }
+        .tabs button {
+            padding: 8px 16px; border: 0; border-radius: 9px; background: transparent; color: var(--muted);
+            font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; transition: color .2s, background .2s;
+        }
+        .tabs button.on { color: #1a1206; background: linear-gradient(135deg, var(--gold-1), var(--gold-2) 60%, var(--gold-3)); }
+
+        .chart-box { position: relative; height: 320px; }
+        .chart-box.short { height: 260px; }
+        .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+        .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+        .grid2 .card, .grid3 .card { margin-top: 22px; }
+
+        .legend { display: flex; gap: 16px; margin-top: 14px; color: var(--muted); font-size: 12px; }
+        .legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 7px; border-radius: 3px; background: var(--c); vertical-align: -1px; }
+
+        /* table */
+        .table-wrap { overflow-x: auto; margin-top: 4px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { padding: 12px 14px; text-align: left; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; border-bottom: 1px solid var(--line); white-space: nowrap; }
+        td { padding: 13px 14px; border-bottom: 1px solid rgba(217,169,59,.08); white-space: nowrap; }
+        tbody tr { transition: background .2s; }
+        tbody tr:hover { background: rgba(217,169,59,.05); }
+        .pill { display: inline-block; padding: 4px 11px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+        .pill.new { color: var(--gold-1); background: rgba(217,169,59,.12); border: 1px solid var(--line); }
+        .pill.ret { color: #bfeed5; background: rgba(111,214,160,.1); border: 1px solid rgba(111,214,160,.28); }
+        .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--gold-1); letter-spacing: 1px; }
+
+        .empty { padding: 36px 10px; text-align: center; color: var(--muted); font-size: 14px; line-height: 1.8; }
+        .noscript-note { margin-top: 14px; color: var(--muted); font-size: 12px; }
+        .foot { margin-top: 44px; text-align: center; color: #6f6753; font-size: 11px; line-height: 1.9; }
+
+        @media (max-width: 900px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+        @media (max-width: 600px) {
+            .topbar { padding: 12px 4%; }
+            .kpis { grid-template-columns: 1fr 1fr; gap: 12px; }
+            .kpi { padding: 16px 15px; }
+            .kpi .value { font-size: 28px; }
+            .card { padding: 18px 15px; }
+            .chart-box { height: 270px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation: none !important; transition: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="topbar">
+    <a class="brand" href="{{ url_for('debasa_subscription') }}">
+        DEBASA <span class="gold-text">QR</span>
+        <small>SCAN ANALYTICS</small>
+    </a>
+    <nav class="nav">
+        <a href="{{ url_for('debasa_subscription') }}">← Subscriptions</a>
+        <a href="{{ url_for('debasa_analytics_csv') }}">Download CSV</a>
+        <a href="{{ url_for('debasa_analytics') }}">Refresh</a>
+        <a href="{{ url_for('debasa_admin_logout') }}">Log out</a>
+    </nav>
+</header>
+
+<main>
+    <div class="eyebrow">{{ restaurant_name }}</div>
+    <h1>Who is scanning <span class="gold-text">your menu</span></h1>
+    <p class="sub">
+        Every time a guest scans your QR code, it is counted here. A phone that reopens the menu
+        within 30 minutes counts once. Times are East Africa Time. Updated {{ data.generated }}.
+    </p>
+
+    <div class="live">
+        <i></i>
+        {{ data.kpi.last5 }} scan{{ '' if data.kpi.last5 == 1 else 's' }} in the last 5 minutes
+        &nbsp;·&nbsp; {{ data.kpi.last_hour }} in the last hour
+    </div>
+
+    <!-- ===== KPI cards ===== -->
+    <section class="kpis">
+        <div class="kpi"><div class="label">Today</div><div class="value gold-text" data-count="{{ data.kpi.today }}">0</div><div class="note">{{ data.kpi.visitors_today }} different phones</div></div>
+        <div class="kpi"><div class="label">Yesterday</div><div class="value" data-count="{{ data.kpi.yesterday }}">0</div><div class="note">full day</div></div>
+        <div class="kpi"><div class="label">This week</div><div class="value gold-text" data-count="{{ data.kpi.week }}">0</div><div class="note">{{ data.kpi.visitors_week }} different phones · since Monday</div></div>
+        <div class="kpi"><div class="label">This month</div><div class="value gold-text" data-count="{{ data.kpi.month }}">0</div><div class="note">{{ data.kpi.visitors_month }} different phones</div></div>
+        <div class="kpi"><div class="label">This year</div><div class="value" data-count="{{ data.kpi.year }}">0</div><div class="note">since 1 January</div></div>
+        <div class="kpi"><div class="label">All time</div><div class="value" data-count="{{ data.kpi.total }}">0</div><div class="note">{{ data.kpi.visitors_all }} different phones</div></div>
+        <div class="kpi"><div class="label">Average per day</div><div class="value" data-count="{{ data.kpi.avg_per_day }}" data-decimals="1">0</div><div class="note">last 30 days</div></div>
+        <div class="kpi"><div class="label">Returning guests</div><div class="value" data-count="{{ data.kpi.returning_pct }}" data-suffix="%">0%</div><div class="note">scans from phones seen before</div></div>
+        <div class="kpi"><div class="label">Busiest hour</div><div class="value small gold-text">{{ data.kpi.peak_hour }}</div><div class="note">last 30 days</div></div>
+        <div class="kpi"><div class="label">Best day ever</div><div class="value small">{{ data.kpi.best_day }}</div><div class="note">most scans in one day</div></div>
+    </section>
+
+    {% if data.kpi.total == 0 %}
+    <div class="card">
+        <div class="empty">
+            No scans recorded yet.<br>
+            Open your menu on a phone and refresh this page in about 20 seconds.<br>
+            To see scans per table, make each table's QR code link look like
+            <span class="mono">https://your-site.com/?table=5</span>.
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ===== Trend ===== -->
+    <section class="card">
+        <div class="card-head">
+            <div>
+                <h2>Scans over time</h2>
+                <p class="hint">Gold = total scans · Light = different phones</p>
+            </div>
+            <div class="tabs" id="trendTabs" role="tablist">
+                <button class="on" data-k="days">Days</button>
+                <button data-k="weeks">Weeks</button>
+                <button data-k="months">Months</button>
+                <button data-k="years">Years</button>
+            </div>
+        </div>
+        <div class="chart-box"><canvas id="trendChart"></canvas></div>
+        <div class="noscript-note" id="chartFail" hidden>The charts could not load (the chart library needs an internet connection). The numbers above are still correct.</div>
+    </section>
+
+    <!-- ===== Patterns ===== -->
+    <div class="grid2">
+        <section class="card">
+            <h2>Busiest hours</h2>
+            <p class="hint">Scans by hour of the day · last 30 days</p>
+            <div class="chart-box short" style="margin-top:14px"><canvas id="hoursChart"></canvas></div>
+        </section>
+        <section class="card">
+            <h2>Busiest days of the week</h2>
+            <p class="hint">Scans by weekday · last 30 days</p>
+            <div class="chart-box short" style="margin-top:14px"><canvas id="weekdayChart"></canvas></div>
+        </section>
+    </div>
+
+    <section class="card">
+        <h2>Scans per table</h2>
+        <p class="hint">Last 30 days{% if data.no_table %} · {{ data.no_table }} scan{{ '' if data.no_table == 1 else 's' }} came without a table number{% endif %}</p>
+        {% if data.tables.labels %}
+        <div class="chart-box short" style="margin-top:14px"><canvas id="tablesChart"></canvas></div>
+        {% else %}
+        <div class="empty">No table numbers yet. Use QR links like <span class="mono">/?table=5</span> to see which table scans most.</div>
+        {% endif %}
+    </section>
+
+    <!-- ===== Who ===== -->
+    <div class="grid3">
+        <section class="card">
+            <h2>Phone type</h2>
+            <p class="hint">Last 30 days</p>
+            <div class="chart-box short" style="margin-top:14px"><canvas id="deviceChart"></canvas></div>
+        </section>
+        <section class="card">
+            <h2>Operating system</h2>
+            <p class="hint">Last 30 days</p>
+            <div class="chart-box short" style="margin-top:14px"><canvas id="osChart"></canvas></div>
+        </section>
+        <section class="card">
+            <h2>Browser</h2>
+            <p class="hint">Last 30 days</p>
+            <div class="chart-box short" style="margin-top:14px"><canvas id="browserChart"></canvas></div>
+        </section>
+    </div>
+
+    <!-- ===== Recent ===== -->
+    <section class="card">
+        <div class="card-head">
+            <div>
+                <h2>Latest scans</h2>
+                <p class="hint">The 40 most recent. Guests are anonymous: no names, phone numbers or IP addresses are stored. The code is a random id for one phone.</p>
+            </div>
+        </div>
+        {% if data.recent %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>When</th><th>Table</th><th>Guest</th><th>Type</th><th>Phone</th><th>System</th><th>Browser</th></tr>
+                </thead>
+                <tbody>
+                {% for r in data.recent %}
+                    <tr>
+                        <td>{{ r.time }}</td>
+                        <td>{{ r.table }}</td>
+                        <td class="mono">{{ r.visitor }}</td>
+                        <td>{% if r.returning %}<span class="pill ret">Returning</span>{% else %}<span class="pill new">New</span>{% endif %}</td>
+                        <td>{{ r.device }}</td>
+                        <td>{{ r.os }}</td>
+                        <td>{{ r.browser }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty">Nothing here yet.</div>
+        {% endif %}
+    </section>
+
+    <div class="foot">
+        DEBASA QR · A product of DEBASA Systems<br>
+        Download the full list with “Download CSV” to open it in Excel.
+    </div>
+</main>
+
+<script>
+(function () {
+    "use strict";
+
+    var D = {{ data|tojson }};
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    /* ---------- count-up numbers ---------- */
+    document.querySelectorAll("[data-count]").forEach(function (el) {
+        var end = parseFloat(el.getAttribute("data-count")) || 0;
+        var dec = parseInt(el.getAttribute("data-decimals") || "0", 10);
+        var suffix = el.getAttribute("data-suffix") || "";
+        function show(v) { el.textContent = v.toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec }) + suffix; }
+        if (reduce || end === 0) { show(end); return; }
+        var t0 = null, dur = 1100;
+        function step(ts) {
+            if (t0 === null) t0 = ts;
+            var p = Math.min((ts - t0) / dur, 1);
+            show(end * (1 - Math.pow(1 - p, 3)));
+            if (p < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    });
+
+    /* ---------- charts ---------- */
+    if (typeof Chart === "undefined") {
+        document.getElementById("chartFail").hidden = false;
+        return;
+    }
+
+    var GOLD = "#d9a93b", GOLD_L = "#f6e3a1", GRID = "rgba(217,169,59,.10)", MUTED = "#9a917c";
+    Chart.defaults.color = MUTED;
+    Chart.defaults.font.family = '"Inter", system-ui, sans-serif';
+    Chart.defaults.font.size = 11;
+    if (reduce) Chart.defaults.animation = false;
+
+    var tooltip = {
+        backgroundColor: "#12100a", borderColor: "rgba(217,169,59,.4)", borderWidth: 1,
+        titleColor: GOLD_L, bodyColor: "#f5efe0", padding: 12, cornerRadius: 10
+    };
+    var axes = {
+        x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } },
+        y: { beginAtZero: true, grid: { color: GRID }, ticks: { precision: 0 } }
+    };
+
+    function gradient(ctx, area) {
+        var g = ctx.createLinearGradient(0, area.top, 0, area.bottom);
+        g.addColorStop(0, "rgba(246,227,161,.95)");
+        g.addColorStop(1, "rgba(168,116,26,.35)");
+        return g;
+    }
+
+    /* trend: bars (scans) + line (different phones), switchable */
+    var trendCtx = document.getElementById("trendChart");
+    var trend = new Chart(trendCtx, {
+        data: {
+            labels: D.trend.days.labels,
+            datasets: [
+                { type: "bar", label: "Scans", data: D.trend.days.scans, borderRadius: 6, maxBarThickness: 34,
+                  backgroundColor: function (c) { return c.chart.chartArea ? gradient(c.chart.ctx, c.chart.chartArea) : GOLD; } },
+                { type: "line", label: "Different phones", data: D.trend.days.visitors, borderColor: "#fff6d6",
+                  backgroundColor: "#fff6d6", borderWidth: 2, tension: .35, pointRadius: 2.5, pointHoverRadius: 5 }
+            ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
+                   plugins: { legend: { display: false }, tooltip: tooltip }, scales: axes }
+    });
+
+    document.querySelectorAll("#trendTabs button").forEach(function (b) {
+        b.addEventListener("click", function () {
+            document.querySelectorAll("#trendTabs button").forEach(function (x) { x.classList.remove("on"); });
+            b.classList.add("on");
+            var s = D.trend[b.getAttribute("data-k")];
+            trend.data.labels = s.labels;
+            trend.data.datasets[0].data = s.scans;
+            trend.data.datasets[1].data = s.visitors;
+            trend.update();
+        });
+    });
+
+    function bars(id, labels, values, horizontal) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        new Chart(el, {
+            type: "bar",
+            data: { labels: labels, datasets: [{ data: values, borderRadius: 6, maxBarThickness: 30,
+                backgroundColor: function (c) {
+                    if (!c.chart.chartArea) return GOLD;
+                    var a = c.chart.chartArea, g = c.chart.ctx.createLinearGradient(horizontal ? a.left : 0, horizontal ? 0 : a.top, horizontal ? a.right : 0, horizontal ? 0 : a.bottom);
+                    g.addColorStop(0, horizontal ? "rgba(168,116,26,.5)" : "rgba(246,227,161,.95)");
+                    g.addColorStop(1, horizontal ? "rgba(246,227,161,.95)" : "rgba(168,116,26,.35)");
+                    return g;
+                } }] },
+            options: { indexAxis: horizontal ? "y" : "x", responsive: true, maintainAspectRatio: false,
+                       plugins: { legend: { display: false }, tooltip: Object.assign({}, tooltip, { callbacks: { label: function (c) { return " " + c.parsed[horizontal ? "x" : "y"] + " scans"; } } }) },
+                       scales: horizontal
+                           ? { x: { beginAtZero: true, grid: { color: GRID }, ticks: { precision: 0 } }, y: { grid: { display: false } } }
+                           : axes }
+        });
+    }
+
+    var hourLabels = [];
+    for (var h = 0; h < 24; h++) hourLabels.push(("0" + h).slice(-2));
+    bars("hoursChart", hourLabels, D.hours, false);
+    bars("weekdayChart", ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], D.weekdays, false);
+    bars("tablesChart", D.tables.labels, D.tables.values, true);
+
+    var PALETTE = ["#f6e3a1", "#d9a93b", "#a8741a", "#fff6d6", "#8a6a2c", "#e9c46a", "#6b5320", "#c9b27a"];
+    function donut(id, src) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        if (!src.values.length) { el.parentNode.innerHTML = '<div class="empty">No data yet</div>'; return; }
+        new Chart(el, {
+            type: "doughnut",
+            data: { labels: src.labels, datasets: [{ data: src.values, backgroundColor: PALETTE, borderColor: "#050403", borderWidth: 3, hoverOffset: 8 }] },
+            options: { responsive: true, maintainAspectRatio: false, cutout: "66%",
+                       plugins: { legend: { position: "bottom", labels: { boxWidth: 10, boxHeight: 10, padding: 12 } }, tooltip: tooltip } }
+        });
+    }
+    donut("deviceChart", D.devices);
+    donut("osChart", D.systems);
+    donut("browserChart", D.browsers);
+})();
+</script>
+
+</body>
+</html>

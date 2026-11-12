@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#000000">
+    <meta name="robots" content="noindex">
+    <title>Subscription Payment | DEBASA QR</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+ <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.jpeg') }}">
+
+    <style>
+        @property --angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+
+        :root {
+            --gold-1: #f6e3a1; --gold-2: #d9a93b; --gold-3: #a8741a;
+            --text: #f5efe0; --muted: #9a917c; --line: rgba(217,169,59,.22);
+            --green: #6fd6a0;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0; min-height: 100vh; color: var(--text);
+            font-family: "Inter", system-ui, sans-serif;
+            background: radial-gradient(800px 500px at 50% -10%, rgba(217,169,59,.16), transparent 62%), #000;
+            overflow-x: hidden;
+        }
+
+        .gold-text {
+            background: linear-gradient(110deg, var(--gold-3), var(--gold-1) 35%, var(--gold-2) 55%, var(--gold-1) 80%, var(--gold-3));
+            background-size: 220% 100%;
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent; color: transparent;
+            animation: shimmer 6s linear infinite;
+        }
+        @keyframes shimmer { to { background-position: -220% 0; } }
+
+        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 5%; border-bottom: 1px solid var(--line); }
+        .brand { font-size: 19px; font-weight: 800; letter-spacing: -.5px; }
+        .brand small { display: block; margin-top: 3px; color: var(--muted); font-size: 9px; font-weight: 500; letter-spacing: 2.5px; }
+        .logout { color: #d8cfb8; font-size: 12px; font-weight: 600; text-decoration: none; padding: 9px 15px; border: 1px solid var(--line); border-radius: 10px; }
+        .logout:hover { border-color: var(--gold-2); color: #fff; }
+
+        main { width: min(820px, 92%); margin: 44px auto 70px; }
+
+        .hero { text-align: center; }
+        .badge {
+            display: inline-flex; align-items: center; gap: 9px; padding: 9px 16px;
+            border: 1px solid rgba(217,169,59,.35); border-radius: 999px;
+            background: rgba(217,169,59,.08); color: var(--gold-1);
+            font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+        }
+        .badge i { width: 8px; height: 8px; border-radius: 50%; background: var(--gold-2); animation: ping 1.8s infinite; }
+        @keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(217,169,59,.7); } 70%, 100% { box-shadow: 0 0 0 10px rgba(217,169,59,0); } }
+
+        h1 { margin: 20px 0 12px; font-size: clamp(30px, 6vw, 46px); letter-spacing: -1.6px; line-height: 1.1; }
+        .lead { max-width: 560px; margin: 0 auto; color: var(--muted); font-size: 15px; line-height: 1.8; }
+
+        .card {
+            position: relative; margin-top: 22px; padding: 26px; border-radius: 22px;
+            background: linear-gradient(160deg, #110f09, #050403);
+            border: 1px solid rgba(217,169,59,.16);
+            box-shadow: 0 24px 70px rgba(0,0,0,.55);
+        }
+        .card h2 { margin: 0 0 4px; font-size: 16px; font-weight: 700; }
+        .card .hint { margin: 0 0 18px; color: var(--muted); font-size: 12.5px; line-height: 1.7; }
+
+        .due { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        .due div { padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: rgba(217,169,59,.05); }
+        .due span { display: block; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+        .due strong { display: block; margin-top: 8px; font-size: 20px; font-weight: 800; letter-spacing: -.5px; }
+
+        .rows { display: grid; gap: 10px; }
+        .row {
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            padding: 14px 16px; border: 1px solid rgba(217,169,59,.14); border-radius: 14px; background: rgba(0,0,0,.35);
+        }
+        .row .k { color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; }
+        .row .v { margin-top: 4px; font-size: 17px; font-weight: 700; letter-spacing: .3px; word-break: break-all; }
+        .copy {
+            flex: 0 0 auto; padding: 8px 14px; border: 1px solid var(--line); border-radius: 9px;
+            background: transparent; color: var(--gold-1); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+            transition: background .2s, color .2s, border-color .2s;
+        }
+        .copy:hover { border-color: var(--gold-2); background: rgba(217,169,59,.1); }
+        .copy.done { color: #bfeed5; border-color: rgba(111,214,160,.5); }
+
+        ol.steps { margin: 0; padding: 0; list-style: none; counter-reset: s; display: grid; gap: 12px; }
+        ol.steps li { counter-increment: s; display: flex; gap: 14px; align-items: flex-start; color: #d9d1bc; font-size: 14px; line-height: 1.7; }
+        ol.steps li::before {
+            content: counter(s); flex: 0 0 auto; width: 28px; height: 28px; margin-top: 1px; border-radius: 50%;
+            display: grid; place-items: center; color: #1a1206; font-size: 13px; font-weight: 800;
+            background: linear-gradient(135deg, var(--gold-1), var(--gold-2) 60%, var(--gold-3));
+        }
+
+        .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+        .btn {
+            flex: 1 1 200px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            min-height: 50px; padding: 0 20px; border-radius: 14px; font-size: 14px; font-weight: 700; text-decoration: none;
+            transition: transform .2s, box-shadow .2s;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn.gold { color: #1a1206; background: linear-gradient(135deg, var(--gold-1), var(--gold-2) 55%, var(--gold-3)); box-shadow: 0 10px 34px rgba(217,169,59,.35); }
+        .btn.ghost { color: var(--gold-1); border: 1px solid var(--line); background: rgba(217,169,59,.05); }
+        .btn.ghost:hover { border-color: var(--gold-2); }
+
+        .empty { padding: 8px 0; color: var(--muted); font-size: 14px; line-height: 1.8; }
+        .foot { margin-top: 40px; text-align: center; color: #6f6753; font-size: 11px; line-height: 1.9; }
+
+        @media (max-width: 600px) {
+            .due { grid-template-columns: 1fr; }
+            .card { padding: 20px 16px; }
+            .row .v { font-size: 15px; }
+        }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+    </style>
+</head>
+<body>
+
+<header class="topbar">
+    <div class="brand">DEBASA <span class="gold-text">QR</span><small>BY DEBASA SYSTEMS</small></div>
+    <a class="logout" href="{{ url_for('admin_logout') }}">Log out</a>
+</header>
+
+<main>
+    <section class="hero">
+        <span class="badge"><i></i> Menu paused</span>
+        <h1>{{ restaurant_name }}'s menu is <span class="gold-text">paused</span></h1>
+        <p class="lead">
+            Your DEBASA QR subscription needs to be paid. Guests who scan your QR code
+            currently see a friendly "menu unavailable" page. Pay using the details below
+            and your menu goes live again as soon as we confirm the payment.
+        </p>
+    </section>
+
+    {% if sub %}
+    <section class="card">
+        <h2>Your subscription</h2>
+        <div class="due" style="margin-top:14px">
+            <div><span>Monthly fee</span><strong class="gold-text">KSh {{ '{:,.0f}'.format(sub.monthly_fee) }}</strong></div>
+            <div><span>Status</span><strong>{{ sub.status_label }}</strong></div>
+            <div><span>{{ 'Expired on' if sub.expired else 'Valid until' }}</span><strong>{{ sub.expiry_date.strftime('%d %b %Y') }}</strong></div>
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="card">
+        <h2>How to pay</h2>
+        {% if pay.bank_number %}
+        <p class="hint">Paying by M-Pesa? Choose Lipa na M-Pesa, then Pay Bill. Enter the business number, then the account number. Tap Copy to copy a detail.</p>
+        <div class="rows">
+            {% if pay.bank_number %}
+            {% if pay.bank_name %}
+            <div class="row">
+                <div><div class="k">Bank</div><div class="v">{{ pay.bank_name }}{% if pay.bank_branch %} · {{ pay.bank_branch }}{% endif %}</div></div>
+            </div>
+            {% endif %}
+            {% if pay.bank_account_name %}
+            <div class="row">
+                <div><div class="k">Account name</div><div class="v">{{ pay.bank_account_name }}</div></div>
+                <button class="copy" data-copy="{{ pay.bank_account_name }}">Copy</button>
+            </div>
+            {% endif %}
+            {% if pay.business_number %}
+            <div class="row">
+                <div><div class="k">Business number</div><div class="v">{{ pay.business_number }}</div></div>
+                <button class="copy" data-copy="{{ pay.business_number }}">Copy</button>
+            </div>
+            {% endif %}
+            <div class="row">
+                <div><div class="k">Account number</div><div class="v">{{ pay.bank_number }}</div></div>
+                <button class="copy" data-copy="{{ pay.bank_number }}">Copy</button>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="empty">Call DEBASA Systems below and we will give you the payment details.</div>
+        {% endif %}
+    </section>
+
+    <section class="card">
+        <h2>What happens next</h2>
+        <p class="hint">It takes a few minutes.</p>
+        <ol class="steps">
+            <li>Pay the monthly fee using the details above.</li>
+            <li>Call us to tell us you have paid, and have your payment confirmation message ready.</li>
+            <li>We confirm the payment and switch your menu back on. Guests can order again straight away.</li>
+        </ol>
+    </section>
+
+    <section class="card">
+        <h2>Contact DEBASA Systems</h2>
+        <p class="hint">Need help with your payment? Call us. We are happy to help.</p>
+        <div class="actions">
+            {% if contact_phone %}<a class="btn gold" href="tel:{{ contact_phone }}">Call {{ contact_phone }}</a>{% endif %}
+            {% if not contact_phone %}<div class="empty">Please contact your DEBASA Systems representative.</div>{% endif %}
+        </div>
+    </section>
+
+    <div class="foot">DEBASA QR · A product of DEBASA Systems</div>
+</main>
+
+<script>
+document.querySelectorAll(".copy").forEach(function (b) {
+    b.addEventListener("click", function () {
+        var text = b.getAttribute("data-copy");
+        function done() {
+            var old = b.textContent;
+            b.textContent = "Copied ✓"; b.classList.add("done");
+            setTimeout(function () { b.textContent = old; b.classList.remove("done"); }, 1600);
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(done, function () {});
+        } else {
+            var t = document.createElement("textarea");
+            t.value = text; document.body.appendChild(t); t.select();
+            try { document.execCommand("copy"); done(); } catch (e) {}
+            document.body.removeChild(t);
+        }
+    });
+});
+</script>
+</body>
+</html>

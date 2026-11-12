@@ -1,14 +1,29 @@
 import os
+import re
+import io
+import csv
+import json
+import gzip
+import base64
 import time
+import atexit
+import secrets
+import threading
 import calendar
-from functools import wraps
-from datetime import date, timedelta
+from functools import wraps, lru_cache
+from urllib.parse import quote
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 
 from dotenv import load_dotenv
 load_dotenv()
 
-from flask import Flask, render_template, request, redirect, g, session, url_for
+from flask import (
+    Flask, render_template, request, redirect, g, session, url_for,
+    make_response, Response, jsonify
+)
 from flask_wtf import CSRFProtect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -17,8 +32,9 @@ import mysql.connector
 from mysql.connector import pooling
 
 app = Flask(__name__)
-app = Flask(__name__)
-app.config["TEMPLATES_AUTO_RELOAD"] = True
+# Live template reloading only on your own computer (Render sets RENDER=true).
+app.config["TEMPLATES_AUTO_RELOAD"] = os.getenv("RENDER") is None
+app.config["MAX_CONTENT_LENGTH"] = 14 * 1024 * 1024     # reject uploads bigger than this
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 604800
 
 # ---------------------------------------------------------------------------
@@ -56,11 +72,28 @@ csrf = CSRFProtect(app)
 # two login routes below so brute-forcing the password is no longer free.
 limiter = Limiter(get_remote_address, app=app, default_limits=[])
 
-MENU_CACHE = {
-    "data": None,
-    "timestamp": 0
-}
-CACHE_DURATION = 300
+# ---------------------------------------------------------------------------
+# Caches. Most scans are served straight from memory and never touch the
+# database. Run gunicorn with ONE worker (several threads) so these caches
+# are shared by every request and disabling the menu takes effect instantly.
+# ---------------------------------------------------------------------------
+MENU_CACHE = {"data": None, "timestamp": 0}
+CACHE_DURATION = 60
+
+SETTINGS_CACHE = {"data": None, "timestamp": 0}
+SETTINGS_CACHE_SECONDS = 10
+
+PAGE_CACHE = {}            # table key -> (timestamp, finished html)
+PAGE_CACHE_SECONDS = 30
+PAGE_CACHE_MAX = 200
+CACHE_LOCK = threading.Lock()
+
+
+def invalidate_caches():
+    """Call after any change to the menu or to the menu on/off switch."""
+    MENU_CACHE["data"] = None
+    SETTINGS_CACHE["data"] = None
+    PAGE_CACHE.clear()
 
 DB_CONFIG = {
     "host": os.getenv("MYSQLHOST", "magic-mandi-db-lekantrevon-f36c.h.aivencloud.com"),
@@ -139,6 +172,22 @@ def init_db():
         )
     ''')
 
+    # DEBASA QR: anonymous QR-scan log (no names, phone numbers or IPs)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS menu_scans (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            scanned_at DATETIME NOT NULL,
+            table_no VARCHAR(10) NULL,
+            visitor_id CHAR(16) NOT NULL,
+            is_new TINYINT(1) NOT NULL DEFAULT 1,
+            device VARCHAR(20) NULL,
+            os VARCHAR(20) NULL,
+            browser VARCHAR(20) NULL,
+            INDEX idx_scanned_at (scanned_at),
+            INDEX idx_visitor (visitor_id)
+        )
+    ''')
+
     db.commit()
     cursor.close()
     db.close()
@@ -150,7 +199,7 @@ init_db()
 # every single request.
 db_pool = pooling.MySQLConnectionPool(
     pool_name="magic_mandi_pool",
-    pool_size=5,
+    pool_size=10,
     **DB_CONFIG
 )
 
@@ -166,6 +215,238 @@ def close_db(exception=None):
     db = g.pop('db', None)
     if db is not None and db.is_connected():
         db.close()
+
+
+# ---------------------------------------------------------------------------
+# Scan analytics. Each visit is put in a small in-memory buffer (no database
+# work during the request) and written to MySQL in one batch every 15 seconds.
+# Nothing personal is stored: no names, no phone numbers, no IP addresses --
+# only the time, table number, device type and a random anonymous visitor id
+# kept in a cookie.
+# ---------------------------------------------------------------------------
+KENYA_TZ = timezone(timedelta(hours=3))      # East Africa Time, no daylight saving
+
+
+def now_local():
+    return datetime.now(KENYA_TZ).replace(tzinfo=None)
+
+
+BOT_RE = re.compile(
+    r"bot|crawl|spider|slurp|uptime|monitor|curl|wget|python-requests|"
+    r"httpclient|headless|facebookexternalhit|lighthouse",
+    re.I,
+)
+
+SCAN_BUFFER = []
+SCAN_BUFFER_MAX = 5000
+SCAN_LOCK = threading.Lock()
+LAST_SEEN = {}
+SCAN_DEDUPE_SECONDS = 1800    # the same phone refreshing within 30 min = one scan
+
+
+def parse_user_agent(ua):
+    if re.search(r"iPad|Tablet", ua) or (
+        "Android" in ua and "Mobi" not in ua
+    ):
+        device = "Tablet"
+    elif re.search(r"Mobi|iPhone|iPod|Android", ua):
+        device = "Mobile"
+    else:
+        device = "Desktop"
+
+    if re.search(r"iPhone|iPad|iPod", ua):
+        os_name = "iOS"
+    elif "Android" in ua:
+        os_name = "Android"
+    elif "Windows" in ua:
+        os_name = "Windows"
+    elif re.search(r"Macintosh|Mac OS X", ua):
+        os_name = "macOS"
+    elif "CrOS" in ua:
+        os_name = "ChromeOS"
+    elif "Linux" in ua:
+        os_name = "Linux"
+    else:
+        os_name = "Other"
+
+    if "Instagram" in ua:
+        browser = "Instagram"
+    elif re.search(r"FBAN|FBAV", ua):
+        browser = "Facebook"
+    elif re.search(r"musical_ly|Bytedance|TikTok", ua):
+        browser = "TikTok"
+    elif "SamsungBrowser" in ua:
+        browser = "Samsung"
+    elif re.search(r"EdgA|Edg/|EdgiOS", ua):
+        browser = "Edge"
+    elif re.search(r"OPR/|Opera", ua):
+        browser = "Opera"
+    elif re.search(r"Firefox|FxiOS", ua):
+        browser = "Firefox"
+    elif re.search(r"CriOS|Chrome", ua):
+        browser = "Chrome"
+    elif "Safari" in ua:
+        browser = "Safari"
+    else:
+        browser = "Other"
+
+    return device, os_name, browser
+
+
+def get_visitor():
+    vid = request.cookies.get("mm_vid", "")
+    if re.fullmatch(r"[0-9a-f]{16}", vid):
+        return vid, False
+    return secrets.token_hex(8), True
+
+
+def track_scan(table, vid, is_new):
+    try:
+        ua = request.headers.get("User-Agent", "")
+        if not ua or BOT_RE.search(ua):
+            return
+
+        table_no = table if (table and table.isalnum() and len(table) <= 10) else None
+        now = time.time()
+        key = (vid, table_no or "")
+
+        with SCAN_LOCK:
+            last = LAST_SEEN.get(key)
+            if last and now - last < SCAN_DEDUPE_SECONDS:
+                return
+            LAST_SEEN[key] = now
+
+            if len(LAST_SEEN) > 5000:
+                cutoff = now - SCAN_DEDUPE_SECONDS
+                for k in [k for k, v in LAST_SEEN.items() if v < cutoff]:
+                    del LAST_SEEN[k]
+                if len(LAST_SEEN) > 20000:
+                    LAST_SEEN.clear()
+
+            if len(SCAN_BUFFER) < SCAN_BUFFER_MAX:
+                device, os_name, browser = parse_user_agent(ua)
+                SCAN_BUFFER.append(
+                    (now_local(), table_no, vid, 1 if is_new else 0,
+                     device, os_name, browser)
+                )
+    except Exception:
+        app.logger.exception("SCAN TRACKING FAILED")
+
+
+def flush_scans():
+    with SCAN_LOCK:
+        rows = SCAN_BUFFER[:]
+        del SCAN_BUFFER[:]
+
+    if not rows:
+        return
+
+    conn = None
+    try:
+        conn = db_pool.get_connection()
+        cur = conn.cursor()
+        cur.executemany(
+            """
+            INSERT INTO menu_scans
+                (scanned_at, table_no, visitor_id, is_new, device, os, browser)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """,
+            rows,
+        )
+        conn.commit()
+        cur.close()
+    except Exception:
+        app.logger.exception("SCAN FLUSH FAILED")
+        with SCAN_LOCK:
+            SCAN_BUFFER[:0] = rows[:SCAN_BUFFER_MAX]
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+def _flush_loop():
+    while True:
+        time.sleep(15)
+        try:
+            flush_scans()
+        except Exception:
+            app.logger.exception("SCAN FLUSH LOOP ERROR")
+
+
+threading.Thread(target=_flush_loop, daemon=True).start()
+atexit.register(flush_scans)
+
+
+@lru_cache(maxsize=32)
+def gzip_html(html):
+    """Compress a page once; the cached page is the same string every time."""
+    return gzip.compress(html.encode("utf-8"), compresslevel=6)
+
+
+# ---------------------------------------------------------------------------
+# Payment page shown to the HOTEL STAFF (never to guests) whenever the menu is
+# switched off. Your bank / M-Pesa details live in Render's Environment tab, not
+# in the code, so they never end up in GitHub. All of these are optional:
+#   PAY_BANK_NAME  PAY_BANK_BRANCH  PAY_BANK_ACCOUNT_NAME  PAY_BANK_ACCOUNT_NUMBER
+#   PAY_BUSINESS_NUMBER   (defaults below are Stanbic Bank / 600100 / 0100017448007)
+#   CONTACT_PHONE (defaults to 0759971119 if not set)
+# ---------------------------------------------------------------------------
+def render_payment_required():
+    restaurant_name = "Your hotel"
+    sub = None
+
+    try:
+        settings = get_menu_settings()
+        if settings:
+            restaurant_name = settings["restaurant_name"]
+
+        cursor = get_db().cursor(dictionary=True)
+        try:
+            cursor.execute("""
+                SELECT monthly_fee, expiry_date, grace_days, status
+                FROM debasa_subscription
+                ORDER BY expiry_date DESC, id DESC
+                LIMIT 1
+            """)
+            row = cursor.fetchone()
+        finally:
+            cursor.close()
+
+        if row:
+            expired = row["expiry_date"] < date.today()
+            status = (row["status"] or "pending").lower()
+            if status == "pending":
+                label = "Awaiting payment"
+            elif expired:
+                label = "Expired"
+            else:
+                label = status.capitalize()
+            sub = {
+                "monthly_fee": row["monthly_fee"],
+                "expiry_date": row["expiry_date"],
+                "expired": expired,
+                "status_label": label,
+            }
+    except Exception:
+        app.logger.exception("PAYMENT PAGE DATA FAILED")
+
+    env = os.getenv
+    pay = {
+        "bank_name": env("PAY_BANK_NAME", "Stanbic Bank").strip(),
+        "bank_branch": env("PAY_BANK_BRANCH", "").strip(),
+        "bank_account_name": env("PAY_BANK_ACCOUNT_NAME", "").strip(),
+        "bank_number": env("PAY_BANK_ACCOUNT_NUMBER", "0100017448007").strip(),
+        "business_number": env("PAY_BUSINESS_NUMBER", "600100").strip(),
+    }
+    contact_phone = env("CONTACT_PHONE", "0759971119").strip()
+
+    return render_template(
+        "subscription_required.html",
+        restaurant_name=restaurant_name,
+        sub=sub,
+        pay=pay,
+        contact_phone=contact_phone,
+    ), 403
 
 
 # ---------------------------------------------------------------------------
@@ -190,62 +471,124 @@ def debasa_admin_required(view):
     return wrapped
 
 
-@app.route('/')
-def index():
-    table = request.args.get("table")
+def get_menu_settings():
+    now = time.time()
+    if (
+        SETTINGS_CACHE["data"] is not None
+        and now - SETTINGS_CACHE["timestamp"] < SETTINGS_CACHE_SECONDS
+    ):
+        return SETTINGS_CACHE["data"]
 
+    cursor = get_db().cursor(dictionary=True)
     try:
-        database = get_db()
-        cursor = database.cursor(dictionary=True)
-
         cursor.execute("""
             SELECT restaurant_name, menu_enabled
             FROM debasa_qr_settings
             WHERE id = 1
         """)
-
         settings = cursor.fetchone()
+    finally:
         cursor.close()
 
-        if settings and not settings["menu_enabled"]:
-            return render_template(
-                "menu_unavailable.html",
-                restaurant_name=settings["restaurant_name"]
-            )
+    SETTINGS_CACHE["data"] = settings
+    SETTINGS_CACHE["timestamp"] = now
+    return settings
 
-    except Exception:
-        app.logger.exception("MENU ACCESS CHECK FAILED")
-        return "Menu temporarily unavailable. Please try again later.", 503
 
-    current_time = time.time()
-
+def get_menu():
+    now = time.time()
     if (
         MENU_CACHE["data"] is not None
-        and current_time - MENU_CACHE["timestamp"] < CACHE_DURATION
+        and now - MENU_CACHE["timestamp"] < CACHE_DURATION
     ):
-        menu = MENU_CACHE["data"]
+        return MENU_CACHE["data"]
 
+    cursor = get_db().cursor(dictionary=True)
+    try:
+        cursor.execute("""
+            SELECT id, name, category, description, price, image
+            FROM menu
+        """)
+        menu = cursor.fetchall()
+    finally:
+        cursor.close()
+
+    MENU_CACHE["data"] = menu
+    MENU_CACHE["timestamp"] = now
+    return menu
+
+
+@app.route("/health")
+def health():
+    # Lightweight, no database. Point an uptime monitor here (see notes).
+    return "ok", 200
+
+
+@app.route('/')
+def index():
+    table = request.args.get("table")
+    vid, is_new = get_visitor()
+
+    track_scan(table, vid, is_new)
+
+    result = build_menu_page(table)
+
+    if isinstance(result, str) and "gzip" in request.headers.get("Accept-Encoding", ""):
+        response = make_response(gzip_html(result))
+        response.headers["Content-Encoding"] = "gzip"
+        response.headers["Content-Type"] = "text/html; charset=utf-8"
     else:
+        response = make_response(result)
+
+    response.headers["Vary"] = "Accept-Encoding"
+
+    if is_new:
+        response.set_cookie(
+            "mm_vid", vid, max_age=60 * 60 * 24 * 365,
+            httponly=True, samesite="Lax", secure=request.is_secure
+        )
+
+    return response
+
+
+def build_menu_page(table):
+    # Only cache sane table values so nobody can fill the cache with junk.
+    cacheable = table is None or (table.isalnum() and len(table) <= 6)
+    key = table or ""
+
+    if cacheable:
+        hit = PAGE_CACHE.get(key)
+        if hit and time.time() - hit[0] < PAGE_CACHE_SECONDS:
+            return hit[1]
+
+    # One thread rebuilds the page; the others wait and then reuse it.
+    with CACHE_LOCK:
+        if cacheable:
+            hit = PAGE_CACHE.get(key)
+            if hit and time.time() - hit[0] < PAGE_CACHE_SECONDS:
+                return hit[1]
+
         try:
-            database = get_db()
-            cursor = database.cursor(dictionary=True)
+            settings = get_menu_settings()
 
-            cursor.execute("""
-                SELECT id, name, category, description, price, image
-                FROM menu
-            """)
+            if settings and not settings["menu_enabled"]:
+                return render_template(
+                    "menu_unavailable.html",
+                    restaurant_name=settings["restaurant_name"]
+                )
 
-            menu = cursor.fetchall()
-            cursor.close()
+            menu = get_menu()
 
         except Exception:
-            app.logger.exception("DATABASE ERROR IN INDEX ROUTE")
-            menu = []
+            app.logger.exception("MENU PAGE FAILED")
+            return "Menu temporarily unavailable. Please try again later.", 503
 
-        MENU_CACHE["data"] = menu
-        MENU_CACHE["timestamp"] = current_time
+        html = render_template("index.html", menu=menu, table=table)
 
-    return render_template("index.html", menu=menu, table=table)
+        if cacheable and len(PAGE_CACHE) < PAGE_CACHE_MAX:
+            PAGE_CACHE[key] = (time.time(), html)
+
+        return html
 
 
 @app.route('/admin/login', methods=['GET', 'POST'])
@@ -296,6 +639,8 @@ def debasa_admin_logout():
 @app.route("/admin")
 @admin_required
 def admin():
+    if not restaurant_menu_is_enabled():
+        return render_payment_required()
     return render_template("admin.html")
 
 
@@ -434,6 +779,7 @@ def toggle_debasa_menu():
         """, (new_status,))
 
         database.commit()
+        invalidate_caches()
 
     except Exception:
         database.rollback()
@@ -799,6 +1145,277 @@ def delete_debasa_subscription(subscription_id):
     return redirect(url_for("debasa_subscription"))
 
 
+def analytics_data():
+    """Everything the analytics page shows, computed from the menu_scans table."""
+    flush_scans()                       # include scans still waiting in memory
+
+    now = now_local()
+    d0 = datetime.combine(now.date(), datetime.min.time())
+    yesterday0 = d0 - timedelta(days=1)
+    week0 = d0 - timedelta(days=d0.weekday())          # this Monday
+    month0 = d0.replace(day=1)
+    year0 = d0.replace(month=1, day=1)
+    last30 = d0 - timedelta(days=29)
+    five_min = now - timedelta(minutes=5)
+    one_hour = now - timedelta(hours=1)
+
+    cur = get_db().cursor(dictionary=True)
+    try:
+        def one(sql, params=()):
+            cur.execute(sql, params)
+            return cur.fetchone() or {}
+
+        def many(sql, params=()):
+            cur.execute(sql, params)
+            return cur.fetchall()
+
+        def num(value):
+            return int(value or 0)
+
+        k = one(
+            """
+            SELECT COUNT(*) AS total,
+                   COUNT(DISTINCT visitor_id) AS visitors,
+                   SUM(scanned_at >= %s) AS today,
+                   SUM(scanned_at >= %s AND scanned_at < %s) AS yesterday,
+                   SUM(scanned_at >= %s) AS week,
+                   SUM(scanned_at >= %s) AS month,
+                   SUM(scanned_at >= %s) AS year,
+                   SUM(scanned_at >= %s) AS last5,
+                   SUM(scanned_at >= %s) AS last_hour,
+                   SUM(is_new = 0) AS returning_scans,
+                   SUM(scanned_at >= %s) AS last30
+            FROM menu_scans
+            """,
+            (d0, yesterday0, d0, week0, month0, year0,
+             five_min, one_hour, last30),
+        )
+
+        def uniq(since):
+            r = one(
+                "SELECT COUNT(DISTINCT visitor_id) AS c FROM menu_scans "
+                "WHERE scanned_at >= %s", (since,)
+            )
+            return num(r.get("c"))
+
+        total = num(k.get("total"))
+        last30_total = num(k.get("last30"))
+
+        # ---- trend series ------------------------------------------------
+        def series(rows, keys, labels):
+            by_key = {r["k"]: r for r in rows}
+            return {
+                "labels": labels,
+                "scans": [num(by_key.get(x, {}).get("s")) for x in keys],
+                "visitors": [num(by_key.get(x, {}).get("u")) for x in keys],
+            }
+
+        day_keys = [(last30 + timedelta(days=i)).date() for i in range(30)]
+        day_rows = many(
+            """
+            SELECT DATE(scanned_at) AS k, COUNT(*) AS s,
+                   COUNT(DISTINCT visitor_id) AS u
+            FROM menu_scans WHERE scanned_at >= %s
+            GROUP BY DATE(scanned_at)
+            """, (last30,))
+        days = series(day_rows, day_keys, [d.strftime("%d %b") for d in day_keys])
+
+        week_keys = [(week0 + timedelta(weeks=i - 11)).date() for i in range(12)]
+        week_rows = many(
+            """
+            SELECT DATE_SUB(DATE(scanned_at),
+                            INTERVAL WEEKDAY(scanned_at) DAY) AS k,
+                   COUNT(*) AS s, COUNT(DISTINCT visitor_id) AS u
+            FROM menu_scans WHERE scanned_at >= %s
+            GROUP BY k
+            """, (week0 - timedelta(weeks=11),))
+        weeks = series(week_rows, week_keys, [d.strftime("%d %b") for d in week_keys])
+
+        month_keys = []
+        y, m = now.year, now.month
+        for _ in range(12):
+            month_keys.append(y * 100 + m)
+            m -= 1
+            if m == 0:
+                y, m = y - 1, 12
+        month_keys.reverse()
+        first_month = date(month_keys[0] // 100, month_keys[0] % 100, 1)
+        month_rows = many(
+            """
+            SELECT YEAR(scanned_at) * 100 + MONTH(scanned_at) AS k,
+                   COUNT(*) AS s, COUNT(DISTINCT visitor_id) AS u
+            FROM menu_scans WHERE scanned_at >= %s
+            GROUP BY k
+            """, (datetime.combine(first_month, datetime.min.time()),))
+        months = series(
+            month_rows, month_keys,
+            [date(x // 100, x % 100, 1).strftime("%b %Y") for x in month_keys],
+        )
+
+        year_rows = many(
+            """
+            SELECT YEAR(scanned_at) AS k, COUNT(*) AS s,
+                   COUNT(DISTINCT visitor_id) AS u
+            FROM menu_scans GROUP BY YEAR(scanned_at)
+            """)
+        first_year = min([r["k"] for r in year_rows] + [now.year])
+        year_keys = list(range(first_year, now.year + 1))
+        years = series(year_rows, year_keys, [str(x) for x in year_keys])
+
+        # ---- patterns (last 30 days) --------------------------------------
+        hour_rows = {
+            r["k"]: num(r["c"]) for r in many(
+                "SELECT HOUR(scanned_at) AS k, COUNT(*) AS c FROM menu_scans "
+                "WHERE scanned_at >= %s GROUP BY k", (last30,))
+        }
+        hours = [hour_rows.get(h, 0) for h in range(24)]
+
+        wd_rows = {
+            r["k"]: num(r["c"]) for r in many(
+                "SELECT WEEKDAY(scanned_at) AS k, COUNT(*) AS c FROM menu_scans "
+                "WHERE scanned_at >= %s GROUP BY k", (last30,))
+        }
+        weekdays = [wd_rows.get(i, 0) for i in range(7)]
+
+        def breakdown(column):
+            rows = many(
+                f"SELECT COALESCE({column}, 'Unknown') AS k, COUNT(*) AS c "
+                "FROM menu_scans WHERE scanned_at >= %s "
+                "GROUP BY k ORDER BY c DESC LIMIT 8", (last30,))
+            return {"labels": [r["k"] for r in rows],
+                    "values": [num(r["c"]) for r in rows]}
+
+        tables_rows = many(
+            "SELECT table_no AS k, COUNT(*) AS c FROM menu_scans "
+            "WHERE table_no IS NOT NULL AND scanned_at >= %s "
+            "GROUP BY table_no ORDER BY c DESC LIMIT 15", (last30,))
+        tables = {"labels": ["Table " + str(r["k"]) for r in tables_rows],
+                  "values": [num(r["c"]) for r in tables_rows]}
+        no_table = num(one(
+            "SELECT COUNT(*) AS c FROM menu_scans "
+            "WHERE table_no IS NULL AND scanned_at >= %s", (last30,)
+        ).get("c"))
+
+        best = one(
+            "SELECT DATE(scanned_at) AS d, COUNT(*) AS c FROM menu_scans "
+            "GROUP BY DATE(scanned_at) ORDER BY c DESC LIMIT 1")
+
+        recent_rows = many(
+            "SELECT scanned_at, table_no, visitor_id, is_new, device, os, browser "
+            "FROM menu_scans ORDER BY id DESC LIMIT 40")
+
+        # these also need the cursor, so they must run before it is closed
+        visitors_today = uniq(d0)
+        visitors_week = uniq(week0)
+        visitors_month = uniq(month0)
+        devices = breakdown("device")
+        systems = breakdown("os")
+        browsers = breakdown("browser")
+    finally:
+        cur.close()
+
+    peak_hour = None
+    if any(hours):
+        h = hours.index(max(hours))
+        peak_hour = f"{h:02d}:00 - {(h + 1) % 24:02d}:00"
+
+    recent = [{
+        "time": r["scanned_at"].strftime("%d %b, %H:%M"),
+        "table": r["table_no"] or "-",
+        "visitor": (r["visitor_id"] or "")[:6].upper(),
+        "returning": not r["is_new"],
+        "device": r["device"] or "-",
+        "os": r["os"] or "-",
+        "browser": r["browser"] or "-",
+    } for r in recent_rows]
+
+    return {
+        "generated": now.strftime("%d %b %Y, %H:%M"),
+        "kpi": {
+            "total": total,
+            "today": num(k.get("today")),
+            "yesterday": num(k.get("yesterday")),
+            "week": num(k.get("week")),
+            "month": num(k.get("month")),
+            "year": num(k.get("year")),
+            "last5": num(k.get("last5")),
+            "last_hour": num(k.get("last_hour")),
+            "visitors_all": num(k.get("visitors")),
+            "visitors_today": visitors_today,
+            "visitors_week": visitors_week,
+            "visitors_month": visitors_month,
+            "returning_pct": round(100 * num(k.get("returning_scans")) / total) if total else 0,
+            "avg_per_day": round(last30_total / 30, 1),
+            "peak_hour": peak_hour or "-",
+            "best_day": (
+                f"{best['d'].strftime('%d %b %Y')} ({num(best['c'])})"
+                if best else "-"
+            ),
+        },
+        "trend": {"days": days, "weeks": weeks, "months": months, "years": years},
+        "hours": hours,
+        "weekdays": weekdays,
+        "tables": tables,
+        "no_table": no_table,
+        "devices": devices,
+        "systems": systems,
+        "browsers": browsers,
+        "recent": recent,
+    }
+
+
+@app.route("/debasa-admin/analytics")
+@debasa_admin_required
+def debasa_analytics():
+    try:
+        data = analytics_data()
+    except Exception:
+        app.logger.exception("ANALYTICS ERROR")
+        return "Unable to load analytics. Check the server logs.", 500
+
+    restaurant_name = "Magic Mandi and Grill Hotel"
+    try:
+        settings = get_menu_settings()
+        if settings:
+            restaurant_name = settings["restaurant_name"]
+    except Exception:
+        pass
+
+    return render_template(
+        "analytics.html", data=data, restaurant_name=restaurant_name
+    )
+
+
+@app.route("/debasa-admin/analytics.csv")
+@debasa_admin_required
+def debasa_analytics_csv():
+    flush_scans()
+
+    cur = get_db().cursor()
+    try:
+        cur.execute(
+            "SELECT scanned_at, table_no, visitor_id, is_new, device, os, browser "
+            "FROM menu_scans ORDER BY id DESC LIMIT 100000"
+        )
+        rows = cur.fetchall()
+    finally:
+        cur.close()
+
+    out = io.StringIO()
+    writer = csv.writer(out)
+    writer.writerow(["scanned_at", "table", "visitor_id", "new_visitor",
+                     "device", "os", "browser"])
+    for r in rows:
+        writer.writerow([r[0], r[1] or "", r[2], "yes" if r[3] else "no",
+                         r[4] or "", r[5] or "", r[6] or ""])
+
+    return Response(
+        out.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=menu-scans.csv"},
+    )
+
+
 def restaurant_menu_is_enabled():
     database = get_db()
     cursor = database.cursor()
@@ -832,10 +1449,7 @@ def manage_menu():
         settings = cursor.fetchone()
 
         if not settings or not settings["menu_enabled"]:
-            return (
-                "Menu management is temporarily disabled. "
-                "Contact DEBASA Systems Admin."
-            ), 403
+            return render_payment_required()
     finally:
         cursor.close()
 
@@ -873,11 +1487,228 @@ def manage_menu():
     return render_template("manage_menu.html", menu=menu)
 
 
+# ---------------------------------------------------------------------------
+# GitHub photo picker. Add Menu / Edit Menu show the photos that are already in
+# your GitHub "image" folder, so you pick one instead of typing its file name.
+# The list is cached for 10 minutes (GitHub limits anonymous requests). The
+# "Refresh" button in the picker forces a fresh list right after you upload.
+# Optional: set GITHUB_TOKEN in Render to raise GitHub's limit (not required).
+# ---------------------------------------------------------------------------
+GITHUB_IMAGE_REPO = "Michael-code-dot/hotel-qr-redirect"
+GITHUB_IMAGE_RAW = (
+    f"https://raw.githubusercontent.com/{GITHUB_IMAGE_REPO}/refs/heads/main/image/"
+)
+PHOTO_LIST_CACHE = {"names": [], "timestamp": 0}
+PHOTO_LIST_SECONDS = 600
+PHOTO_LIST_LOCK = threading.Lock()
+
+
+def github_photo_names():
+    now = time.time()
+    if (
+        PHOTO_LIST_CACHE["names"]
+        and now - PHOTO_LIST_CACHE["timestamp"] < PHOTO_LIST_SECONDS
+    ):
+        return PHOTO_LIST_CACHE["names"]
+
+    with PHOTO_LIST_LOCK:
+        now = time.time()
+        if (
+            PHOTO_LIST_CACHE["names"]
+            and now - PHOTO_LIST_CACHE["timestamp"] < PHOTO_LIST_SECONDS
+        ):
+            return PHOTO_LIST_CACHE["names"]
+
+        headers = {
+            "User-Agent": "magic-mandi-menu",
+            "Accept": "application/vnd.github+json",
+        }
+        token = os.getenv("GITHUB_TOKEN", "").strip()
+        if token:
+            headers["Authorization"] = "Bearer " + token
+
+        try:
+            request_obj = Request(
+                f"https://api.github.com/repos/{GITHUB_IMAGE_REPO}/contents/image",
+                headers=headers,
+            )
+            with urlopen(request_obj, timeout=8) as response:
+                items = json.load(response)
+
+            PHOTO_LIST_CACHE["names"] = sorted(
+                i["name"] for i in items
+                if i.get("type") == "file"
+                and i["name"].lower().endswith((".jpg", ".jpeg", ".png", ".webp"))
+            )
+            PHOTO_LIST_CACHE["timestamp"] = time.time()
+        except Exception:
+            app.logger.exception("GITHUB PHOTO LIST FAILED")
+            # keep showing the last good list; try again in about a minute
+            PHOTO_LIST_CACHE["timestamp"] = time.time() - PHOTO_LIST_SECONDS + 60
+
+        return PHOTO_LIST_CACHE["names"]
+
+
+@app.route("/admin/photos.json")
+@admin_required
+def admin_photo_list():
+    if request.args.get("refresh"):
+        PHOTO_LIST_CACHE["timestamp"] = 0
+    return jsonify(names=github_photo_names(), base=GITHUB_IMAGE_RAW)
+
+
+# ---------------------------------------------------------------------------
+# Upload a photo straight to GitHub. In Add Menu / Edit Menu press "Upload new
+# photo": the photo is shrunk (about 1000 px wide, under ~220 KB, still sharp)
+# and saved into your GitHub image folder for you, so you no longer open GitHub.
+# Needs GITHUB_TOKEN in Render (a fine-grained token limited to the photo repo
+# with "Contents: Read and write"). Needs Pillow in requirements.txt.
+# ---------------------------------------------------------------------------
+class PhotoError(Exception):
+    pass
+
+
+def photo_upload_enabled():
+    return bool(os.getenv("GITHUB_TOKEN", "").strip())
+
+
+def photo_slug(text):
+    return re.sub(r"[^a-z0-9]+", "_", (text or "").lower()).strip("_")[:60] or "photo"
+
+
+def prepare_photo(file_storage):
+    try:
+        from PIL import Image, ImageOps
+    except ImportError:
+        raise PhotoError(
+            "Photo upload needs Pillow. Add the line  Pillow  to requirements.txt and redeploy."
+        )
+
+    Image.MAX_IMAGE_PIXELS = 60_000_000
+    raw = file_storage.read()
+    if not raw:
+        raise PhotoError("No photo was received. Please choose a photo.")
+
+    try:
+        img = Image.open(io.BytesIO(raw))
+        if img.format == "JPEG":
+            img.draft("RGB", (2000, 2000))      # decode small: saves memory
+        img.load()
+    except Exception:
+        raise PhotoError("That file is not a photo we can read. Use a JPG or PNG.")
+
+    img = ImageOps.exif_transpose(img)
+    if img.mode in ("RGBA", "LA", "P"):
+        img = img.convert("RGBA")
+        background = Image.new("RGB", img.size, (255, 255, 255))
+        background.paste(img, mask=img.split()[-1])
+        img = background
+    else:
+        img = img.convert("RGB")
+
+    img.thumbnail((1000, 1000), Image.LANCZOS)
+
+    data = b""
+    for size_limit in (1000, 900, 800):
+        if max(img.size) > size_limit:
+            img.thumbnail((size_limit, size_limit), Image.LANCZOS)
+        for quality in (86, 82, 78, 74, 70, 65):
+            out = io.BytesIO()
+            img.save(out, "JPEG", quality=quality, optimize=True, progressive=True)
+            data = out.getvalue()
+            if len(data) <= 220_000:
+                return data
+    return data
+
+
+def github_save_photo(name, data):
+    token = os.getenv("GITHUB_TOKEN", "").strip()
+    body = json.dumps({
+        "message": f"Add menu photo {name}",
+        "content": base64.b64encode(data).decode("ascii"),
+        "branch": "main",
+    }).encode("utf-8")
+
+    request_obj = Request(
+        f"https://api.github.com/repos/{GITHUB_IMAGE_REPO}/contents/image/{quote(name)}",
+        data=body,
+        method="PUT",
+        headers={
+            "Authorization": "Bearer " + token,
+            "Accept": "application/vnd.github+json",
+            "Content-Type": "application/json",
+            "User-Agent": "magic-mandi-menu",
+        },
+    )
+
+    try:
+        with urlopen(request_obj, timeout=30):
+            pass
+    except HTTPError as exc:
+        app.logger.error("GITHUB UPLOAD HTTP %s: %s", exc.code, exc.read()[:300])
+        if exc.code == 401:
+            raise PhotoError("GitHub rejected the token. It may be wrong or expired. Make a new one and update GITHUB_TOKEN in Render.")
+        if exc.code in (403, 404):
+            raise PhotoError("GitHub says the token cannot write to the photo repository. It needs access to hotel-qr-redirect with Contents: Read and write.")
+        if exc.code == 422:
+            raise PhotoError("A photo with that name already exists. Try again.")
+        raise PhotoError("GitHub could not save the photo. Please try again in a minute.")
+    except Exception:
+        app.logger.exception("GITHUB UPLOAD FAILED")
+        raise PhotoError("Could not reach GitHub. Check your internet and try again.")
+
+
+@app.route("/admin/upload-photo", methods=["POST"])
+@admin_required
+def admin_upload_photo():
+    if not photo_upload_enabled():
+        return jsonify(ok=False, error="Photo upload is not set up yet. Add GITHUB_TOKEN in Render."), 503
+    if not restaurant_menu_is_enabled():
+        return jsonify(ok=False, error="Menu management is paused. Please contact DEBASA Systems."), 403
+
+    file = request.files.get("photo")
+    if file is None or not file.filename:
+        return jsonify(ok=False, error="Please choose a photo."), 400
+
+    dish = request.form.get("dish", "").strip()
+    stem = photo_slug(dish or os.path.splitext(file.filename)[0])
+
+    try:
+        data = prepare_photo(file)
+
+        existing = {n.lower() for n in github_photo_names()}
+        name = stem + ".jpg"
+        counter = 2
+        while name.lower() in existing:
+            name = f"{stem}_{counter}.jpg"
+            counter += 1
+
+        github_save_photo(name, data)
+    except PhotoError as exc:
+        return jsonify(ok=False, error=str(exc)), 400
+    except Exception:
+        app.logger.exception("PHOTO UPLOAD FAILED")
+        return jsonify(ok=False, error="Something went wrong while saving the photo."), 500
+
+    with PHOTO_LIST_LOCK:
+        if name not in PHOTO_LIST_CACHE["names"]:
+            PHOTO_LIST_CACHE["names"] = sorted(PHOTO_LIST_CACHE["names"] + [name])
+
+    return jsonify(ok=True, name=name, kb=round(len(data) / 1024))
+
+
+@app.errorhandler(413)
+def upload_too_large(_error):
+    if request.path == "/admin/upload-photo":
+        return jsonify(ok=False, error="That photo is too big. Choose one under 14 MB."), 413
+    return "That upload is too large.", 413
+
+
 @app.route("/add_menu", methods=["GET", "POST"])
 @admin_required
 def add_menu():
     if not restaurant_menu_is_enabled():
-        return "Menu management is temporarily disabled.", 403
+        return render_payment_required()
 
     error = None
 
@@ -906,17 +1737,17 @@ def add_menu():
             database.commit()
             cursor.close()
 
-            MENU_CACHE["data"] = None
+            invalidate_caches()
             return redirect(url_for("manage_menu"))
 
-    return render_template("add_menu.html", error=error)
+    return render_template("add_menu.html", error=error, photo_base=GITHUB_IMAGE_RAW, upload_enabled=photo_upload_enabled())
 
 
 @app.route("/edit_menu/<int:item_id>", methods=["GET", "POST"])
 @admin_required
 def edit_menu(item_id):
     if not restaurant_menu_is_enabled():
-        return "Menu management is temporarily disabled.", 403
+        return render_payment_required()
 
     database = get_db()
     cursor = database.cursor(dictionary=True)
@@ -933,11 +1764,24 @@ def edit_menu(item_id):
             error = "Enter a name and a price greater than zero."
 
         if not error:
-            cursor.execute("UPDATE menu SET name=%s, price=%s WHERE id=%s", (name, price, item_id))
+            # name and price always change; category, description and image only
+            # when the form sends them (older forms that don't are left alone).
+            fields = ["name=%s", "price=%s"]
+            values = [name, price]
+            for column in ("category", "description", "image"):
+                value = request.form.get(column)
+                if value is not None:
+                    fields.append(column + "=%s")
+                    values.append(value.strip())
+            values.append(item_id)
+            cursor.execute(
+                "UPDATE menu SET " + ", ".join(fields) + " WHERE id=%s",
+                tuple(values)
+            )
             database.commit()
             cursor.close()
 
-            MENU_CACHE["data"] = None
+            invalidate_caches()
             return redirect(url_for("manage_menu"))
 
     cursor.execute("SELECT * FROM menu WHERE id=%s", (item_id,))
@@ -947,14 +1791,14 @@ def edit_menu(item_id):
     if not item:
         item = {'id': item_id, 'name': 'Sample Dish', 'price': 500.00}
 
-    return render_template("edit_menu.html", item=item, error=error)
+    return render_template("edit_menu.html", item=item, error=error, photo_base=GITHUB_IMAGE_RAW, upload_enabled=photo_upload_enabled())
 
 
 @app.route("/delete_menu/<int:item_id>", methods=["POST"])
 @admin_required
 def delete_menu(item_id):
     if not restaurant_menu_is_enabled():
-        return "Menu management is temporarily disabled.", 403
+        return render_payment_required()
 
     try:
         database = get_db()
@@ -962,7 +1806,7 @@ def delete_menu(item_id):
         cursor.execute("DELETE FROM menu WHERE id=%s", (item_id,))
         database.commit()
         cursor.close()
-        MENU_CACHE["data"] = None
+        invalidate_caches()
     except Exception:
         app.logger.exception("DELETE MENU ITEM FAILED")
 
