@@ -622,7 +622,22 @@
         h1 { font-weight:700; letter-spacing:-2px; }
         .kpi .value, .card h2 { font-family:"Space Grotesk","Inter",system-ui,sans-serif; }
         .kpi .value { letter-spacing:-2px; font-variant-numeric:tabular-nums; }
-    </style>
+    
+        /* Mobile visibility fallback: never leave dashboard panels hidden. */
+        @media (max-width: 860px) {
+            .card.rv, .card.rv.rv-in {
+                opacity: 1 !important;
+                transform: none !important;
+                visibility: visible !important;
+            }
+            .hero, .kpi, .feed .row, .gcard {
+                visibility: visible;
+            }
+            .shell { min-width: 0; }
+            main { min-width: 0; width: 92%; }
+            .chart-box { min-width: 0; }
+        }
+</style>
 <script>try{var _l=localStorage.getItem("mm_look"),_h=localStorage.getItem("mm_hue");if(_l)document.documentElement.setAttribute("data-look",_l);if(_h)document.documentElement.setAttribute("data-hue",_h);}catch(e){}</script>
 </head>
 <body>
@@ -879,10 +894,12 @@
 
     /* ---------- auto refresh ---------- */
     var ar = document.getElementById("autoRefresh"), arT = null;
-    try { ar.checked = sessionStorage.getItem("mm_auto") === "1"; } catch (e) {}
-    function arApply() { clearTimeout(arT); if (ar.checked) arT = setTimeout(function () { location.reload(); }, 30000); }
-    ar.addEventListener("change", function () { try { sessionStorage.setItem("mm_auto", ar.checked ? "1" : "0"); } catch (e) {} arApply(); });
-    arApply();
+    if (ar) {
+        try { ar.checked = sessionStorage.getItem("mm_auto") === "1"; } catch (e) {}
+        function arApply() { clearTimeout(arT); if (ar.checked) arT = setTimeout(function () { location.reload(); }, 30000); }
+        ar.addEventListener("change", function () { try { sessionStorage.setItem("mm_auto", ar.checked ? "1" : "0"); } catch (e) {} arApply(); });
+        arApply();
+    }
 
     /* ---------- reset needs confirmation ---------- */
     var rf = document.getElementById("resetForm");
@@ -1063,8 +1080,11 @@
             });
         });
 
-        /* reveal cards as you scroll */
-        if ("IntersectionObserver" in window) {
+        /* reveal cards as you scroll.
+           Keep cards visible by default on touch devices: mobile browsers can
+           pause/skip intersection and animation callbacks while the page loads. */
+        var touchDevice = window.matchMedia("(pointer: coarse)").matches;
+        if (!touchDevice && "IntersectionObserver" in window) {
             var io = new IntersectionObserver(function (list) {
                 list.forEach(function (en) {
                     if (en.isIntersecting) { en.target.classList.add("rv-in"); io.unobserve(en.target); }
