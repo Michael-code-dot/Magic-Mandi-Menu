@@ -9,198 +9,329 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="shortcut icon" href="{{ url_for('static', filename='images/logo.jpeg') }}?v=11" type="image/jpeg">
-<style>
-    @property --angle {
-        syntax: "<angle>";
-        initial-value: 0deg;
-        inherits: false;
-    }
 
-    :root {
-        --panel: #060606;
-        --line: rgba(255, 215, 120, 0.12);
-        --line-hi: rgba(255, 215, 120, 0.32);
-        --text: #f6f1e4;
-        --text-2: #b9b09a;
-        --muted: #7d7562;
-        --gold-1: #fff0b8;
-        --gold-2: #f5d77a;
-        --gold-3: #d9ab36;
-        --gold-grad: linear-gradient(135deg, #fff0b8 0%, #f5d77a 28%, #d9ab36 58%, #a8791c 100%);
-        --gold-glow: rgba(245, 200, 90, 0.38);
-        --green: #4ff0b0;
-        --red: #ff6a82;
-        --ease: cubic-bezier(0.16, 1, 0.3, 1);
-    }
+    <style>
+        :root {
+            --panel: #060606;
+            --line: rgba(255, 215, 120, 0.12);
+            --line-hi: rgba(255, 215, 120, 0.32);
+            --text: #f6f1e4;
+            --text-2: #b9b09a;
+            --muted: #7d7562;
+            --gold-1: #fff0b8;
+            --gold-2: #f5d77a;
+            --gold-3: #d9ab36;
+            --gold-grad: linear-gradient(135deg, #fff0b8, #f5d77a 28%, #d9ab36 58%, #a8791c);
+            --red: #ff6a82;
+        }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        background: #000;
-        color: var(--text);
-        font-family: "Outfit", -apple-system, "Segoe UI", sans-serif;
-        font-size: 14px;
-        line-height: 1.55;
-        -webkit-font-smoothing: antialiased;
-        overflow-x: hidden;
-    }
+        body {
+            min-height: 100vh;
+            background: #000;
+            color: var(--text);
+            font-family: "Outfit", sans-serif;
+            font-size: 14px;
+            line-height: 1.55;
+        }
 
-    ::selection { background: var(--gold-3); color: #000; }
+        .topbar {
+            padding: 24px 6%;
+            border-bottom: 1px solid var(--line);
+        }
 
-    #dust { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
-    .aurora { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
-    .aurora i {
-        position: absolute; width: 620px; height: 620px; border-radius: 50%;
-        filter: blur(110px); opacity: 0.17;
-        background: radial-gradient(circle, var(--gold-3), transparent 70%);
-        animation: drift 22s ease-in-out infinite alternate;
-    }
-    .aurora i:nth-child(1) { top: -260px; right: -120px; }
-    .aurora i:nth-child(2) { bottom: -300px; left: -100px; opacity: 0.11; animation-duration: 28s; animation-direction: alternate-reverse; }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-    @keyframes drift { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(-90px, 70px) scale(1.25); } }
-    @keyframes reveal { from { opacity: 0; transform: translateY(22px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
-    @keyframes sheen { 0% { transform: translateX(-130%); } 55%,100% { transform: translateX(130%); } }
-    @keyframes spin { to { --angle: 360deg; } }
+        .brand-mark {
+            width: 40px;
+            height: 40px;
+            display: grid;
+            place-items: center;
+            border-radius: 13px;
+            background: var(--gold-grad);
+            color: #1a1204;
+            font-family: "Playfair Display", serif;
+            font-size: 20px;
+            font-weight: 800;
+        }
 
-    .topbar {
-        position: relative; z-index: 2; width: 100%; padding: 24px 6%;
-        display: flex; justify-content: space-between; align-items: center;
-        border-bottom: 1px solid var(--line);
-    }
-    .brand { display: flex; align-items: center; gap: 12px; }
-    .brand-mark {
-        position: relative; overflow: hidden; width: 40px; height: 40px;
-        display: grid; place-items: center; border-radius: 13px;
-        background: var(--gold-grad); color: #1a1204;
-        font-family: "Playfair Display", serif; font-size: 20px; font-weight: 800;
-        box-shadow: 0 0 0 1px rgba(255,240,184,0.5) inset, 0 0 30px var(--gold-glow);
-    }
-    .brand-mark::after {
-        content: ""; position: absolute; inset: 0;
-        background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.75) 50%, transparent 70%);
-        transform: translateX(-120%); animation: sheen 4s ease-in-out infinite;
-    }
-    .brand-text .brand-name {
-        font-family: "Playfair Display", serif; font-size: 16px; font-weight: 700; letter-spacing: 2.5px;
-        background: var(--gold-grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-    }
-    .brand-text .brand-sub { color: var(--text-2); font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase; margin-top: 1px; }
+        .brand-name {
+            font-family: "Playfair Display", serif;
+            font-size: 16px;
+            letter-spacing: 2px;
+            color: var(--gold-2);
+        }
 
-    main { position: relative; z-index: 1; flex: 1; padding: 44px 6% 60px; }
+        .brand-sub {
+            color: var(--text-2);
+            font-size: 10px;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+        }
 
-    .page { width: 100%; max-width: 1080px; margin: 0 auto; }
+        main {
+            padding: 44px 6% 60px;
+        }
 
-    .page-header {
-        display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;
-        margin-bottom: 26px; animation: reveal 0.8s var(--ease) both;
-    }
-    .page-header h1 { font-family: "Playfair Display", serif; font-size: 29px; font-weight: 600; letter-spacing: -0.5px; color: #fff; }
-    .page-header p { color: var(--text-2); font-size: 13px; margin-top: 6px; }
+        .page {
+            max-width: 1080px;
+            margin: auto;
+        }
 
-    .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 26px;
+        }
 
-    .button {
-        position: relative; overflow: hidden; min-height: 42px; padding: 0 18px;
-        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-        border: 1px solid transparent; border-radius: 12px;
-        font-family: inherit; font-size: 12.5px; font-weight: 600; letter-spacing: 0.3px;
-        cursor: pointer; text-decoration: none;
-        transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease), background 0.3s, border-color 0.3s, color 0.3s;
-    }
-    .button:hover { transform: translateY(-2px); }
-    .button:active { transform: translateY(0) scale(0.97); }
+        h1 {
+            font-family: "Playfair Display", serif;
+            font-size: 29px;
+            color: white;
+        }
 
-    .button-primary {
-        color: #1a1204; background: var(--gold-grad); border: none;
-        box-shadow: 0 0 0 1px rgba(255,240,184,0.45) inset, 0 10px 28px rgba(217,171,54,0.3);
-    }
-    .button-primary::after {
-        content: ""; position: absolute; inset: 0;
-        background: linear-gradient(110deg, transparent 35%, rgba(255,255,255,0.7) 50%, transparent 65%);
-        transform: translateX(-130%); animation: sheen 4.5s ease-in-out 1.5s infinite;
-    }
-    .button-primary:hover { box-shadow: 0 0 0 1px rgba(255,240,184,0.7) inset, 0 14px 38px rgba(245,200,90,0.5); }
+        .page-header p {
+            color: var(--text-2);
+            margin-top: 6px;
+        }
 
-    .button-secondary { background: transparent; color: var(--gold-2); border-color: var(--line-hi); }
-    .button-secondary:hover { background: rgba(245,215,122,0.1); border-color: var(--gold-2); box-shadow: 0 0 22px rgba(245,200,90,0.2); }
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
 
-    .button-danger { background: transparent; color: var(--red); border-color: rgba(255,106,130,0.3); }
-    .button-danger:hover { background: var(--red); color: #1a0309; box-shadow: 0 8px 24px rgba(255,106,130,0.4); }
+        .button {
+            min-height: 42px;
+            padding: 0 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: 0.3s;
+        }
 
-    .button-sm { min-height: 36px; padding: 0 14px; font-size: 11.5px; border-radius: 10px; }
+        .button-sm {
+            min-height: 36px;
+            padding: 0 14px;
+            font-size: 11.5px;
+        }
 
-    .table-card {
-        position: relative; border-radius: 22px; background: var(--panel); overflow: hidden;
-        animation: reveal 0.9s var(--ease) 0.08s both;
-    }
-    .table-card::before {
-        content: ""; position: absolute; inset: 0; padding: 1.5px; border-radius: 22px;
-        background: conic-gradient(from var(--angle), transparent 0%, rgba(217,171,54,0.12) 25%, var(--gold-1) 38%, var(--gold-3) 45%, transparent 55%, transparent 100%);
-        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-       mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-        -webkit-mask-composite: xor; mask-composite: exclude;
-        animation: spin 7s linear infinite; z-index: 0; pointer-events: none;
-    }
+        .button-primary {
+            color: #1a1204;
+            background: var(--gold-grad);
+            border: none;
+        }
 
-    .table-scroll { position: relative; z-index: 1; overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 640px; }
+        .button-secondary {
+            background: transparent;
+            color: var(--gold-2);
+            border: 1px solid var(--line-hi);
+        }
 
-    thead th {
-        text-align: left; padding: 16px 22px; font-size: 10.5px; letter-spacing: 1.6px; text-transform: uppercase;
-        color: var(--text-2); border-bottom: 1px solid var(--line); font-weight: 600;
-    }
-    thead th:last-child { text-align: right; }
+        .button-danger {
+            background: transparent;
+            color: var(--red);
+            border: 1px solid rgba(255,106,130,0.3);
+        }
 
-    tbody td { padding: 15px 22px; border-bottom: 1px solid var(--line); font-size: 13.5px; color: var(--text); vertical-align: middle; }
-    tbody tr:last-child td { border-bottom: none; }
-    tbody tr:hover td { background: rgba(245,215,122,0.03); }
+        /* SEARCH BAR */
+        .search-panel {
+            margin-bottom: 18px;
+            padding: 14px;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: rgba(12,12,12,0.88);
+        }
 
-    .id-cell { color: var(--muted); }
-    .name-cell { color: #fff; font-weight: 600; }
-    .price-cell { color: var(--gold-2); font-weight: 600; white-space: nowrap; }
-    .actions-cell { text-align: right; white-space: nowrap; }
-    .actions-cell form { display: inline-block; margin: 0; }
-    .actions-cell .button { margin-left: 8px; }
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            min-height: 48px;
+            padding: 0 15px;
+            border: 1px solid var(--line-hi);
+            border-radius: 12px;
+            background: rgba(255,255,255,0.025);
+            transition: 0.25s;
+        }
 
-    .badge-category {
-        display: inline-block; padding: 5px 13px; border-radius: 999px; font-size: 11px; font-weight: 600;
-        letter-spacing: 0.3px; color: var(--gold-2); background: rgba(245,215,122,0.08); border: 1px solid var(--line-hi);
-        white-space: nowrap;
-    }
+        .search-box:focus-within {
+            border-color: var(--gold-2);
+            box-shadow: 0 0 0 3px rgba(245,215,122,0.09);
+        }
 
-    .empty-row td { text-align: center; padding: 64px 20px; color: var(--muted); font-style: italic; }
+        .search-icon {
+            color: var(--gold-2);
+            font-size: 21px;
+        }
 
-    footer { position: relative; z-index: 1; padding: 20px 6%; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase; }
-    footer a { color: inherit; text-decoration: none; }
-    .footer-brand { color: var(--gold-3); }
+        .search-box input {
+            width: 100%;
+            min-width: 0;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 13.5px;
+        }
 
-    @media (max-width: 640px) {
-        .topbar { padding: 18px 20px; }
-        main { padding: 32px 16px 44px; }
-        .page-header h1 { font-size: 24px; }
-        footer { padding: 16px 20px; flex-direction: column; align-items: center; text-align: center; }
-    }
+        .search-box input::placeholder {
+            color: var(--muted);
+        }
 
-    @media (prefers-reduced-motion: reduce) {
-        *, *::before, *::after { animation: none !important; transition: none !important; }
-        #dust { display: none; }
-    }
-</style>
+        .search-clear {
+            display: none;
+            border: none;
+            background: transparent;
+            color: var(--gold-2);
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .search-clear.visible {
+            display: inline-block;
+        }
+
+        .search-meta {
+            display: flex;
+            justify-content: space-between;
+            margin: 9px 3px 0;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        /* TABLE */
+        .table-card {
+            position: relative;
+            border-radius: 22px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            overflow: hidden;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 640px;
+        }
+
+        thead th {
+            text-align: left;
+            padding: 16px 22px;
+            font-size: 10.5px;
+            letter-spacing: 1.6px;
+            text-transform: uppercase;
+            color: var(--text-2);
+            border-bottom: 1px solid var(--line);
+        }
+
+        thead th:last-child {
+            text-align: right;
+        }
+
+        tbody td {
+            padding: 15px 22px;
+            border-bottom: 1px solid var(--line);
+            font-size: 13.5px;
+            vertical-align: middle;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover td {
+            background: rgba(245,215,122,0.03);
+        }
+
+        .id-cell { color: var(--muted); }
+        .name-cell { color: white; font-weight: 600; }
+        .price-cell { color: var(--gold-2); font-weight: 600; }
+        .actions-cell { text-align: right; white-space: nowrap; }
+        .actions-cell form { display: inline-block; }
+        .actions-cell .button { margin-left: 8px; }
+
+        .badge-category {
+            display: inline-block;
+            padding: 5px 13px;
+            border-radius: 999px;
+            font-size: 11px;
+            color: var(--gold-2);
+            background: rgba(245,215,122,0.08);
+            border: 1px solid var(--line-hi);
+        }
+
+        .empty-row td,
+        .no-results td {
+            text-align: center;
+            padding: 55px 20px;
+            color: var(--muted);
+        }
+
+        .no-results strong {
+            display: block;
+            color: var(--text);
+            margin-bottom: 5px;
+        }
+
+        footer {
+            padding: 20px 6%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 10px;
+            border-top: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 10px;
+            letter-spacing: 1.4px;
+        }
+
+        footer a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .footer-brand { color: var(--gold-3); }
+
+        @media(max-width:640px) {
+            .topbar { padding: 18px 20px; }
+            main { padding: 32px 16px 44px; }
+            h1 { font-size: 24px; }
+            footer {
+                padding: 16px 20px;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+        }
+    </style>
 </head>
 
 <body>
-<canvas id="dust" aria-hidden="true"></canvas>
-<div class="aurora" aria-hidden="true"><i></i><i></i></div>
 
 <header class="topbar">
     <div class="brand">
         <div class="brand-mark">M</div>
-        <div class="brand-text">
+        <div>
             <div class="brand-name">MAGIC MANDI &amp; GRILL</div>
             <div class="brand-sub">Menu Administration</div>
         </div>
@@ -209,16 +340,43 @@
 
 <main>
     <div class="page">
+
         <div class="page-header">
             <div>
                 <h1>Manage menu</h1>
                 <p>Add, edit, or remove dishes from the live menu.</p>
             </div>
+
             <div class="header-actions">
                 <a href="/admin" class="button button-secondary button-sm">Back to admin</a>
                 <a href="/add_menu" class="button button-primary button-sm">Add new dish</a>
             </div>
         </div>
+
+        <!-- SEARCH BAR -->
+        <section class="search-panel">
+            <label class="search-box" for="dishSearch">
+                <span class="search-icon">⌕</span>
+
+                <input
+                    type="search"
+                    id="dishSearch"
+                    placeholder="Search dishes by name, category, ID or price..."
+                    autocomplete="off"
+                >
+
+                <button
+                    type="button"
+                    class="search-clear"
+                    id="clearSearch"
+                >Clear</button>
+            </label>
+
+            <div class="search-meta">
+                <span>Find a dish instantly</span>
+                <span id="searchCount"></span>
+            </div>
+        </section>
 
         <div class="table-card">
             <div class="table-scroll">
@@ -232,89 +390,145 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
+
                     <tbody>
                         {% if menu %}
                             {% for item in menu %}
                             <tr>
                                 <td class="id-cell">{{ item.id }}</td>
-                                <td class="name-cell">{{ item.name }}</td>
-                                <td><span class="badge-category">{{ item.category }}</span></td>
-                                <td class="price-cell">KSh {{ item.price }}</td>
+
+                                <td class="name-cell">
+                                    {{ item.name }}
+                                </td>
+
+                                <td>
+                                    <span class="badge-category">
+                                        {{ item.category }}
+                                    </span>
+                                </td>
+
+                                <td class="price-cell">
+                                    KSh {{ item.price }}
+                                </td>
+
                                 <td class="actions-cell">
-                                    <a href="/edit_menu/{{ item.id }}" class="button button-secondary button-sm">Edit</a>
-                                    <form action="{{ url_for('delete_menu', item_id=item.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete {{ item.name }}?');">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="button button-danger button-sm">Delete</button>
+                                    <a
+                                        href="/edit_menu/{{ item.id }}"
+                                        class="button button-secondary button-sm"
+                                    >Edit</a>
+
+                                    <form
+                                        action="{{ url_for('delete_menu', item_id=item.id) }}"
+                                        method="POST"
+                                        onsubmit="return confirm('Are you sure you want to delete {{ item.name }}?');"
+                                    >
+                                        <input
+                                            type="hidden"
+                                            name="csrf_token"
+                                            value="{{ csrf_token() }}"
+                                        >
+
+                                        <button
+                                            type="submit"
+                                            class="button button-danger button-sm"
+                                        >Delete</button>
                                     </form>
                                 </td>
                             </tr>
                             {% endfor %}
                         {% else %}
-                        <tr class="empty-row">
-                            <td colspan="5">No menu items found in the database.</td>
-                        </tr>
+                            <tr class="empty-row">
+                                <td colspan="5">
+                                    No menu items found in the database.
+                                </td>
+                            </tr>
                         {% endif %}
                     </tbody>
                 </table>
             </div>
         </div>
+
     </div>
 </main>
 
 <footer>
     <div>&copy; 2026 Magic Mandi &amp; Grill. All rights reserved.</div>
-    <div class="footer-brand">DEBASA&middot; <a href="mailto:debasasystems@gmail.com">debasasystems@gmail.com</a></div>
+
+    <div class="footer-brand">
+        DEBASA &middot;
+        <a href="mailto:debasasystems@gmail.com">
+            debasasystems@gmail.com
+        </a>
+    </div>
 </footer>
 
+<!-- SEARCH FUNCTIONALITY -->
 <script>
-    (function () {
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { return; }
+(function () {
+    const searchInput = document.getElementById("dishSearch");
+    const clearButton = document.getElementById("clearSearch");
+    const searchCount = document.getElementById("searchCount");
+    const tableBody = document.querySelector(".table-card tbody");
 
-        const canvas = document.getElementById("dust");
-        const ctx = canvas.getContext("2d");
-        const dpr = Math.min(window.devicePixelRatio || 1, 2);
-        let W, H;
-        const parts = [];
+    if (!searchInput || !tableBody) return;
 
-        function resize() {
-            W = window.innerWidth; H = window.innerHeight;
-            canvas.width = W * dpr; canvas.height = H * dpr;
-            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        }
+    const dishRows = Array.from(
+        tableBody.querySelectorAll("tr")
+    ).filter(row => !row.classList.contains("empty-row"));
 
-        function spawn(initial) {
-            return {
-                x: Math.random() * W,
-                y: initial ? Math.random() * H : H + 10,
-                r: Math.random() * 1.6 + 0.4,
-                v: Math.random() * 0.35 + 0.08,
-                d: (Math.random() - 0.5) * 0.25,
-                a: Math.random() * 0.6 + 0.2,
-                t: Math.random() * Math.PI * 2
-            };
-        }
+    const noResultsRow = document.createElement("tr");
+    noResultsRow.className = "no-results";
+    noResultsRow.style.display = "none";
 
-        resize();
-        const count = Math.min(60, Math.floor(window.innerWidth / 24));
-        for (let i = 0; i < count; i++) { parts.push(spawn(true)); }
-        window.addEventListener("resize", resize);
+    noResultsRow.innerHTML = `
+        <td colspan="5">
+            <strong>No dishes found</strong>
+            Try another dish name or category.
+        </td>
+    `;
 
-        (function loop() {
-            ctx.clearRect(0, 0, W, H);
-            parts.forEach(function (p, i) {
-                p.y -= p.v; p.x += p.d + Math.sin(p.t) * 0.15; p.t += 0.015;
-                if (p.y < -10) { parts[i] = spawn(false); }
-                const tw = 0.5 + 0.5 * Math.sin(p.t * 3);
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-                ctx.fillStyle = "rgba(245,205,100," + (p.a * tw).toFixed(3) + ")";
-                ctx.shadowColor = "rgba(245,200,90,0.9)";
-                ctx.shadowBlur = 8;
-                ctx.fill();
-            });
-            requestAnimationFrame(loop);
-        })();
-    })();
+    tableBody.appendChild(noResultsRow);
+
+    function filterDishes() {
+        const query = searchInput.value
+            .trim()
+            .toLocaleLowerCase();
+
+        let visible = 0;
+
+        dishRows.forEach(row => {
+            const matches = row.textContent
+                .toLocaleLowerCase()
+                .includes(query);
+
+            row.style.display = matches ? "" : "none";
+
+            if (matches) visible++;
+        });
+
+        noResultsRow.style.display =
+            dishRows.length > 0 && visible === 0 ? "" : "none";
+
+        searchCount.textContent = query
+            ? `${visible} of ${dishRows.length} dishes`
+            : `${dishRows.length} dishes`;
+
+        clearButton.classList.toggle(
+            "visible",
+            query.length > 0
+        );
+    }
+
+    searchInput.addEventListener("input", filterDishes);
+
+    clearButton.addEventListener("click", function () {
+        searchInput.value = "";
+        filterDishes();
+        searchInput.focus();
+    });
+
+    filterDishes();
+})();
 </script>
 
 </body>
