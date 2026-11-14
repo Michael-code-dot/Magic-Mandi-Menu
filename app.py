@@ -421,11 +421,32 @@ _ANIMAL = ["Falcon", "Lion", "Leopard", "Zebra", "Eagle", "Gazelle", "Cheetah", 
            "Buffalo", "Hawk", "Crane", "Jackal", "Meerkat", "Parrot", "Lynx", "Tortoise"]
 
 
-def guest_name(vid):
+GUEST_NUM = {}
+
+
+def refresh_guest_numbers():
+    """Guest 1 is the first phone ever recorded, Guest 2 the next, and so on."""
     try:
-        return f"{_ADJ[int(vid[0:4], 16) % len(_ADJ)]} {_ANIMAL[int(vid[4:8], 16) % len(_ANIMAL)]} #{vid[-2:].upper()}"
+        cur = get_db().cursor()
+        try:
+            cur.execute("SELECT visitor_id FROM menu_scans GROUP BY visitor_id ORDER BY MIN(id)")
+            GUEST_NUM.clear()
+            for i, (v,) in enumerate(cur.fetchall(), 1):
+                GUEST_NUM[v] = i
+        finally:
+            cur.close()
     except Exception:
-        return "Guest"
+        app.logger.exception("GUEST NUMBERS FAILED")
+
+
+def guest_name(vid):
+    n = GUEST_NUM.get(vid)
+    if n is None:
+        try:
+            n = int(vid[:4], 16) % 900 + 100
+        except Exception:
+            return "Guest"
+    return f"Guest {n}"
 
 
 @lru_cache(maxsize=32)
@@ -1212,6 +1233,7 @@ def analytics_data(range_key="30", table_f=None, guest_f=None):
     if range_key not in ANALYTICS_RANGES:
         range_key = "30"
     flush_scans()                       # include scans still waiting in memory
+    refresh_guest_numbers()
 
     now = now_local()
     d0 = datetime.combine(now.date(), datetime.min.time())
@@ -1556,6 +1578,7 @@ def debasa_analytics_reset():
 @debasa_admin_required
 def debasa_analytics_csv():
     flush_scans()
+    refresh_guest_numbers()
 
     cur = get_db().cursor()
     try:

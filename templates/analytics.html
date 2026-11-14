@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,10 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#000000">
     <title>Scan Analytics | DEBASA QR</title>
+<link rel="shortcut icon" href="{{ url_for('static', filename='images/logo.jpeg') }}?v=11" type="image/jpeg">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="shortcut icon" href="{{ url_for('static', filename='images/logo.jpeg') }}?v=11" type="image/jpeg">
-
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -248,6 +248,77 @@
             .kpi:first-child .value { font-size: 56px; }
             main { margin-top: 26px; }
         }
+
+        /* compact feed + guest cards + device bars */
+        .feed { margin-top: 10px; }
+        .feed .row { display: flex; align-items: center; gap: 14px; padding: 13px 4px; border-bottom: 1px solid rgba(217,169,59,.09); transition: background .2s; }
+        .feed .row:hover { background: rgba(217,169,59,.04); }
+        .feed .row.hide, .gcard.hide { display: none; }
+        .av { flex: none; width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%; color: #1a1206; font-size: 12px; font-weight: 800; letter-spacing: -.3px; text-decoration: none; background: linear-gradient(135deg,var(--gold-1),var(--gold-2) 60%,var(--gold-3)); }
+        .who-col { flex: 1; min-width: 0; }
+        .who-col .who { border: 0; font-size: 14.5px; }
+        .meta { margin-top: 2px; color: var(--muted); font-size: 12.5px; }
+        .meta a { color: var(--gold-2); text-decoration: none; font-weight: 700; }
+        .meta .dot { margin: 0 6px; opacity: .5; }
+        .end { flex: none; text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+        .when { font-size: 12.5px; font-weight: 700; }
+        .more { display: block; margin: 16px auto 0; padding: 10px 24px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--gold-1); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; transition: background .2s, border-color .2s; }
+        .more[hidden] { display: none; }
+        .more:hover { background: rgba(217,169,59,.1); border-color: var(--gold-2); }
+        .gcards { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; margin-top: 16px; }
+        .gcard { display: flex; align-items: center; gap: 12px; padding: 14px; border: 1px solid var(--line); border-radius: 16px; background: rgba(217,169,59,.03); color: inherit; text-decoration: none; transition: transform .25s, border-color .25s; }
+        .gcard:hover { transform: translateY(-3px); border-color: var(--gold-2); }
+        .gtxt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .gtxt b { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .gtxt small { margin-top: 2px; color: var(--muted); font-size: 11.5px; line-height: 1.4; }
+        .devgrid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 28px; margin-top: 18px; }
+        .devgrid h3 { margin: 0 0 12px; color: var(--gold-2); font-size: 11px; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; }
+        .bar { position: relative; display: grid; grid-template-columns: 78px 1fr 40px; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 13px; }
+        .bar i { height: 8px; border-radius: 99px; background: rgba(217,169,59,.12); position: relative; overflow: hidden; }
+        .bar i::after { content: ""; position: absolute; inset: 0; width: var(--w); border-radius: inherit; background: linear-gradient(90deg,var(--gold-3),var(--gold-1)); }
+        .bar em { color: var(--muted); font-style: normal; font-size: 12px; text-align: right; }
+        @media (max-width: 1100px) { .gcards { grid-template-columns: repeat(2, minmax(0,1fr)); } .devgrid { grid-template-columns: 1fr; gap: 22px; } }
+        @media (max-width: 600px) { .gcards { grid-template-columns: 1fr; } .av { width: 38px; height: 38px; } }
+
+        /* ===== colour + motion ===== */
+        :root { --c1:#ffcb5c; --c2:#4ff0b0; --c3:#7db4ff; --c4:#c58bff; --c5:#ff8fa3; --c6:#ff9d57; }
+        .kpi { --c: var(--gold-2); animation: rise .7s cubic-bezier(.2,.8,.2,1) both; }
+        .kpi:nth-child(1){--c:var(--c1);animation-delay:.05s} .kpi:nth-child(2){--c:var(--c3);animation-delay:.12s}
+        .kpi:nth-child(3){--c:var(--c2);animation-delay:.19s} .kpi:nth-child(4){--c:var(--c4);animation-delay:.26s}
+        .kpi:nth-child(5){--c:var(--c6);animation-delay:.33s} .kpi:nth-child(6){--c:var(--c5);animation-delay:.40s}
+        .kpi:nth-child(7){--c:var(--c3);animation-delay:.47s} .kpi:nth-child(8){--c:var(--c2);animation-delay:.54s}
+        .kpi:nth-child(9){--c:var(--c1);animation-delay:.61s} .kpi:nth-child(10){--c:var(--c4);animation-delay:.68s}
+        .kpi .label { color: var(--c); opacity: 1; }
+        .kpi::after { background: radial-gradient(circle, color-mix(in srgb, var(--c) 35%, transparent), transparent 70%); animation: floaty 6s ease-in-out infinite; }
+        .kpi { border-color: color-mix(in srgb, var(--c) 25%, transparent); }
+        .kpi:hover { border-color: var(--c); box-shadow: 0 14px 40px color-mix(in srgb, var(--c) 28%, transparent); }
+        .kpi .value.gold-text { background: linear-gradient(110deg, var(--c), #fff 45%, var(--c)); background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .kpi:first-child { background: radial-gradient(circle at 90% 0, rgba(255,203,92,.3), transparent 55%), radial-gradient(circle at 0 100%, rgba(125,180,255,.14), transparent 50%), linear-gradient(160deg,#17130a,#060503); }
+        @keyframes rise { from { opacity: 0; transform: translateY(24px) scale(.97); } to { opacity: 1; transform: none; } }
+        @keyframes floaty { 50% { transform: translate(-10px, 12px) scale(1.2); } }
+        .card { animation: rise .8s cubic-bezier(.2,.8,.2,1) both; }
+        .card::before { background: linear-gradient(90deg, transparent, #ffcb5c, #ff8fa3, #7db4ff, #4ff0b0, transparent); opacity: .7; background-size: 200% 100%; animation: slide 6s linear infinite; }
+        @keyframes slide { to { background-position: -200% 0; } }
+        .feed .row, .gcard { animation: rise .6s cubic-bezier(.2,.8,.2,1) both; }
+        .feed .row:nth-child(1){animation-delay:.05s} .feed .row:nth-child(2){animation-delay:.1s} .feed .row:nth-child(3){animation-delay:.15s} .feed .row:nth-child(4){animation-delay:.2s} .feed .row:nth-child(5){animation-delay:.25s} .feed .row:nth-child(n+6){animation-delay:.3s}
+        .av:nth-child(n) { transition: transform .3s; } .row:hover .av, .gcard:hover .av { transform: scale(1.12) rotate(-6deg); }
+        .feed .row:nth-child(5n+1) .av, .gcard:nth-child(5n+1) .av { background: linear-gradient(135deg,#fff0b8,#ffcb5c); }
+        .feed .row:nth-child(5n+2) .av, .gcard:nth-child(5n+2) .av { background: linear-gradient(135deg,#b8f5de,#4ff0b0); }
+        .feed .row:nth-child(5n+3) .av, .gcard:nth-child(5n+3) .av { background: linear-gradient(135deg,#c9e0ff,#7db4ff); }
+        .feed .row:nth-child(5n+4) .av, .gcard:nth-child(5n+4) .av { background: linear-gradient(135deg,#e6ccff,#c58bff); }
+        .feed .row:nth-child(5n) .av, .gcard:nth-child(5n) .av { background: linear-gradient(135deg,#ffc7d1,#ff8fa3); }
+        .pill.new { color: #cfe3ff; background: rgba(125,180,255,.12); border-color: rgba(125,180,255,.35); }
+        .pill.ret { box-shadow: 0 0 14px rgba(79,240,176,.25); }
+        .devgrid > div:nth-child(1) .bar i::after { background: linear-gradient(90deg,#c58bff,#ff8fa3); }
+        .devgrid > div:nth-child(2) .bar i::after { background: linear-gradient(90deg,#4ff0b0,#7db4ff); }
+        .devgrid > div:nth-child(3) .bar i::after { background: linear-gradient(90deg,#ff9d57,#ffcb5c); }
+        .bar i::after { transform-origin: left; animation: grow 1.2s cubic-bezier(.2,.8,.2,1) both .3s; }
+        @keyframes grow { from { transform: scaleX(0); } }
+        .range a.on { box-shadow: 0 6px 22px rgba(255,203,92,.4); }
+        .snav a:nth-child(1) i { color: #ffcb5c; } .snav a:nth-child(2) i { color: #7db4ff; } .snav a:nth-child(3) i { color: #4ff0b0; } .snav a:nth-child(4) i { color: #c58bff; }
+        .logo { animation: glow 3.5s ease-in-out infinite; }
+        @keyframes glow { 50% { box-shadow: 0 8px 36px rgba(255,203,92,.7); } }
+        .live { animation: rise .6s both; }
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation: none !important; transition: none !important; }
         }
@@ -338,26 +409,25 @@
         </div>
         {% endif %}
         {% if data.recent %}
-        <div class="table-wrap">
-            <table class="stack">
-                <thead>
-                    <tr><th>Time</th><th>Table</th><th>Guest</th><th>Phone</th><th>System</th><th>Browser</th><th>Type</th></tr>
-                </thead>
-                <tbody>
-                {% for r in data.recent %}
-                    <tr>
-                        <td data-l="Time"><b>{{ r.time }}</b></td>
-                        <td data-l="Table">{% if r.table != '-' %}<a class="pill tbl" href="{{ url_for('debasa_analytics', range=data.range, table=r.table) }}#latest">Table {{ r.table }}</a>{% else %}<span class="dim">no table</span>{% endif %}</td>
-                        <td data-l="Guest"><a class="who" href="{{ url_for('debasa_analytics', range=data.range, guest=r.id) }}#latest">{{ r.name }}</a></td>
-                        <td data-l="Phone">{{ r.device }}</td>
-                        <td data-l="System">{{ r.os }}</td>
-                        <td data-l="Browser">{{ r.browser }}</td>
-                        <td data-l="Type">{% if r.returning %}<span class="pill ret">Returning</span>{% else %}<span class="pill new">New</span>{% endif %}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+        <div class="feed" data-limit="10">
+            {% for r in data.recent %}
+            <div class="row">
+                <a class="av" href="{{ url_for('debasa_analytics', range=data.range, guest=r.id) }}#latest">{{ r.name.split(' ')[-1] }}</a>
+                <div class="who-col">
+                    <a class="who" href="{{ url_for('debasa_analytics', range=data.range, guest=r.id) }}#latest">{{ r.name }}</a>
+                    <div class="meta">
+                        {% if r.table != '-' %}<a href="{{ url_for('debasa_analytics', range=data.range, table=r.table) }}#latest">Table {{ r.table }}</a>{% else %}No table{% endif %}
+                        <span class="dot">·</span>{{ r.device }}<span class="dot">·</span>{{ r.os }}
+                    </div>
+                </div>
+                <div class="end">
+                    <div class="when">{{ r.time }}</div>
+                    {% if r.returning %}<span class="pill ret">Returning</span>{% else %}<span class="pill new">New</span>{% endif %}
+                </div>
+            </div>
+            {% endfor %}
         </div>
+        <button type="button" class="more" hidden>Show more</button>
         {% else %}
         <div class="empty">No scans in this period.</div>
         {% endif %}
@@ -368,24 +438,19 @@
         <h2>Guests</h2>
         <p class="hint">{{ data.range_label }} · most recent first</p>
         {% if data.guests %}
-        <div class="table-wrap">
-            <table class="stack">
-                <thead><tr><th>Guest</th><th>Scans</th><th>First seen</th><th>Last seen</th><th>Tables</th><th>Phone</th><th>Type</th></tr></thead>
-                <tbody>
-                {% for g in data.guests %}
-                    <tr>
-                        <td data-l="Guest"><a class="who" href="{{ url_for('debasa_analytics', range=data.range, guest=g.id) }}#latest">{{ g.name }}</a></td>
-                        <td data-l="Scans"><b>{{ g.scans }}</b></td>
-                        <td data-l="First seen">{{ g.first }}</td>
-                        <td data-l="Last seen">{{ g.last }}</td>
-                        <td data-l="Tables">{{ g.tables }}</td>
-                        <td data-l="Phone">{{ g.phone }}</td>
-                        <td data-l="Type">{% if g.returning %}<span class="pill ret">Returning</span>{% else %}<span class="pill new">New</span>{% endif %}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+        <div class="gcards" data-limit="9">
+            {% for g in data.guests %}
+            <a class="gcard" href="{{ url_for('debasa_analytics', range=data.range, guest=g.id) }}#latest">
+                <span class="av">{{ g.name.split(' ')[-1] }}</span>
+                <span class="gtxt">
+                    <b>{{ g.name }}</b>
+                    <small>{{ g.scans }} scan{{ '' if g.scans == 1 else 's' }} · {% if g.tables != '-' %}Table {{ g.tables }}{% else %}No table{% endif %} · last {{ g.last }}</small>
+                </span>
+                {% if g.returning %}<span class="pill ret">Returning</span>{% endif %}
+            </a>
+            {% endfor %}
         </div>
+        <button type="button" class="more" hidden>Show more</button>
         {% else %}
         <div class="empty">No guests in this period.</div>
         {% endif %}
@@ -456,24 +521,22 @@
     </section>
     {% endif %}
 
-    <!-- ===== Who ===== -->
-    <div class="grid3">
-        <section class="card">
-            <h2>Phone type</h2>
-            <p class="hint">{{ data.range_label }}</p>
-            <div class="chart-box short" style="margin-top:14px"><canvas id="deviceChart"></canvas></div>
-        </section>
-        <section class="card">
-            <h2>Operating system</h2>
-            <p class="hint">{{ data.range_label }}</p>
-            <div class="chart-box short" style="margin-top:14px"><canvas id="osChart"></canvas></div>
-        </section>
-        <section class="card">
-            <h2>Browser</h2>
-            <p class="hint">{{ data.range_label }}</p>
-            <div class="chart-box short" style="margin-top:14px"><canvas id="browserChart"></canvas></div>
-        </section>
-    </div>
+    <!-- ===== Devices ===== -->
+    <section class="card">
+        <h2>Devices</h2>
+        <p class="hint">{{ data.range_label }}</p>
+        <div class="devgrid">
+            {% for title, src in [('Phone type', data.devices), ('System', data.systems), ('Browser', data.browsers)] %}
+            <div>
+                <h3>{{ title }}</h3>
+                {% set tot = src['values']|sum %}
+                {% for i in range(src['labels']|length) if i < 4 %}
+                <div class="bar"><span>{{ src['labels'][i] }}</span><i style="--w:{{ (100 * src['values'][i] / tot)|round|int if tot else 0 }}%"></i><em>{{ (100 * src['values'][i] / tot)|round|int if tot else 0 }}%</em></div>
+                {% else %}<div class="dim">No data yet</div>{% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </section>
 
     <!-- ===== Tools ===== -->
     <section class="card" id="tools">
@@ -626,10 +689,18 @@
                        plugins: { legend: { position: "bottom", labels: { boxWidth: 10, boxHeight: 10, padding: 12 } }, tooltip: tooltip } }
         });
     }
-    donut("deviceChart", D.devices);
-    donut("osChart", D.systems);
-    donut("browserChart", D.browsers);
 })();
+
+    document.querySelectorAll(".feed, .gcards").forEach(function (box) {
+        var items = Array.prototype.slice.call(box.children), limit = parseInt(box.dataset.limit, 10);
+        var btn = box.nextElementSibling;
+        if (items.length <= limit || !btn) return;
+        items.slice(limit).forEach(function (el) { el.classList.add("hide"); });
+        btn.hidden = false; btn.textContent = "Show more (" + (items.length - limit) + ")";
+        btn.addEventListener("click", function () {
+            items.forEach(function (el) { el.classList.remove("hide"); }); btn.hidden = true;
+        });
+    });
 </script>
 
 </body>
