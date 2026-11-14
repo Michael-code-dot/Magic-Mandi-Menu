@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dish descriptions · DEBASA QR</title>
+<style>
+    :root { --gold-1:#f6e3a1; --gold-2:#d9a93b; --text:#f5efe0; --muted:#9a917c; --line:rgba(217,169,59,.22); }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #000; color: var(--text); font-family: "Inter", system-ui, sans-serif; }
+    header { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; padding: 14px 5%; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: rgba(0,0,0,.85); backdrop-filter: blur(10px); }
+    header a { color: #d8cfb8; border: 1px solid var(--line); padding: 9px 15px; border-radius: 10px; font-size: 12px; font-weight: 600; text-decoration: none; }
+    main { max-width: 980px; margin: 0 auto; padding: 28px 5% 80px; }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    .sub { color: var(--muted); line-height: 1.7; font-size: 14px; }
+    .notice { margin: 18px 0; padding: 13px 16px; border-radius: 12px; color: #bfeed5; background: rgba(111,214,160,.1); border: 1px solid rgba(111,214,160,.3); font-weight: 600; }
+    .stats { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0; }
+    .stats span { padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; }
+    .stats b { color: var(--gold-1); }
+    form.apply { margin: 18px 0; display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+    .btn { padding: 13px 24px; border: 0; border-radius: 12px; font: inherit; font-weight: 800; font-size: 14px; cursor: pointer; color: #1a1206; background: linear-gradient(135deg, var(--gold-1), var(--gold-2)); }
+    .btn[disabled] { opacity: .4; cursor: not-allowed; }
+    label.chk { color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 8px; }
+    .row { padding: 14px 16px; margin-top: 10px; border: 1px solid var(--line); border-radius: 14px; background: rgba(217,169,59,.04); }
+    .row.skip { opacity: .6; }
+    .row h3 { margin: 0 0 8px; font-size: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .tag { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; font-weight: 800; padding: 3px 9px; border-radius: 999px; }
+    .tag.go { color: #1a1206; background: linear-gradient(135deg, var(--gold-1), var(--gold-2)); }
+    .tag.keep { color: #ffd9a0; border: 1px solid rgba(255,200,120,.4); }
+    .tag.none { color: var(--muted); border: 1px solid var(--line); }
+    .old { color: var(--muted); font-size: 13px; text-decoration: line-through; text-decoration-color: rgba(255,120,100,.5); }
+    .new { margin-top: 6px; font-size: 14px; line-height: 1.6; }
+</style>
+</head>
+<body>
+<header>
+    <strong>DEBASA <span style="color:var(--gold-2)">QR</span> · Descriptions</strong>
+    <a href="{{ url_for('debasa_analytics') }}">← Analytics</a>
+</header>
+<main>
+    <h1>Better dish descriptions</h1>
+    <p class="sub">Each dish gets its own short description instead of “Delicious … freshly prepared.” Only descriptions that are empty or still the generic one are changed. Descriptions you wrote yourself are kept.</p>
+
+    {% if done is not none %}<div class="notice">Done. {{ done }} description{{ '' if done|int == 1 else 's' }} updated. Open your menu to see them (it can take up to a minute).</div>{% endif %}
+
+    <div class="stats">
+        <span><b>{{ n_apply }}</b> will be updated</span>
+        <span><b>{{ n_kept }}</b> kept because you wrote them</span>
+        <span><b>{{ n_none }}</b> have no suggestion</span>
+    </div>
+
+    <form method="post" class="apply" onsubmit="return confirm('Update {{ n_apply }} descriptions?');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {% if replace_all %}<input type="hidden" name="replace_all" value="1">{% endif %}
+        <button class="btn" type="submit" {% if not n_apply %}disabled{% endif %}>Update {{ n_apply }} descriptions</button>
+        {% if replace_all %}
+        <a class="sub" href="{{ url_for('debasa_descriptions') }}">Only replace the generic ones</a>
+        {% else %}
+        <a class="sub" href="{{ url_for('debasa_descriptions', replace_all=1) }}">Also replace descriptions I wrote</a>
+        {% endif %}
+    </form>
+
+    {% for x in plan %}
+    <div class="row {{ '' if x.apply else 'skip' }}">
+        <h3>{{ x.name }}
+            {% if x.apply %}<span class="tag go">will update</span>
+            {% elif x.kept %}<span class="tag keep">kept (yours)</span>
+            {% elif not x.new %}<span class="tag none">no suggestion</span>{% endif %}
+        </h3>
+        {% if x.old %}<div class="old">{{ x.old }}</div>{% endif %}
+        {% if x.new %}<div class="new">{{ x.new }}</div>{% endif %}
+    </div>
+    {% endfor %}
+</main>
+</body>
+</html>

@@ -306,6 +306,14 @@ def track_scan(table, vid, is_new):
         if not ua or BOT_RE.search(ua):
             return
 
+        # not a real guest view: browser prefetch, HEAD checks, or the owner logged in
+        if request.method != "GET" or session.get("debasa_admin_logged_in"):
+            return
+        purpose = (request.headers.get("Sec-Purpose", "") + request.headers.get("Purpose", "")
+                   + request.headers.get("X-Moz", "")).lower()
+        if "prefetch" in purpose or "prerender" in purpose:
+            return
+
         table_no = table if (table and table.isalnum() and len(table) <= 10) else None
         now = time.time()
         key = (vid, table_no or "")
@@ -373,8 +381,51 @@ def _flush_loop():
             app.logger.exception("SCAN FLUSH LOOP ERROR")
 
 
+def seed_last_seen():
+    """After a restart, remember who scanned in the last 30 minutes so the
+    same phone is not counted twice just because the server restarted."""
+    conn = None
+    try:
+        conn = db_pool.get_connection()
+        cur = conn.cursor()
+        now_dt = now_local()
+        cur.execute(
+            "SELECT visitor_id, table_no, MAX(scanned_at) FROM menu_scans "
+            "WHERE scanned_at >= %s GROUP BY visitor_id, table_no",
+            (now_dt - timedelta(seconds=SCAN_DEDUPE_SECONDS),),
+        )
+        t_now = time.time()
+        with SCAN_LOCK:
+            for vid_, tbl_, seen_ in cur.fetchall():
+                LAST_SEEN[(vid_, tbl_ or "")] = t_now - (now_dt - seen_).total_seconds()
+        cur.close()
+    except Exception:
+        app.logger.exception("SCAN SEED FAILED")
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+seed_last_seen()
 threading.Thread(target=_flush_loop, daemon=True).start()
 atexit.register(flush_scans)
+
+
+# Friendly anonymous names, so you can recognise a returning guest at a glance
+# ("Golden Falcon #7F") without storing anything personal.
+_ADJ = ["Golden", "Silver", "Crimson", "Amber", "Jade", "Royal", "Swift", "Brave",
+        "Sunny", "Misty", "Cosmic", "Velvet", "Coral", "Ivory", "Ember", "Azure",
+        "Lucky", "Noble", "Gentle", "Bright", "Wild", "Calm", "Bold", "Spicy"]
+_ANIMAL = ["Falcon", "Lion", "Leopard", "Zebra", "Eagle", "Gazelle", "Cheetah", "Giraffe",
+           "Rhino", "Flamingo", "Hippo", "Antelope", "Heron", "Panther", "Ibis", "Oryx",
+           "Buffalo", "Hawk", "Crane", "Jackal", "Meerkat", "Parrot", "Lynx", "Tortoise"]
+
+
+def guest_name(vid):
+    try:
+        return f"{_ADJ[int(vid[0:4], 16) % len(_ADJ)]} {_ANIMAL[int(vid[4:8], 16) % len(_ANIMAL)]} #{vid[-2:].upper()}"
+    except Exception:
+        return "Guest"
 
 
 @lru_cache(maxsize=32)
@@ -529,9 +580,11 @@ def index():
     table = request.args.get("table")
     vid, is_new = get_visitor()
 
-    track_scan(table, vid, is_new)
-
     result = build_menu_page(table)
+
+    # count it only when the real menu was shown (not the "menu off" page)
+    if getattr(g, "menu_shown", False):
+        track_scan(table, vid, is_new)
 
     if isinstance(result, str) and "gzip" in request.headers.get("Accept-Encoding", ""):
         response = make_response(gzip_html(result))
@@ -559,6 +612,7 @@ def build_menu_page(table):
     if cacheable:
         hit = PAGE_CACHE.get(key)
         if hit and time.time() - hit[0] < PAGE_CACHE_SECONDS:
+            g.menu_shown = True
             return hit[1]
 
     # One thread rebuilds the page; the others wait and then reuse it.
@@ -566,6 +620,7 @@ def build_menu_page(table):
         if cacheable:
             hit = PAGE_CACHE.get(key)
             if hit and time.time() - hit[0] < PAGE_CACHE_SECONDS:
+                g.menu_shown = True
                 return hit[1]
 
         try:
@@ -584,6 +639,7 @@ def build_menu_page(table):
             return "Menu temporarily unavailable. Please try again later.", 503
 
         html = render_template("index.html", menu=menu, table=table)
+        g.menu_shown = True
 
         if cacheable and len(PAGE_CACHE) < PAGE_CACHE_MAX:
             PAGE_CACHE[key] = (time.time(), html)
@@ -1145,8 +1201,16 @@ def delete_debasa_subscription(subscription_id):
     return redirect(url_for("debasa_subscription"))
 
 
-def analytics_data():
+ANALYTICS_RANGES = {
+    "today": "Today", "yesterday": "Yesterday", "7": "Last 7 days",
+    "30": "Last 30 days", "month": "This month", "all": "All time",
+}
+
+
+def analytics_data(range_key="30", table_f=None, guest_f=None):
     """Everything the analytics page shows, computed from the menu_scans table."""
+    if range_key not in ANALYTICS_RANGES:
+        range_key = "30"
     flush_scans()                       # include scans still waiting in memory
 
     now = now_local()
@@ -1158,6 +1222,21 @@ def analytics_data():
     last30 = d0 - timedelta(days=29)
     five_min = now - timedelta(minutes=5)
     one_hour = now - timedelta(hours=1)
+
+    # the period used by the charts, the lists and the latest-scans table
+    far_future = datetime(2100, 1, 1)
+    if range_key == "today":
+        r_from, r_to = d0, far_future
+    elif range_key == "yesterday":
+        r_from, r_to = yesterday0, d0
+    elif range_key == "7":
+        r_from, r_to = d0 - timedelta(days=6), far_future
+    elif range_key == "month":
+        r_from, r_to = month0, far_future
+    elif range_key == "all":
+        r_from, r_to = datetime(2000, 1, 1), far_future
+    else:
+        r_from, r_to = last30, far_future
 
     cur = get_db().cursor(dictionary=True)
     try:
@@ -1266,43 +1345,68 @@ def analytics_data():
         hour_rows = {
             r["k"]: num(r["c"]) for r in many(
                 "SELECT HOUR(scanned_at) AS k, COUNT(*) AS c FROM menu_scans "
-                "WHERE scanned_at >= %s GROUP BY k", (last30,))
+                "WHERE scanned_at >= %s AND scanned_at < %s GROUP BY k", (r_from, r_to))
         }
         hours = [hour_rows.get(h, 0) for h in range(24)]
 
         wd_rows = {
             r["k"]: num(r["c"]) for r in many(
                 "SELECT WEEKDAY(scanned_at) AS k, COUNT(*) AS c FROM menu_scans "
-                "WHERE scanned_at >= %s GROUP BY k", (last30,))
+                "WHERE scanned_at >= %s AND scanned_at < %s GROUP BY k", (r_from, r_to))
         }
         weekdays = [wd_rows.get(i, 0) for i in range(7)]
 
         def breakdown(column):
             rows = many(
                 f"SELECT COALESCE({column}, 'Unknown') AS k, COUNT(*) AS c "
-                "FROM menu_scans WHERE scanned_at >= %s "
-                "GROUP BY k ORDER BY c DESC LIMIT 8", (last30,))
+                "FROM menu_scans WHERE scanned_at >= %s AND scanned_at < %s "
+                "GROUP BY k ORDER BY c DESC LIMIT 8", (r_from, r_to))
             return {"labels": [r["k"] for r in rows],
                     "values": [num(r["c"]) for r in rows]}
 
         tables_rows = many(
             "SELECT table_no AS k, COUNT(*) AS c FROM menu_scans "
-            "WHERE table_no IS NOT NULL AND scanned_at >= %s "
-            "GROUP BY table_no ORDER BY c DESC LIMIT 15", (last30,))
+            "WHERE table_no IS NOT NULL AND scanned_at >= %s AND scanned_at < %s "
+            "GROUP BY table_no ORDER BY c DESC LIMIT 15", (r_from, r_to))
         tables = {"labels": ["Table " + str(r["k"]) for r in tables_rows],
                   "values": [num(r["c"]) for r in tables_rows]}
         no_table = num(one(
             "SELECT COUNT(*) AS c FROM menu_scans "
-            "WHERE table_no IS NULL AND scanned_at >= %s", (last30,)
+            "WHERE table_no IS NULL AND scanned_at >= %s AND scanned_at < %s", (r_from, r_to)
         ).get("c"))
 
         best = one(
             "SELECT DATE(scanned_at) AS d, COUNT(*) AS c FROM menu_scans "
             "GROUP BY DATE(scanned_at) ORDER BY c DESC LIMIT 1")
 
+        extra, extra_p = "", []
+        if table_f:
+            extra += " AND table_no = %s"; extra_p.append(table_f)
+        if guest_f:
+            extra += " AND visitor_id = %s"; extra_p.append(guest_f)
+
         recent_rows = many(
             "SELECT scanned_at, table_no, visitor_id, is_new, device, os, browser "
-            "FROM menu_scans ORDER BY id DESC LIMIT 40")
+            "FROM menu_scans WHERE scanned_at >= %s AND scanned_at < %s" + extra +
+            " ORDER BY id DESC LIMIT 100", tuple([r_from, r_to] + extra_p))
+
+        guest_rows = many(
+            "SELECT visitor_id, COUNT(*) AS scans, MIN(scanned_at) AS first_seen, "
+            "MAX(scanned_at) AS last_seen, SUM(is_new = 0) AS back, "
+            "GROUP_CONCAT(DISTINCT table_no ORDER BY table_no SEPARATOR ', ') AS tbls, "
+            "MAX(device) AS device, MAX(os) AS os, MAX(browser) AS browser "
+            "FROM menu_scans WHERE scanned_at >= %s AND scanned_at < %s "
+            "GROUP BY visitor_id ORDER BY last_seen DESC LIMIT 40", (r_from, r_to))
+
+        tstat_rows = many(
+            "SELECT table_no, COUNT(*) AS scans, COUNT(DISTINCT visitor_id) AS guests, "
+            "MAX(scanned_at) AS last_seen FROM menu_scans "
+            "WHERE table_no IS NOT NULL AND scanned_at >= %s AND scanned_at < %s "
+            "GROUP BY table_no ORDER BY scans DESC LIMIT 30", (r_from, r_to))
+        thour_rows = many(
+            "SELECT table_no, HOUR(scanned_at) AS h, COUNT(*) AS c FROM menu_scans "
+            "WHERE table_no IS NOT NULL AND scanned_at >= %s AND scanned_at < %s "
+            "GROUP BY table_no, h", (r_from, r_to))
 
         # these also need the cursor, so they must run before it is closed
         visitors_today = uniq(d0)
@@ -1319,10 +1423,37 @@ def analytics_data():
         h = hours.index(max(hours))
         peak_hour = f"{h:02d}:00 - {(h + 1) % 24:02d}:00"
 
+    best_hour = {}
+    for r in thour_rows:
+        t = r["table_no"]
+        if t not in best_hour or r["c"] > best_hour[t][1]:
+            best_hour[t] = (r["h"], r["c"])
+
+    table_stats = [{
+        "table": r["table_no"],
+        "scans": num(r["scans"]),
+        "guests": num(r["guests"]),
+        "last": r["last_seen"].strftime("%d %b, %H:%M"),
+        "busy": (f"{best_hour[r['table_no']][0]:02d}:00" if r["table_no"] in best_hour else "-"),
+    } for r in tstat_rows]
+
+    guests = [{
+        "id": r["visitor_id"],
+        "name": guest_name(r["visitor_id"]),
+        "scans": num(r["scans"]),
+        "first": r["first_seen"].strftime("%d %b, %H:%M"),
+        "last": r["last_seen"].strftime("%d %b, %H:%M"),
+        "returning": num(r["back"]) > 0,
+        "tables": r["tbls"] or "-",
+        "phone": " · ".join(x for x in (r["device"], r["os"], r["browser"]) if x) or "-",
+    } for r in guest_rows]
+
     recent = [{
         "time": r["scanned_at"].strftime("%d %b, %H:%M"),
         "table": r["table_no"] or "-",
         "visitor": (r["visitor_id"] or "")[:6].upper(),
+        "id": r["visitor_id"],
+        "name": guest_name(r["visitor_id"]),
         "returning": not r["is_new"],
         "device": r["device"] or "-",
         "os": r["os"] or "-",
@@ -1331,6 +1462,14 @@ def analytics_data():
 
     return {
         "generated": now.strftime("%d %b %Y, %H:%M"),
+        "table_stats": table_stats,
+        "guests": guests,
+        "filter_table": table_f,
+        "filter_guest": guest_name(guest_f) if guest_f else None,
+        "filter_guest_id": guest_f,
+        "range": range_key,
+        "range_label": ANALYTICS_RANGES[range_key],
+        "ranges": ANALYTICS_RANGES,
         "kpi": {
             "total": total,
             "today": num(k.get("today")),
@@ -1368,7 +1507,13 @@ def analytics_data():
 @debasa_admin_required
 def debasa_analytics():
     try:
-        data = analytics_data()
+        tf = request.args.get("table", "").strip()
+        gf = request.args.get("guest", "").strip().lower()
+        data = analytics_data(
+            request.args.get("range", "30"),
+            tf if (tf.isalnum() and len(tf) <= 10) else None,
+            gf if re.fullmatch(r"[0-9a-f]{16}", gf) else None,
+        )
     except Exception:
         app.logger.exception("ANALYTICS ERROR")
         return "Unable to load analytics. Check the server logs.", 500
@@ -1384,6 +1529,27 @@ def debasa_analytics():
     return render_template(
         "analytics.html", data=data, restaurant_name=restaurant_name
     )
+
+
+@app.route("/debasa-admin/analytics/reset", methods=["POST"])
+@debasa_admin_required
+def debasa_analytics_reset():
+    """Wipe every recorded scan (after the owner types RESET)."""
+    if request.form.get("confirm", "").strip().upper() != "RESET":
+        return redirect(url_for("debasa_analytics", msg="noreset"))
+
+    with SCAN_LOCK:
+        del SCAN_BUFFER[:]
+        LAST_SEEN.clear()
+
+    db = get_db()
+    cur = db.cursor()
+    try:
+        cur.execute("DELETE FROM menu_scans")
+        db.commit()
+    finally:
+        cur.close()
+    return redirect(url_for("debasa_analytics", msg="reset"))
 
 
 @app.route("/debasa-admin/analytics.csv")
@@ -1403,10 +1569,10 @@ def debasa_analytics_csv():
 
     out = io.StringIO()
     writer = csv.writer(out)
-    writer.writerow(["scanned_at", "table", "visitor_id", "new_visitor",
+    writer.writerow(["scanned_at", "table", "guest", "visitor_id", "new_visitor",
                      "device", "os", "browser"])
     for r in rows:
-        writer.writerow([r[0], r[1] or "", r[2], "yes" if r[3] else "no",
+        writer.writerow([r[0], r[1] or "", guest_name(r[2]), r[2], "yes" if r[3] else "no",
                          r[4] or "", r[5] or "", r[6] or ""])
 
     return Response(
@@ -1414,6 +1580,109 @@ def debasa_analytics_csv():
         mimetype="text/csv",
         headers={"Content-Disposition": "attachment; filename=menu-scans.csv"},
     )
+
+
+# ---------------------------------------------------------------------------
+# Owner tools: better dish descriptions, menu backup, printable table QR codes
+# ---------------------------------------------------------------------------
+from descriptions_data import DESCRIPTIONS
+
+_GENERIC_DESC = re.compile(r"^\s*(delicious|tasty|freshly)\b.*\bfreshly prepared\.?\s*$", re.I)
+
+
+def _desc_key(row):
+    """The key used in descriptions_data.py: the photo file name, or the dish name."""
+    img = (row.get("image") or "").strip().split("?")[0].rsplit("/", 1)[-1]
+    stem = img.rsplit(".", 1)[0].lower() if img else ""
+    name = re.sub(r"[^a-z0-9()]+", "_", (row.get("name") or "").lower()).strip("_")
+    for k in (stem, name):
+        if k and k in DESCRIPTIONS:
+            return k
+    return None
+
+
+def _description_plan(replace_all=False):
+    cur = get_db().cursor(dictionary=True)
+    try:
+        cur.execute("SELECT id, name, description, image FROM menu ORDER BY category, name")
+        rows = cur.fetchall()
+    finally:
+        cur.close()
+    plan = []
+    for r in rows:
+        k = _desc_key(r)
+        new = DESCRIPTIONS.get(k) if k else None
+        old = (r["description"] or "").strip()
+        generic = (not old) or bool(_GENERIC_DESC.match(old))
+        plan.append({
+            "id": r["id"], "name": r["name"], "old": old, "new": new,
+            "apply": bool(new) and new != old and (generic or replace_all),
+            "kept": bool(new) and new != old and not generic and not replace_all,
+        })
+    return plan
+
+
+@app.route("/debasa-admin/descriptions", methods=["GET", "POST"])
+@debasa_admin_required
+def debasa_descriptions():
+    replace_all = request.values.get("replace_all") == "1"
+    plan = _description_plan(replace_all)
+
+    if request.method == "POST":
+        todo = [(x["new"], x["id"]) for x in plan if x["apply"]]
+        if todo:
+            db = get_db()
+            cur = db.cursor()
+            try:
+                cur.executemany("UPDATE menu SET description=%s WHERE id=%s", todo)
+                db.commit()
+            finally:
+                cur.close()
+            invalidate_caches()
+        return redirect(url_for("debasa_descriptions", done=len(todo)))
+
+    return render_template(
+        "descriptions.html", plan=plan, replace_all=replace_all,
+        n_apply=sum(1 for x in plan if x["apply"]),
+        n_kept=sum(1 for x in plan if x["kept"]),
+        n_none=sum(1 for x in plan if not x["new"]),
+        done=request.args.get("done"),
+    )
+
+
+@app.route("/debasa-admin/backup.csv")
+@debasa_admin_required
+def debasa_backup_csv():
+    cur = get_db().cursor()
+    try:
+        cur.execute("SELECT id, name, category, description, price, image FROM menu ORDER BY id")
+        rows = cur.fetchall()
+    finally:
+        cur.close()
+    out = io.StringIO()
+    out.write("\ufeff")                       # so Excel shows special characters correctly
+    w = csv.writer(out)
+    w.writerow(["id", "name", "category", "description", "price", "image"])
+    for r in rows:
+        w.writerow(["" if v is None else v for v in r])
+    stamp = now_local().strftime("%Y-%m-%d")
+    return Response(
+        out.getvalue(), mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=menu-backup-{stamp}.csv"},
+    )
+
+
+@app.route("/debasa-admin/qr")
+@debasa_admin_required
+def debasa_qr():
+    name = "Magic Mandi and Grill Hotel"
+    try:
+        settings = get_menu_settings()
+        if settings:
+            name = settings["restaurant_name"]
+    except Exception:
+        pass
+    return render_template("qr_tables.html", restaurant_name=name)
 
 
 def restaurant_menu_is_enabled():

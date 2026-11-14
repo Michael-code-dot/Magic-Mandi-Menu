@@ -8,8 +8,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.jpeg') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 
     <style>
@@ -154,6 +153,99 @@
             .card { padding: 18px 15px; }
             .chart-box { height: 270px; }
         }
+
+        /* period pills, notices, stacked table on phones, tools */
+        .range { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 18px 0 4px; }
+        .range a { padding: 9px 15px; border: 1px solid var(--line); border-radius: 999px; color: #d8cfb8; font-size: 12.5px; font-weight: 700; text-decoration: none; }
+        .range a.on { color: #1a1206; border-color: transparent; background: linear-gradient(135deg, var(--gold-1), var(--gold-2) 60%, var(--gold-3)); }
+        .range .auto { margin-left: auto; color: var(--muted); font-size: 12px; display: flex; align-items: center; gap: 7px; cursor: pointer; }
+        .notice { margin-top: 16px; padding: 12px 16px; border-radius: 12px; font-size: 13.5px; font-weight: 600; }
+        .notice.ok { color: #bfeed5; background: rgba(111,214,160,.1); border: 1px solid rgba(111,214,160,.3); }
+        .notice.bad { color: #ffc9c0; background: rgba(255,120,100,.1); border: 1px solid rgba(255,120,100,.3); }
+        .pill.tbl { color: #1a1206; background: linear-gradient(135deg, var(--gold-1), var(--gold-2)); border: 0; }
+        .dim { color: var(--muted); font-size: 12px; }
+        .tools { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 16px; max-width: 560px; }
+        .tools form { padding: 18px; border: 1px solid var(--line); border-radius: 16px; background: rgba(217,169,59,.04); }
+        .tools form.danger { border-color: rgba(255,120,100,.35); background: rgba(255,120,100,.05); }
+        .tools h3 { margin: 0 0 6px; font-size: 15px; }
+        .tools p { margin: 0 0 14px; color: var(--muted); font-size: 12.5px; line-height: 1.7; }
+        .tools input[type=text] { width: 100%; margin-bottom: 12px; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(255,120,100,.4); background: #000; color: var(--text); font: inherit; letter-spacing: 2px; }
+        .btn { padding: 11px 20px; border: 0; border-radius: 10px; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; color: #1a1206; background: linear-gradient(135deg, var(--gold-1), var(--gold-2) 60%, var(--gold-3)); }
+        .btn.red { color: #fff; background: linear-gradient(135deg, #ff7a63, #c4301b); }
+        .who { color: var(--gold-1); font-weight: 700; text-decoration: none; border-bottom: 1px dashed var(--line); }
+        a.pill { text-decoration: none; }
+        .filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 4px 0 14px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; font-size: 13px; color: var(--muted); }
+        .filters a { margin-left: auto; color: var(--gold-1); font-weight: 700; text-decoration: none; }
+        @media (max-width: 900px) { .tools { grid-template-columns: 1fr; } }
+        @media (max-width: 700px) {
+            table.stack thead { display: none; }
+            table.stack, table.stack tbody, table.stack tr, table.stack td { display: block; width: 100%; }
+            table.stack tr { margin-bottom: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: rgba(217,169,59,.04); }
+            table.stack td { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border: 0; white-space: normal; }
+            table.stack td::before { content: attr(data-l); color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; align-self: center; }
+            .range .auto { margin-left: 0; width: 100%; }
+        }
+
+        /* polish */
+        h1 { font-family: "Playfair Display", serif; font-weight: 700; letter-spacing: -1px; }
+        .card h2 { font-family: "Playfair Display", serif; font-size: 20px; font-weight: 600; }
+        .nav a { display: inline-flex; align-items: center; gap: 7px; padding: 10px 16px; background: rgba(255,255,255,.02); }
+        .nav a:first-child { color: #1a1206; border-color: transparent; background: linear-gradient(135deg, var(--gold-1), var(--gold-2) 60%, var(--gold-3)); box-shadow: 0 6px 22px rgba(217,169,59,.3); }
+        .nav a:first-child:hover { color: #1a1206; box-shadow: 0 10px 30px rgba(217,169,59,.5); }
+        .nav a.logout { color: #ff9a8c; border-color: rgba(255,120,100,.3); }
+        .nav a.logout:hover { background: rgba(255,120,100,.12); color: #fff; }
+        .kpi { border-radius: 22px; }
+        .kpi .label { color: var(--gold-2); opacity: .85; }
+        .kpi .value { font-family: "Playfair Display", serif; font-weight: 700; }
+        .kpi::after { content: ""; position: absolute; right: -30px; top: -30px; width: 100px; height: 100px; border-radius: 50%; background: radial-gradient(circle, rgba(217,169,59,.16), transparent 70%); pointer-events: none; }
+        .card { position: relative; }
+        .card::before { content: ""; position: absolute; left: 24px; right: 24px; top: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(246,227,161,.5), transparent); }
+        th { color: var(--gold-2); opacity: .8; }
+        .range a { transition: transform .2s, border-color .2s, color .2s; }
+        .range a:hover { transform: translateY(-2px); border-color: var(--gold-2); color: #fff; }
+        .range a.on:hover { color: #1a1206; }
+        .btn { transition: transform .2s, box-shadow .2s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(217,169,59,.4); }
+        .btn.red:hover { box-shadow: 0 10px 28px rgba(255,100,80,.4); }
+
+        /* ===== sidebar layout ===== */
+        .shell { display: grid; grid-template-columns: 250px minmax(0,1fr); min-height: 100vh; }
+        .side { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; padding: 26px 18px; border-right: 1px solid var(--line); background: linear-gradient(180deg,#0a0905,#000); }
+        .side .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 34px; }
+        .side .brand small { margin-top: 2px; }
+        .logo { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 13px; font-family: "Playfair Display",serif; font-size: 22px; font-weight: 800; color: #1a1206; background: linear-gradient(135deg,var(--gold-1),var(--gold-2) 60%,var(--gold-3)); box-shadow: 0 8px 24px rgba(217,169,59,.35); }
+        .side-label { margin: 0 12px 10px; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; }
+        .snav { display: flex; flex-direction: column; gap: 6px; }
+        .snav a, .side .logout { display: flex; align-items: center; gap: 13px; padding: 13px 14px; border: 1px solid transparent; border-radius: 14px; color: #cfc6ae; font-size: 14px; font-weight: 600; text-decoration: none; transition: background .25s, border-color .25s, color .25s, transform .25s; }
+        .snav a i, .side .logout i { width: 22px; text-align: center; font-style: normal; color: var(--gold-2); }
+        .snav a:hover { background: rgba(217,169,59,.07); color: #fff; transform: translateX(3px); }
+        .snav a.active { color: #fff; border-color: var(--line); background: linear-gradient(90deg, rgba(217,169,59,.2), rgba(217,169,59,.03)); box-shadow: inset 3px 0 0 var(--gold-2); }
+        .side .logout { margin-top: auto; color: #ff9a8c; border-color: rgba(255,120,100,.25); }
+        .side .logout i { color: #ff9a8c; }
+        .side .logout:hover { background: rgba(255,120,100,.1); color: #fff; }
+        main { margin: 40px auto 70px; width: min(1180px, 90%); }
+        .range { padding: 8px; border: 1px solid var(--line); border-radius: 18px; background: rgba(255,255,255,.02); margin: 22px 0 6px; }
+        .range a.refresh { margin-left: 0; color: #1a1206; border: 0; background: linear-gradient(135deg,var(--gold-1),var(--gold-2) 60%,var(--gold-3)); }
+        .range .auto { margin-left: auto; }
+        .kpis { grid-template-columns: repeat(4, minmax(0,1fr)); }
+        .kpi:first-child { grid-column: span 2; grid-row: span 2; display: flex; flex-direction: column; justify-content: center; padding: 30px; background: radial-gradient(circle at 90% 0, rgba(217,169,59,.28), transparent 55%), linear-gradient(160deg,#17130a,#060503); border-color: var(--line); }
+        .kpi:first-child .value { font-size: 84px; line-height: 1; }
+        .kpi:first-child .label { font-size: 12px; }
+        .kpi:first-child .note { font-size: 14px; }
+        .kpi:last-child { grid-column: span 4; }
+        @media (max-width: 1100px) { .kpi:last-child { grid-column: span 2; } .kpis { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+        @media (max-width: 860px) {
+            .shell { grid-template-columns: 1fr; }
+            .side { position: sticky; z-index: 30; height: auto; flex-direction: row; align-items: center; gap: 8px; padding: 10px 12px; border-right: 0; border-bottom: 1px solid var(--line); overflow-x: auto; background: rgba(0,0,0,.92); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+            .side .brand { margin: 0 6px 0 0; } .side .brand > span:last-child, .side-label { display: none; }
+            .snav { flex-direction: row; }
+            .snav a, .side .logout { padding: 10px 11px; white-space: nowrap; font-size: 13px; } .snav { gap: 2px; }
+            .snav a span, .side .logout span { display: none; }
+            .side .logout { margin: 0 0 0 auto; }
+            .kpi:first-child { grid-column: span 2; grid-row: auto; padding: 22px; }
+            .kpi:first-child .value { font-size: 56px; }
+            main { margin-top: 26px; }
+        }
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation: none !important; transition: none !important; }
         }
@@ -161,26 +253,27 @@
 </head>
 <body>
 
-<header class="topbar">
+<div class="shell">
+<aside class="side">
     <a class="brand" href="{{ url_for('debasa_subscription') }}">
-        DEBASA <span class="gold-text">QR</span>
-        <small>SCAN ANALYTICS</small>
+        <span class="logo">D</span>
+        <span>DEBASA <span class="gold-text">QR</span><small>SCAN ANALYTICS</small></span>
     </a>
-    <nav class="nav">
-        <a href="{{ url_for('debasa_subscription') }}">← Subscriptions</a>
-        <a href="{{ url_for('debasa_analytics_csv') }}">Download CSV</a>
-        <a href="{{ url_for('debasa_analytics') }}">Refresh</a>
-        <a href="{{ url_for('debasa_admin_logout') }}">Log out</a>
+    <div class="side-label">Menu</div>
+    <nav class="snav">
+        <a href="{{ url_for('debasa_subscription') }}"><i>◈</i><span>Subscriptions</span></a>
+        <a class="active" href="{{ url_for('debasa_analytics') }}"><i>▥</i><span>Analytics</span></a>
+        <a href="{{ url_for('debasa_backup_csv') }}"><i>⬇</i><span>Backup menu</span></a>
+        <a href="{{ url_for('debasa_analytics_csv') }}"><i>▤</i><span>Download CSV</span></a>
     </nav>
-</header>
+    <a class="logout" href="{{ url_for('debasa_admin_logout') }}"><i>⏻</i><span>Log out</span></a>
+</aside>
+
 
 <main>
     <div class="eyebrow">{{ restaurant_name }}</div>
-    <h1>Who is scanning <span class="gold-text">your menu</span></h1>
-    <p class="sub">
-        Every time a guest scans your QR code, it is counted here. A phone that reopens the menu
-        within 30 minutes counts once. Times are East Africa Time. Updated {{ data.generated }}.
-    </p>
+    <h1>Menu <span class="gold-text">Analytics</span></h1>
+    <p class="sub">East Africa Time · Updated {{ data.generated }}</p>
 
     <div class="live">
         <i></i>
@@ -188,18 +281,31 @@
         &nbsp;·&nbsp; {{ data.kpi.last_hour }} in the last hour
     </div>
 
+    {% set m = request.args.get('msg') %}
+    {% if m == 'reset' %}<div class="notice ok">All scan data was cleared. Counting starts again from now.</div>
+    {% elif m == 'noreset' %}<div class="notice bad">Nothing was deleted. Type the word RESET to confirm.</div>
+    {% endif %}
+
+    <div class="range" role="tablist" aria-label="Period">
+        {% for key, label in data.ranges.items() %}
+        <a href="{{ url_for('debasa_analytics', range=key) }}" class="{{ 'on' if key == data.range else '' }}">{{ label }}</a>
+        {% endfor %}
+        <label class="auto"><input type="checkbox" id="autoRefresh"> Auto-refresh</label>
+        <a class="refresh" href="{{ url_for('debasa_analytics', range=data.range) }}">↻ Refresh</a>
+    </div>
+
     <!-- ===== KPI cards ===== -->
     <section class="kpis">
-        <div class="kpi"><div class="label">Today</div><div class="value gold-text" data-count="{{ data.kpi.today }}">0</div><div class="note">{{ data.kpi.visitors_today }} different phones</div></div>
-        <div class="kpi"><div class="label">Yesterday</div><div class="value" data-count="{{ data.kpi.yesterday }}">0</div><div class="note">full day</div></div>
-        <div class="kpi"><div class="label">This week</div><div class="value gold-text" data-count="{{ data.kpi.week }}">0</div><div class="note">{{ data.kpi.visitors_week }} different phones · since Monday</div></div>
-        <div class="kpi"><div class="label">This month</div><div class="value gold-text" data-count="{{ data.kpi.month }}">0</div><div class="note">{{ data.kpi.visitors_month }} different phones</div></div>
-        <div class="kpi"><div class="label">This year</div><div class="value" data-count="{{ data.kpi.year }}">0</div><div class="note">since 1 January</div></div>
-        <div class="kpi"><div class="label">All time</div><div class="value" data-count="{{ data.kpi.total }}">0</div><div class="note">{{ data.kpi.visitors_all }} different phones</div></div>
-        <div class="kpi"><div class="label">Average per day</div><div class="value" data-count="{{ data.kpi.avg_per_day }}" data-decimals="1">0</div><div class="note">last 30 days</div></div>
-        <div class="kpi"><div class="label">Returning guests</div><div class="value" data-count="{{ data.kpi.returning_pct }}" data-suffix="%">0%</div><div class="note">scans from phones seen before</div></div>
-        <div class="kpi"><div class="label">Busiest hour</div><div class="value small gold-text">{{ data.kpi.peak_hour }}</div><div class="note">last 30 days</div></div>
-        <div class="kpi"><div class="label">Best day ever</div><div class="value small">{{ data.kpi.best_day }}</div><div class="note">most scans in one day</div></div>
+        <div class="kpi"><div class="label">Today</div><div class="value gold-text" data-count="{{ data.kpi.today }}">0</div><div class="note">{{ data.kpi.visitors_today }} unique phones</div></div>
+        <div class="kpi"><div class="label">Yesterday</div><div class="value" data-count="{{ data.kpi.yesterday }}">0</div><div class="note"></div></div>
+        <div class="kpi"><div class="label">This week</div><div class="value gold-text" data-count="{{ data.kpi.week }}">0</div><div class="note">{{ data.kpi.visitors_week }} unique phones · since Mon</div></div>
+        <div class="kpi"><div class="label">This month</div><div class="value gold-text" data-count="{{ data.kpi.month }}">0</div><div class="note">{{ data.kpi.visitors_month }} unique phones</div></div>
+        <div class="kpi"><div class="label">This year</div><div class="value" data-count="{{ data.kpi.year }}">0</div><div class="note"></div></div>
+        <div class="kpi"><div class="label">All time</div><div class="value" data-count="{{ data.kpi.total }}">0</div><div class="note">{{ data.kpi.visitors_all }} unique phones</div></div>
+        <div class="kpi"><div class="label">Average per day</div><div class="value" data-count="{{ data.kpi.avg_per_day }}" data-decimals="1">0</div><div class="note">30-day</div></div>
+        <div class="kpi"><div class="label">Returning guests</div><div class="value" data-count="{{ data.kpi.returning_pct }}" data-suffix="%">0%</div><div class="note">repeat visitors</div></div>
+        <div class="kpi"><div class="label">Busiest hour</div><div class="value small gold-text">{{ data.kpi.peak_hour }}</div><div class="note">{{ data.range_label|lower }}</div></div>
+        <div class="kpi"><div class="label">Best day ever</div><div class="value small">{{ data.kpi.best_day }}</div><div class="note">record</div></div>
     </section>
 
     {% if data.kpi.total == 0 %}
@@ -213,12 +319,82 @@
     </div>
     {% endif %}
 
+    <!-- ===== Latest scans (time, table, phone) ===== -->
+    <section class="card" id="latest">
+        <div class="card-head">
+            <div>
+                <h2>Latest scans</h2>
+                <p class="hint">{{ data.range_label }} · newest first</p>
+            </div>
+        </div>
+        {% if data.filter_table or data.filter_guest %}
+        <div class="filters">
+            Showing only:
+            {% if data.filter_table %}<span class="pill tbl">Table {{ data.filter_table }}</span>{% endif %}
+            {% if data.filter_guest %}<span class="pill tbl">{{ data.filter_guest }}</span>{% endif %}
+            <a href="{{ url_for('debasa_analytics', range=data.range) }}#latest">Clear filter ✕</a>
+        </div>
+        {% endif %}
+        {% if data.recent %}
+        <div class="table-wrap">
+            <table class="stack">
+                <thead>
+                    <tr><th>Time</th><th>Table</th><th>Guest</th><th>Phone</th><th>System</th><th>Browser</th><th>Type</th></tr>
+                </thead>
+                <tbody>
+                {% for r in data.recent %}
+                    <tr>
+                        <td data-l="Time"><b>{{ r.time }}</b></td>
+                        <td data-l="Table">{% if r.table != '-' %}<a class="pill tbl" href="{{ url_for('debasa_analytics', range=data.range, table=r.table) }}#latest">Table {{ r.table }}</a>{% else %}<span class="dim">no table</span>{% endif %}</td>
+                        <td data-l="Guest"><a class="who" href="{{ url_for('debasa_analytics', range=data.range, guest=r.id) }}#latest">{{ r.name }}</a></td>
+                        <td data-l="Phone">{{ r.device }}</td>
+                        <td data-l="System">{{ r.os }}</td>
+                        <td data-l="Browser">{{ r.browser }}</td>
+                        <td data-l="Type">{% if r.returning %}<span class="pill ret">Returning</span>{% else %}<span class="pill new">New</span>{% endif %}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty">No scans in this period.</div>
+        {% endif %}
+    </section>
+
+    <!-- ===== Guests ===== -->
+    <section class="card" id="guests">
+        <h2>Guests</h2>
+        <p class="hint">{{ data.range_label }} · most recent first</p>
+        {% if data.guests %}
+        <div class="table-wrap">
+            <table class="stack">
+                <thead><tr><th>Guest</th><th>Scans</th><th>First seen</th><th>Last seen</th><th>Tables</th><th>Phone</th><th>Type</th></tr></thead>
+                <tbody>
+                {% for g in data.guests %}
+                    <tr>
+                        <td data-l="Guest"><a class="who" href="{{ url_for('debasa_analytics', range=data.range, guest=g.id) }}#latest">{{ g.name }}</a></td>
+                        <td data-l="Scans"><b>{{ g.scans }}</b></td>
+                        <td data-l="First seen">{{ g.first }}</td>
+                        <td data-l="Last seen">{{ g.last }}</td>
+                        <td data-l="Tables">{{ g.tables }}</td>
+                        <td data-l="Phone">{{ g.phone }}</td>
+                        <td data-l="Type">{% if g.returning %}<span class="pill ret">Returning</span>{% else %}<span class="pill new">New</span>{% endif %}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty">No guests in this period.</div>
+        {% endif %}
+    </section>
+
     <!-- ===== Trend ===== -->
     <section class="card">
         <div class="card-head">
             <div>
                 <h2>Scans over time</h2>
-                <p class="hint">Gold = total scans · Light = different phones</p>
+                <p class="hint">Total scans · Unique phones</p>
             </div>
             <div class="tabs" id="trendTabs" role="tablist">
                 <button class="on" data-k="days">Days</button>
@@ -235,19 +411,19 @@
     <div class="grid2">
         <section class="card">
             <h2>Busiest hours</h2>
-            <p class="hint">Scans by hour of the day · last 30 days</p>
+            <p class="hint">By hour · {{ data.range_label|lower }}</p>
             <div class="chart-box short" style="margin-top:14px"><canvas id="hoursChart"></canvas></div>
         </section>
         <section class="card">
             <h2>Busiest days of the week</h2>
-            <p class="hint">Scans by weekday · last 30 days</p>
+            <p class="hint">By weekday · {{ data.range_label|lower }}</p>
             <div class="chart-box short" style="margin-top:14px"><canvas id="weekdayChart"></canvas></div>
         </section>
     </div>
 
     <section class="card">
         <h2>Scans per table</h2>
-        <p class="hint">Last 30 days{% if data.no_table %} · {{ data.no_table }} scan{{ '' if data.no_table == 1 else 's' }} came without a table number{% endif %}</p>
+        <p class="hint">{{ data.range_label }}{% if data.no_table %} · {{ data.no_table }} without table{% endif %}</p>
         {% if data.tables.labels %}
         <div class="chart-box short" style="margin-top:14px"><canvas id="tablesChart"></canvas></div>
         {% else %}
@@ -255,57 +431,60 @@
         {% endif %}
     </section>
 
-    <!-- ===== Who ===== -->
-    <div class="grid3">
-        <section class="card">
-            <h2>Phone type</h2>
-            <p class="hint">Last 30 days</p>
-            <div class="chart-box short" style="margin-top:14px"><canvas id="deviceChart"></canvas></div>
-        </section>
-        <section class="card">
-            <h2>Operating system</h2>
-            <p class="hint">Last 30 days</p>
-            <div class="chart-box short" style="margin-top:14px"><canvas id="osChart"></canvas></div>
-        </section>
-        <section class="card">
-            <h2>Browser</h2>
-            <p class="hint">Last 30 days</p>
-            <div class="chart-box short" style="margin-top:14px"><canvas id="browserChart"></canvas></div>
-        </section>
-    </div>
-
-    <!-- ===== Recent ===== -->
+    {% if data.table_stats %}
     <section class="card">
-        <div class="card-head">
-            <div>
-                <h2>Latest scans</h2>
-                <p class="hint">The 40 most recent. Guests are anonymous: no names, phone numbers or IP addresses are stored. The code is a random id for one phone.</p>
-            </div>
-        </div>
-        {% if data.recent %}
+        <h2>Table activity</h2>
+        <p class="hint">{{ data.range_label }}</p>
         <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr><th>When</th><th>Table</th><th>Guest</th><th>Type</th><th>Phone</th><th>System</th><th>Browser</th></tr>
-                </thead>
+            <table class="stack">
+                <thead><tr><th>Table</th><th>Scans</th><th>Different guests</th><th>Busiest hour</th><th>Last scan</th></tr></thead>
                 <tbody>
-                {% for r in data.recent %}
+                {% for t in data.table_stats %}
                     <tr>
-                        <td>{{ r.time }}</td>
-                        <td>{{ r.table }}</td>
-                        <td class="mono">{{ r.visitor }}</td>
-                        <td>{% if r.returning %}<span class="pill ret">Returning</span>{% else %}<span class="pill new">New</span>{% endif %}</td>
-                        <td>{{ r.device }}</td>
-                        <td>{{ r.os }}</td>
-                        <td>{{ r.browser }}</td>
+                        <td data-l="Table"><a class="pill tbl" href="{{ url_for('debasa_analytics', range=data.range, table=t.table) }}#latest">Table {{ t.table }}</a></td>
+                        <td data-l="Scans"><b>{{ t.scans }}</b></td>
+                        <td data-l="Different guests">{{ t.guests }}</td>
+                        <td data-l="Busiest hour">{{ t.busy }}</td>
+                        <td data-l="Last scan">{{ t.last }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
         </div>
-        {% else %}
-        <div class="empty">Nothing here yet.</div>
-        {% endif %}
+    </section>
+    {% endif %}
+
+    <!-- ===== Who ===== -->
+    <div class="grid3">
+        <section class="card">
+            <h2>Phone type</h2>
+            <p class="hint">{{ data.range_label }}</p>
+            <div class="chart-box short" style="margin-top:14px"><canvas id="deviceChart"></canvas></div>
+        </section>
+        <section class="card">
+            <h2>Operating system</h2>
+            <p class="hint">{{ data.range_label }}</p>
+            <div class="chart-box short" style="margin-top:14px"><canvas id="osChart"></canvas></div>
+        </section>
+        <section class="card">
+            <h2>Browser</h2>
+            <p class="hint">{{ data.range_label }}</p>
+            <div class="chart-box short" style="margin-top:14px"><canvas id="browserChart"></canvas></div>
+        </section>
+    </div>
+
+    <!-- ===== Tools ===== -->
+    <section class="card" id="tools">
+        <h2>Tools</h2>
+        <div class="tools">
+            <form method="post" action="{{ url_for('debasa_analytics_reset') }}" id="resetForm" class="danger">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <h3>Start from zero</h3>
+                <p>Permanently deletes all recorded scans. Download the CSV first.</p>
+                <input type="text" name="confirm" placeholder="Type RESET to confirm" autocomplete="off" autocapitalize="characters">
+                <button type="submit" class="btn red">Reset analytics</button>
+            </form>
+        </div>
     </section>
 
     <div class="foot">
@@ -313,6 +492,7 @@
         Download the full list with “Download CSV” to open it in Excel.
     </div>
 </main>
+</div>
 
 <script>
 (function () {
@@ -320,6 +500,17 @@
 
     var D = {{ data|tojson }};
     var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    /* ---------- auto refresh ---------- */
+    var ar = document.getElementById("autoRefresh"), arT = null;
+    try { ar.checked = sessionStorage.getItem("mm_auto") === "1"; } catch (e) {}
+    function arApply() { clearTimeout(arT); if (ar.checked) arT = setTimeout(function () { location.reload(); }, 30000); }
+    ar.addEventListener("change", function () { try { sessionStorage.setItem("mm_auto", ar.checked ? "1" : "0"); } catch (e) {} arApply(); });
+    arApply();
+
+    /* ---------- reset needs confirmation ---------- */
+    var rf = document.getElementById("resetForm");
+    if (rf) rf.addEventListener("submit", function (e) { if (!confirm("Delete ALL scan data? This cannot be undone.")) e.preventDefault(); });
 
     /* ---------- count-up numbers ---------- */
     document.querySelectorAll("[data-count]").forEach(function (el) {
@@ -366,7 +557,7 @@
         return g;
     }
 
-    /* trend: bars (scans) + line (different phones), switchable */
+    /* trend: bars (scans) + line (unique phones), switchable */
     var trendCtx = document.getElementById("trendChart");
     var trend = new Chart(trendCtx, {
         data: {
