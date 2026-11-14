@@ -223,6 +223,10 @@ def close_db(exception=None):
 # Nothing personal is stored: no names, no phone numbers, no IP addresses --
 # only the time, table number, device type and a random anonymous visitor id
 # kept in a cookie.
+#
+# Only scans that come from a table QR code (the link has ?table=N) are
+# recorded. Opening the plain menu link -- for example you testing on your
+# own laptop or phone -- is NOT counted.
 # ---------------------------------------------------------------------------
 KENYA_TZ = timezone(timedelta(hours=3))      # East Africa Time, no daylight saving
 
@@ -315,8 +319,14 @@ def track_scan(table, vid, is_new):
             return
 
         table_no = table if (table and table.isalnum() and len(table) <= 10) else None
+
+        # Only real table-QR scans count. The plain menu link (no ?table=N) is
+        # what you open when testing on your own laptop/phone, so it is ignored.
+        if table_no is None:
+            return
+
         now = time.time()
-        key = (vid, table_no or "")
+        key = (vid, table_no)
 
         with SCAN_LOCK:
             last = LAST_SEEN.get(key)
@@ -1572,6 +1582,20 @@ def debasa_analytics_reset():
     finally:
         cur.close()
     return redirect(url_for("debasa_analytics", msg="reset"))
+
+
+@app.route("/debasa-admin/analytics/clean-notable", methods=["POST"])
+@debasa_admin_required
+def debasa_analytics_clean_notable():
+    """Remove old scans that have no table number (your own testing)."""
+    db = get_db()
+    cur = db.cursor()
+    try:
+        cur.execute("DELETE FROM menu_scans WHERE table_no IS NULL")
+        db.commit()
+    finally:
+        cur.close()
+    return redirect(url_for("debasa_analytics", msg="cleaned"))
 
 
 @app.route("/debasa-admin/analytics.csv")
