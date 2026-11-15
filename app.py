@@ -1563,6 +1563,27 @@ def debasa_analytics():
     )
 
 
+@app.route("/debasa-admin/analytics.json")
+@debasa_admin_required
+def debasa_analytics_json():
+    """Live numbers for the dashboard, so it can update without reloading."""
+    try:
+        tf = request.args.get("table", "").strip()
+        gf = request.args.get("guest", "").strip().lower()
+        data = analytics_data(
+            request.args.get("range", "30"),
+            tf if (tf.isalnum() and len(tf) <= 10) else None,
+            gf if re.fullmatch(r"[0-9a-f]{16}", gf) else None,
+        )
+    except Exception:
+        app.logger.exception("ANALYTICS JSON ERROR")
+        return jsonify(error=True), 500
+
+    response = jsonify(data)
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
 @app.route("/debasa-admin/analytics/reset", methods=["POST"])
 @debasa_admin_required
 def debasa_analytics_reset():
