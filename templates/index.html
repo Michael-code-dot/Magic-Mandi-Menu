@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="preconnect" href="https://wsrv.nl" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-     <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.jpeg') }}">
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
     <meta charset="UTF-8">
@@ -14,7 +15,9 @@
     <title>Magic Mandi & Grill | Powered by DEBASA QR</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=1.0">
+    <link rel="icon" href="{{ url_for('static', filename='images/logo.jpeg') }}?v=11" type="image/jpeg">
     <link rel="shortcut icon" href="{{ url_for('static', filename='images/logo.jpeg') }}?v=11" type="image/jpeg">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/logo.jpeg') }}?v=11">
 
     <style>
         /* =========================================================
@@ -446,6 +449,176 @@
         .pick span { flex: 1; min-width: 0; font-size: 14px; font-weight: 700; line-height: 1.3; }
         .pick small { display: block; margin-top: 3px; color: var(--muted); font-size: 11.5px; font-weight: 500; }
         .pick em { font-style: normal; font-size: 13px; font-weight: 800; color: var(--gold-1); white-space: nowrap; }
+        .chips { align-self: stretch; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+        .chip { border: 1px solid rgba(255,196,0,.4); background: rgba(255,150,40,.1); color: var(--text); font: inherit; font-size: 12.5px; font-weight: 600; padding: 8px 13px; border-radius: 999px; cursor: pointer; animation: msgIn .35s both; }
+        .chip:active { transform: scale(.95); }
+        .ai-log .msg.bot { white-space: pre-line; }
+        /* ===== HOLOGRAM + "ON MY TABLE" ===== */
+        .xr-row { display: flex; gap: 10px; margin: 16px 0 4px; flex-wrap: wrap; }
+        .xr-go { flex: 1 1 140px; min-height: 52px; padding: 0 14px; border-radius: 16px; border: 1px solid rgba(120,240,255,.55); color: #e8fdff; font: inherit; font-weight: 800; font-size: 14.5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, rgba(0,200,230,.28), rgba(30,60,160,.35)); box-shadow: 0 0 22px rgba(0,220,255,.25), inset 0 0 18px rgba(120,240,255,.12); position: relative; overflow: hidden; }
+        .xr-go::after { content: ""; position: absolute; top: 0; bottom: 0; width: 40%; left: -60%; background: linear-gradient(100deg, transparent, rgba(255,255,255,.35), transparent); animation: xrSweep 3.2s ease-in-out infinite; }
+        .xr-go.t { border-color: rgba(255,196,0,.6); color: #fff7d0; background: linear-gradient(135deg, rgba(255,120,30,.35), rgba(255,60,40,.3)); box-shadow: 0 0 22px rgba(255,140,40,.28), inset 0 0 18px rgba(255,200,80,.12); }
+        .xr-go:active { transform: scale(.97); }
+        @keyframes xrSweep { 0%, 55% { left: -60%; } 100% { left: 130%; } }
+
+        .xr { position: fixed; inset: 0; z-index: 160; display: none; background: radial-gradient(120% 90% at 50% 100%, #06222b 0%, #02080c 55%, #000 100%); color: #dffbff; overflow: hidden; touch-action: none; -webkit-user-select: none; user-select: none; }
+        .xr.open { display: block; animation: xrIn .45s ease both; }
+        @keyframes xrIn { from { opacity: 0; } to { opacity: 1; } }
+        .xr video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
+        .xr.m-table video { display: block; }
+        .xr.m-table { background: #000; }
+        .xr canvas.xr-fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+        .xr-holo, .xr-table { position: absolute; inset: 0; display: none; }
+        .xr.m-holo .xr-holo, .xr.m-table .xr-table { display: block; }
+
+        /* hologram scene */
+        .xr-grid { position: absolute; left: -20%; right: -20%; bottom: 0; height: 46%; background-image: linear-gradient(rgba(0,230,255,.22) 1px, transparent 1px), linear-gradient(90deg, rgba(0,230,255,.22) 1px, transparent 1px); background-size: 46px 46px; transform: perspective(380px) rotateX(64deg); transform-origin: 50% 100%; -webkit-mask-image: linear-gradient(to top, #000 10%, transparent 90%); mask-image: linear-gradient(to top, #000 10%, transparent 90%); animation: xrGrid 4s linear infinite; }
+        @keyframes xrGrid { to { background-position: 0 46px; } }
+        .xr-pad { position: absolute; left: 50%; bottom: 13%; width: min(78vw, 360px); height: 60px; transform: translateX(-50%); }
+        .xr-pad i { position: absolute; left: 50%; top: 50%; border-radius: 50%; border: 2px solid rgba(0,235,255,.8); transform: translate(-50%, -50%); box-shadow: 0 0 18px rgba(0,235,255,.8), inset 0 0 14px rgba(0,235,255,.5); }
+        .xr-pad i:nth-child(1) { width: 100%; height: 100%; opacity: .9; }
+        .xr-pad i:nth-child(2) { width: 72%; height: 72%; opacity: .7; animation: xrRing 2.4s ease-out infinite; }
+        .xr-pad i:nth-child(3) { width: 44%; height: 44%; background: radial-gradient(circle, rgba(0,235,255,.75), transparent 70%); border-color: transparent; }
+        @keyframes xrRing { 0% { transform: translate(-50%, -50%) scale(.3); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; } }
+        .xr-beam { position: absolute; left: 50%; bottom: calc(13% + 30px); width: min(60vw, 280px); height: 44%; transform: translateX(-50%); clip-path: polygon(30% 100%, 70% 100%, 100% 0, 0 0); background: linear-gradient(to top, rgba(0,235,255,.55), rgba(0,235,255,.12) 55%, transparent); animation: xrFlick 3.4s steps(1) infinite; }
+        .xr-beam::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(to top, rgba(255,255,255,.12) 0 2px, transparent 2px 7px); animation: xrScan 1.6s linear infinite; }
+        @keyframes xrScan { to { background-position: 0 -28px; } }
+        @keyframes xrFlick { 0%, 100% { opacity: 1; } 47% { opacity: .85; } 48% { opacity: .55; } 50% { opacity: 1; } 83% { opacity: .9; } }
+        .xr-stage { position: absolute; left: 50%; top: 30%; width: 0; height: 0; perspective: 900px; }
+        .xr-disc { --d: min(66vw, 330px); position: absolute; width: var(--d); height: var(--d); left: calc(var(--d) / -2); top: calc(var(--d) / -2); transform-style: preserve-3d; will-change: transform; }
+        .xr-disc .l { position: absolute; inset: 0; border-radius: 50%; background-size: cover; background-position: center; -webkit-mask-image: radial-gradient(circle, #000 64%, rgba(0,0,0,.0) 71%); mask-image: radial-gradient(circle, #000 64%, rgba(0,0,0,0) 71%); }
+        .xr-disc .l.b { filter: saturate(0) brightness(1.7) sepia(1) hue-rotate(150deg); opacity: .22; }
+        .xr-disc .l.f { filter: saturate(1.2) contrast(1.08); box-shadow: 0 0 60px rgba(0,235,255,.45); }
+        .xr-disc .sheen { position: absolute; inset: 0; border-radius: 50%; mix-blend-mode: screen; background: conic-gradient(from 0deg, rgba(0,235,255,0), rgba(120,255,255,.35), rgba(0,235,255,0) 30%, rgba(255,120,255,.18) 55%, rgba(0,235,255,0) 80%); -webkit-mask-image: radial-gradient(circle, #000 64%, transparent 71%); mask-image: radial-gradient(circle, #000 64%, transparent 71%); animation: xrSpin 6s linear infinite; }
+        .xr-disc .scan { position: absolute; inset: 0; border-radius: 50%; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.18) 0 1px, transparent 1px 4px); -webkit-mask-image: radial-gradient(circle, #000 64%, transparent 71%); mask-image: radial-gradient(circle, #000 64%, transparent 71%); }
+        .xr-disc .rim { position: absolute; inset: 3%; border-radius: 50%; border: 2px solid rgba(120,250,255,.7); box-shadow: 0 0 24px rgba(0,235,255,.8), inset 0 0 24px rgba(0,235,255,.35); opacity: .0; }
+        @keyframes xrSpin { to { transform: rotate(360deg); } }
+        .xr.m-holo.open .xr-stage { animation: xrMat 1.3s cubic-bezier(.2,.9,.2,1) both; }
+        @keyframes xrMat { 0% { opacity: 0; filter: brightness(4) blur(9px); transform: translateY(70px) scale(.25); } 45% { opacity: 1; filter: brightness(2.2) blur(2px); } 100% { opacity: 1; filter: brightness(1) blur(0); transform: none; } }
+        .xr-label { position: absolute; left: 0; right: 0; bottom: 5.5%; text-align: center; padding: 0 20px; text-shadow: 0 0 14px rgba(0,235,255,.8); }
+        .xr-label small { display: block; letter-spacing: .24em; text-transform: uppercase; font-size: 11px; color: #7ff6ff; margin-bottom: 4px; }
+        .xr-label b { display: block; font-size: clamp(20px, 6vw, 28px); font-weight: 800; letter-spacing: -.3px; }
+        .xr-label em { display: inline-block; margin-top: 8px; font-style: normal; font-weight: 800; padding: 6px 18px; border-radius: 999px; color: #1a1206; background: linear-gradient(135deg, #fff1a8, #ffb300); box-shadow: 0 0 22px rgba(255,190,60,.55); }
+
+        /* table mode */
+        .xr-plate { position: absolute; left: 50%; top: 58%; width: 0; height: 0; perspective: 800px; touch-action: none; }
+        .xr-plate .sc { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+        .xr-plate .sh { position: absolute; width: 330px; height: 330px; left: -165px; top: -165px; border-radius: 50%; background: radial-gradient(circle, rgba(0,0,0,.65), rgba(0,0,0,0) 68%); transform: rotateX(66deg) translateZ(-4px) scale(1.12, 1.05); filter: blur(6px); }
+        .xr-plate .fl { position: absolute; width: 300px; height: 300px; left: -150px; top: -150px; border-radius: 50%; background-size: cover; background-position: center; transform: rotateX(62deg); box-shadow: 0 0 0 2px rgba(255,255,255,.15), 0 14px 30px rgba(0,0,0,.5); -webkit-mask-image: radial-gradient(circle, #000 70%, rgba(0,0,0,0) 74%); mask-image: radial-gradient(circle, #000 70%, rgba(0,0,0,0) 74%); }
+        .xr-plate .fl::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.28) 48%, transparent 62%); background-size: 250% 100%; animation: xrShine 3.6s ease-in-out infinite; }
+        @keyframes xrShine { 0% { background-position: 150% 0; } 60%, 100% { background-position: -80% 0; } }
+        .xr.m-table.open .xr-plate .sc { animation: xrDrop .8s cubic-bezier(.2,.9,.25,1.1) both; }
+        @keyframes xrDrop { 0% { opacity: 0; margin-top: -120px; } 100% { opacity: 1; margin-top: 0; } }
+        .xr-tag { position: absolute; left: 50%; transform: translateX(-50%); bottom: 17%; padding: 8px 16px; border-radius: 14px; background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.2); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); text-align: center; font-weight: 800; display: none; white-space: nowrap; }
+        .xr.m-table .xr-tag { display: block; }
+        .xr-tag small { display: block; font-weight: 600; color: #ffd36a; margin-top: 2px; }
+
+        /* chrome */
+        .xr-top { position: absolute; top: max(12px, env(safe-area-inset-top)); left: 12px; right: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; z-index: 5; }
+        .xr-x { width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,.35); background: rgba(0,0,0,.55); color: #fff; font-size: 18px; cursor: pointer; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+        .xr-modes { display: flex; padding: 4px; border-radius: 999px; background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.2); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+        .xr-modes button { border: 0; background: transparent; color: #cfe; font: inherit; font-weight: 700; font-size: 13px; padding: 9px 14px; border-radius: 999px; cursor: pointer; }
+        .xr-modes button.on { color: #02141a; background: linear-gradient(135deg, #7ff6ff, #2dd4ff); }
+        .xr.m-table .xr-modes button.on { background: linear-gradient(135deg, #fff1a8, #ffb300); }
+        .xr-hint { position: absolute; left: 0; right: 0; top: calc(max(12px, env(safe-area-inset-top)) + 62px); text-align: center; font-size: 13px; color: rgba(255,255,255,.85); text-shadow: 0 1px 8px #000; padding: 0 24px; transition: opacity .6s; z-index: 4; pointer-events: none; }
+        .xr-snap { position: absolute; right: 18px; bottom: 6%; width: 62px; height: 62px; border-radius: 50%; border: 3px solid #fff; background: rgba(255,255,255,.18); font-size: 26px; cursor: pointer; display: none; z-index: 5; }
+        .xr.m-table .xr-snap { display: block; }
+        .xr-msg { position: absolute; left: 20px; right: 20px; top: 50%; transform: translateY(-50%); text-align: center; padding: 18px; border-radius: 18px; background: rgba(0,0,0,.7); border: 1px solid rgba(255,255,255,.2); display: none; z-index: 6; }
+        .xr-msg button { margin-top: 12px; border: 0; padding: 11px 20px; border-radius: 999px; font: inherit; font-weight: 800; background: linear-gradient(135deg, #7ff6ff, #2dd4ff); color: #02141a; cursor: pointer; }
+        @media (prefers-reduced-motion: reduce) { .xr-grid, .xr-beam, .xr-beam::after, .xr-pad i, .xr-disc .sheen, .xr-go::after { animation: none !important; } }
+
+
+        /* ===== MENU FLOATING IN THE AIR (camera + 360 ring of dishes) ===== */
+        .air-fab { position: fixed; left: 16px; bottom: 138px; z-index: 61; height: 46px; padding: 0 16px; display: inline-flex; align-items: center; gap: 7px; border-radius: 999px; border: 1px solid rgba(120,240,255,.7); color: #e8fdff; font: inherit; font-size: 13.5px; font-weight: 800; cursor: pointer; background: linear-gradient(135deg, rgba(0,190,225,.9), rgba(30,70,190,.92)); box-shadow: 0 8px 30px rgba(0,200,255,.45), inset 0 0 14px rgba(255,255,255,.18); animation: fabIn .6s 2.8s cubic-bezier(.2,.9,.2,1) both; white-space: nowrap; }
+        .air-fab:active { transform: scale(.94); }
+        .air { position: fixed; inset: 0; z-index: 165; display: none; background: radial-gradient(120% 90% at 50% 100%, #06222b 0%, #02080c 60%, #000 100%); color: #dffbff; overflow: hidden; touch-action: none; -webkit-user-select: none; user-select: none; }
+        .air.open { display: block; animation: xrIn .4s ease both; }
+        .air video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .6s; }
+        .air.cam video { opacity: 1; }
+        .air-tint { position: absolute; inset: 0; background: radial-gradient(circle at 50% 45%, rgba(0,40,60,0) 40%, rgba(0,10,20,.55) 100%); pointer-events: none; }
+        .air-scene { position: absolute; inset: 0; perspective: 700px; perspective-origin: 50% 46%; }
+        .air-world { position: absolute; left: 50%; top: 46%; width: 0; height: 0; transform-style: preserve-3d; will-change: transform; }
+        .air-item { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; }
+        .air-card { position: absolute; width: 220px; left: -110px; top: -140px; text-align: center; cursor: pointer; transition: transform .35s cubic-bezier(.2,.9,.2,1), opacity .35s; opacity: .85; }
+        .air-card .pic { width: 200px; height: 200px; margin: 0 auto; border-radius: 50%; background-size: cover; background-position: center; border: 2px solid rgba(120,250,255,.75); box-shadow: 0 0 28px rgba(0,235,255,.65), inset 0 0 26px rgba(0,235,255,.35); -webkit-mask-image: radial-gradient(circle, #000 70%, rgba(0,0,0,.55) 100%); mask-image: radial-gradient(circle, #000 70%, rgba(0,0,0,.55) 100%); position: relative; }
+        .air-card .pic::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.16) 0 1px, transparent 1px 4px); }
+        .air-card b { display: block; margin-top: 10px; font-size: 17px; font-weight: 800; line-height: 1.2; text-shadow: 0 0 10px rgba(0,0,0,.9), 0 0 14px rgba(0,235,255,.7); }
+        .air-card em { display: inline-block; margin-top: 6px; font-style: normal; font-weight: 800; font-size: 14px; padding: 4px 14px; border-radius: 999px; color: #1a1206; background: linear-gradient(135deg, #fff1a8, #ffb300); box-shadow: 0 0 16px rgba(255,190,60,.6); }
+        .air-item.focus .air-card { transform: scale(1.18); opacity: 1; }
+        .air-item.focus .air-card .pic { border-color: #fff; box-shadow: 0 0 46px rgba(120,255,255,.95), inset 0 0 30px rgba(0,235,255,.4); }
+        .air-cross { position: absolute; left: 50%; top: 46%; width: 270px; height: 270px; margin: -135px 0 0 -135px; border-radius: 50%; border: 1.5px dashed rgba(255,255,255,.28); pointer-events: none; animation: xrSpin 24s linear infinite; }
+        .air-info { position: absolute; left: 14px; right: 14px; bottom: 112px; padding: 12px 16px; border-radius: 18px; background: rgba(0,12,18,.62); border: 1px solid rgba(120,240,255,.4); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); display: flex; align-items: center; gap: 12px; z-index: 4; }
+        .air-info div { flex: 1; min-width: 0; }
+        .air-info small { display: block; font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: #7ff6ff; }
+        .air-info b { display: block; font-size: 17px; line-height: 1.25; }
+        .air-info button { border: 0; padding: 12px 16px; border-radius: 14px; font: inherit; font-weight: 800; font-size: 14px; cursor: pointer; color: #1a1206; background: linear-gradient(135deg, #fff1a8, #ffb300); white-space: nowrap; }
+        .air-cats { position: absolute; left: 0; right: 0; bottom: max(14px, env(safe-area-inset-bottom)); display: flex; gap: 8px; overflow-x: auto; padding: 4px 14px; z-index: 4; scrollbar-width: none; touch-action: pan-x; }
+        .air-cats::-webkit-scrollbar { display: none; }
+        .air-cats button { flex: 0 0 auto; border: 1px solid rgba(120,240,255,.4); background: rgba(0,16,22,.7); color: #dffbff; font: inherit; font-weight: 700; font-size: 13px; padding: 10px 16px; border-radius: 999px; cursor: pointer; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+        .air-cats button.on { color: #02141a; background: linear-gradient(135deg, #7ff6ff, #2dd4ff); border-color: transparent; }
+        .air .xr-top { z-index: 5; }
+        .air-title { font-weight: 800; padding: 9px 16px; border-radius: 999px; background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.2); font-size: 14px; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+        .air-hint { position: absolute; left: 0; right: 0; top: calc(max(12px, env(safe-area-inset-top)) + 64px); text-align: center; font-size: 13px; color: rgba(255,255,255,.9); text-shadow: 0 1px 8px #000; padding: 0 24px; transition: opacity .6s; pointer-events: none; z-index: 4; }
+        .air-compass { position: absolute; top: calc(max(12px, env(safe-area-inset-top)) + 104px); left: 50%; transform: translateX(-50%); display: flex; gap: 5px; z-index: 4; pointer-events: none; }
+        .air-compass i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.3); }
+        .air-compass i.on { background: #7ff6ff; box-shadow: 0 0 10px #7ff6ff; transform: scale(1.4); }
+
+
+        .air.hover .air-cross { display: none; }
+        .air-compass { display: none !important; }
+        .air.hover .air-card { transform: scale(var(--ac, .6)); transition: opacity .3s; }
+        .air.hover .air-item.focus .air-card { transform: scale(calc(var(--ac, .6) * 1.16)); }
+        .air-floor { position: absolute; left: 50%; top: 64%; width: min(80vw, 340px); height: 70px; transform: translateX(-50%); display: none; pointer-events: none; }
+        .air.hover .air-floor { display: block; }
+        .air-floor i { position: absolute; left: 50%; top: 50%; border-radius: 50%; border: 2px solid rgba(0,235,255,.75); transform: translate(-50%, -50%); box-shadow: 0 0 18px rgba(0,235,255,.8), inset 0 0 14px rgba(0,235,255,.45); }
+        .air-floor i:nth-child(1) { width: 100%; height: 100%; }
+        .air-floor i:nth-child(2) { width: 62%; height: 62%; animation: xrRing 2.4s ease-out infinite; }
+        .air-floor i:nth-child(3) { width: 30%; height: 30%; background: radial-gradient(circle, rgba(0,235,255,.85), transparent 70%); border-color: transparent; }
+        .air-burst { position: absolute; left: 50%; top: 64%; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; pointer-events: none; opacity: 0; background: radial-gradient(circle, #fff, rgba(0,235,255,.8) 35%, transparent 70%); z-index: 3; }
+        .air-burst.go { animation: airBurst 1.1s ease-out both; }
+        @keyframes airBurst { 0% { opacity: 1; transform: scale(.5); } 100% { opacity: 0; transform: scale(18); } }
+        .air .xr-modes button.on { color: #02141a; background: linear-gradient(135deg, #7ff6ff, #2dd4ff); }
+
+
+        .xr-go.ar { flex: 1 1 100%; min-height: 58px; font-size: 15.5px; border-color: rgba(160,255,170,.7); color: #eaffee; background: linear-gradient(135deg, rgba(20,170,90,.55), rgba(10,110,160,.5)); box-shadow: 0 0 26px rgba(60,255,150,.35), inset 0 0 18px rgba(160,255,190,.15); }
+        .arv { position: fixed; inset: 0; z-index: 175; display: none; background: radial-gradient(120% 90% at 50% 100%, #06222b 0%, #02080c 60%, #000 100%); color: #e8fdff; }
+        .arv.open { display: flex; flex-direction: column; animation: xrIn .35s ease both; }
+        .arv-top { display: flex; align-items: center; gap: 12px; padding: max(12px, env(safe-area-inset-top)) 12px 6px; }
+        .arv-top b { flex: 1; font-size: 17px; line-height: 1.2; }
+        .arv-top small { display: block; font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: #7ff6a8; }
+        .arv-stage { position: relative; flex: 1; min-height: 0; }
+        .arv-stage model-viewer { position: absolute; inset: 0; width: 100%; height: 100%; background: transparent; --poster-color: transparent; }
+        .arv-msg { position: absolute; left: 24px; right: 24px; top: 40%; text-align: center; font-size: 15px; line-height: 1.5; color: #bfeee0; }
+        .arv-bar { padding: 10px 16px max(18px, env(safe-area-inset-bottom)); text-align: center; }
+        .arv-place { width: 100%; min-height: 60px; border: 0; border-radius: 18px; font: inherit; font-weight: 800; font-size: 17px; color: #02140c; cursor: pointer; background: linear-gradient(135deg, #b8ffd0, #3df59a); box-shadow: 0 0 34px rgba(60,255,150,.5); display: none; }
+        .arv-place.show { display: block; animation: arvPulse 2s ease-in-out infinite; }
+        @keyframes arvPulse { 50% { box-shadow: 0 0 52px rgba(60,255,150,.85); } }
+        .arv-note { margin-top: 10px; font-size: 12.5px; color: rgba(255,255,255,.7); min-height: 18px; }
+        .arv-alt { margin-top: 8px; border: 1px solid rgba(255,255,255,.35); background: transparent; color: #fff; padding: 10px 16px; border-radius: 999px; font: inherit; font-weight: 700; cursor: pointer; display: none; }
+
+
+        /* ===== real hologram: show the dish 4 ways, put a clear pyramid on the screen ===== */
+        .pyr { position: fixed; inset: 0; z-index: 185; display: none; background: #000; color: #fff; touch-action: manipulation; }
+        .pyr.open { display: block; }
+        .pyr-box { --s: min(100vw, calc(100vh - 96px)); position: absolute; left: 50%; top: calc(50% - 40px); width: calc(var(--s) * var(--k, .78)); height: calc(var(--s) * var(--k, .78)); transform: translate(-50%, -50%); }
+        .pyr-face { position: absolute; left: 50%; top: 50%; width: 42%; height: 42%; margin: -21% 0 0 -21%; }
+        .pyr-face.f0 { transform: rotate(0deg) translateY(-78%); }
+        .pyr-face.f1 { transform: rotate(90deg) translateY(-78%); }
+        .pyr-face.f2 { transform: rotate(180deg) translateY(-78%); }
+        .pyr-face.f3 { transform: rotate(270deg) translateY(-78%); }
+        .pyr-in { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; transition: opacity .6s; }
+        .pyr.flip .pyr-in { transform: rotate(180deg); }
+        .pyr.swap .pyr-in { opacity: 0; }
+        .pyr-stage { width: 74%; aspect-ratio: 1; perspective: 700px; }
+        .pyr-disc { width: 100%; height: 100%; border-radius: 50%; background-size: cover; background-position: center; -webkit-mask-image: radial-gradient(circle, #000 66%, rgba(0,0,0,0) 72%); mask-image: radial-gradient(circle, #000 66%, rgba(0,0,0,0) 72%); animation: pyrSpin 7s linear infinite; filter: saturate(1.25) contrast(1.1) brightness(1.1); }
+        @keyframes pyrSpin { 0% { transform: rotateY(0deg); } 100% { transform: rotateY(360deg); } }
+        .pyr-name { margin-top: 3%; font-weight: 800; font-size: calc(var(--s) * .034); text-align: center; line-height: 1.15; max-width: 100%; color: #fff; text-shadow: 0 0 12px rgba(0,235,255,.7); }
+        .pyr-price { margin-top: 2%; font-weight: 800; font-size: calc(var(--s) * .032); color: #ffd36a; }
+        .pyr-ui { position: absolute; left: 0; right: 0; bottom: max(12px, env(safe-area-inset-bottom)); display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; padding: 0 10px; }
+        .pyr-ui button { border: 1px solid rgba(255,255,255,.35); background: rgba(30,30,30,.9); color: #fff; font: inherit; font-weight: 700; font-size: 14px; padding: 11px 14px; border-radius: 999px; cursor: pointer; min-width: 46px; }
+        .pyr-help { position: absolute; left: 12px; right: 12px; top: max(10px, env(safe-area-inset-top)); text-align: center; font-size: 12.5px; color: rgba(255,255,255,.7); transition: opacity 1s; pointer-events: none; }
+        .xr-go.pyrb { flex: 1 1 100%; border-color: rgba(255,255,255,.4); color: #fff; background: linear-gradient(135deg, rgba(90,60,200,.5), rgba(0,150,200,.4)); }
+
         .ai-form { display: flex; gap: 8px; padding: 12px 14px 16px; border-top: 1px solid rgba(255,196,0,.18); }
         .ai-form input { flex: 1; min-width: 0; min-height: 48px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(255,196,0,.3); background: rgba(8,7,4,.95); color: var(--text); font-family: inherit; font-size: 15px; outline: none; }
         .ai-form input:focus { border-color: var(--gold-2); }
@@ -561,6 +734,14 @@
         .thanks-card h3 { margin: 12px 0 8px; font-size: 25px; line-height: 1.2; background: linear-gradient(90deg, #ffb12a, #fff3c4, #ffb12a); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
         .thanks-card p { margin: 0 auto 18px; max-width: 290px; color: var(--muted); font-size: 14.5px; line-height: 1.65; }
         .thanks-card .thanks-close { padding: 12px 30px; border: 0; border-radius: 999px; font: inherit; font-weight: 800; color: #2a1202; background: linear-gradient(135deg, #ffd24a, #ff9a2a); cursor: pointer; }
+        body.menu-shut > *:not(#menuClosed):not(script) { display: none !important; }
+        #menuClosed { display: none; }
+        body.menu-shut #menuClosed { position: fixed; inset: 0; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 28px; text-align: center; background: radial-gradient(circle at 50% 40%, #2a1204, #050302 75%); color: #f6e3c4; animation: fadeIn .5s ease; }
+        #menuClosed .mc-logo { width: 120px; height: 120px; border-radius: 50%; overflow: hidden; background: #000; box-shadow: 0 0 40px rgba(255,170,60,.45); }
+        #menuClosed .mc-logo img { width: 100%; height: 100%; object-fit: cover; }
+        #menuClosed h2 { margin: 6px 0 0; font-size: 26px; background: linear-gradient(90deg, #ffb12a, #fff3c4, #ffb12a); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
+        #menuClosed p { margin: 0; max-width: 300px; color: #d9bf9a; font-size: 15px; line-height: 1.6; }
+        #menuClosed button { margin-top: 10px; padding: 11px 24px; border-radius: 999px; border: 1px solid rgba(255,196,60,.5); background: transparent; color: #ffd24a; font: inherit; font-weight: 700; cursor: pointer; }
         .thanks-card .thanks-sign { display: block; margin-top: 14px; font-size: 11px; letter-spacing: 3px; color: #e3c6a3; opacity: .8; }
         .spark { position: absolute; top: -20px; width: 9px; height: 9px; border-radius: 2px; opacity: 0; animation: sparkFall linear forwards; pointer-events: none; }
         @keyframes thanksPop { from { opacity: 0; transform: scale(.6) translateY(30px); } to { opacity: 1; transform: none; } }
@@ -694,7 +875,7 @@
                 {% if item.image.startswith('http') %}
                     <img src="{{ item.image }}" class="food-image" alt="{{ item.name }}" loading="{{ 'eager' if loop.index <= 4 else 'lazy' }}" decoding="async">
                 {% else %}
-                    <img src="https://raw.githubusercontent.com/Michael-code-dot/hotel-qr-redirect/refs/heads/main/image/{{ item.image }}" class="food-image" alt="{{ item.name }}" loading="{{ 'eager' if loop.index <= 4 else 'lazy' }}" decoding="async">
+                    <img src="https://wsrv.nl/?url=cdn.jsdelivr.net/gh/Michael-code-dot/hotel-qr-redirect@main/image/{{ item.image|urlencode }}&w=480&q=72&output=webp" data-full="https://cdn.jsdelivr.net/gh/Michael-code-dot/hotel-qr-redirect@main/image/{{ item.image }}" onerror="var n=+this.dataset.f||0;this.dataset.f=n+1;if(n===0){this.src=this.dataset.full;}else if(n===1){this.src='https://raw.githubusercontent.com/Michael-code-dot/hotel-qr-redirect/refs/heads/main/image/{{ item.image }}';}" class="food-image" alt="{{ item.name }}" loading="{{ 'eager' if loop.index <= 4 else 'lazy' }}"{% if loop.index <= 2 %} fetchpriority="high"{% endif %} decoding="async">
                 {% endif %}
             {% else %}
                 <img src="{{ url_for('static', filename='images/default.jpg') }}" class="food-image" alt="Default Image" loading="lazy" decoding="async">
@@ -757,6 +938,7 @@
         <div class="cat-grid" id="catGrid"></div>
     </div>
 </div>
+<div id="menuClosed" role="status"><div class="mc-logo"><img id="mcImg" alt=""></div><h2>Menu closed</h2><p>Thank you for dining with us. We hope to see you again soon! 🧡<br>To order again, scan the QR code on your table.</p><button type="button" id="mcReopen">Open the menu again</button></div>
 <button type="button" class="done-btn" id="doneBtn" aria-label="Finished dining">🍽️ Done<span class="dd-more"> dining</span></button>
 <button class="totop" id="totop" aria-label="Back to top">↑</button>
 <button type="button" class="share-fab" id="shareFab" aria-label="Share this menu"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.6l6.8-4M8.6 13.4l6.8 4"/></svg></button>
@@ -766,13 +948,73 @@
 <div class="dish-back" id="aiBack">
     <div class="dish-card ai-card" role="dialog" aria-modal="true" aria-label="Menu assistant">
         <button class="dish-x" id="aiX" aria-label="Close">✕</button>
-        <div class="ai-top"><div class="ai-badge">✨</div><div><b>Menu Assistant</b><small>Ask me what to eat</small></div></div>
+        <div class="ai-top"><div class="ai-badge">✨</div><div><b>Menu Assistant</b><small>Magic Mandi</small></div></div>
         <div class="ai-log" id="aiLog"></div>
         <form class="ai-form" id="aiForm" autocomplete="off">
             <input type="text" id="aiInput" maxlength="100" placeholder="e.g. cold drink under 300">
             <button type="submit" aria-label="Send">➤</button>
         </form>
     </div>
+</div>
+
+<!-- menu floating in the air -->
+<button type="button" class="air-fab" id="airFab" aria-label="See the menu floating around you">🌐 AR Menu</button>
+<div class="air hover" id="air" role="dialog" aria-modal="true" aria-label="Floating menu">
+    <video id="airVideo" playsinline muted autoplay></video>
+    <div class="air-tint"></div>
+    <div class="air-floor"><i></i><i></i><i></i></div>
+    <div class="air-scene"><div class="air-world" id="airWorld"></div></div>
+    <div class="air-burst" id="airBurst"></div>
+    <div class="air-cross"></div>
+    <div class="xr-top"><button type="button" class="xr-x" id="airClose" aria-label="Close">✕</button><span class="air-title">Floating menu</span><span style="width:44px"></span></div>
+    <div class="air-hint" id="airHint"></div>
+    <div class="air-compass" id="airDots"></div>
+    <div class="air-info" id="airInfo"><div><small id="airCat"></small><b id="airName"></b></div><button type="button" id="airGo">Details</button></div>
+    <div class="air-cats" id="airCats"></div>
+</div>
+
+<!-- real AR: 3D dish placed on the real table -->
+<div class="arv" id="arv" role="dialog" aria-modal="true" aria-label="Place the dish in your room">
+    <div class="arv-top"><button type="button" class="xr-x" id="arvClose" aria-label="Close">✕</button><b><small>Real AR</small><span id="arvName"></span></b></div>
+    <div class="arv-stage" id="arvStage"><div class="arv-msg" id="arvMsg">Building your 3D dish…</div></div>
+    <div class="arv-bar"><button type="button" class="arv-place" id="arvPlace">🥽 Place it on my table</button><div class="arv-note" id="arvNote"></div><button type="button" class="arv-alt" id="arvAlt">📷 Use the camera view instead</button></div>
+</div>
+
+<!-- hologram pyramid mode -->
+<div class="pyr" id="pyr" role="dialog" aria-modal="true" aria-label="Hologram pyramid mode">
+    <div class="pyr-help" id="pyrHelp">Put a clear pyramid (small end down) in the middle of the screen. Turn the lights down and the screen brightness up.</div>
+    <div class="pyr-box" id="pyrBox">
+        <div class="pyr-face f0"><div class="pyr-in"><div class="pyr-stage"><div class="pyr-disc"></div></div><div class="pyr-name"></div><div class="pyr-price"></div></div></div>
+        <div class="pyr-face f1"><div class="pyr-in"><div class="pyr-stage"><div class="pyr-disc"></div></div><div class="pyr-name"></div><div class="pyr-price"></div></div></div>
+        <div class="pyr-face f2"><div class="pyr-in"><div class="pyr-stage"><div class="pyr-disc"></div></div><div class="pyr-name"></div><div class="pyr-price"></div></div></div>
+        <div class="pyr-face f3"><div class="pyr-in"><div class="pyr-stage"><div class="pyr-disc"></div></div><div class="pyr-name"></div><div class="pyr-price"></div></div></div>
+    </div>
+    <div class="pyr-ui"><button type="button" id="pyrClose">✕ Close</button><button type="button" id="pyrSm">−</button><button type="button" id="pyrBg">+</button><button type="button" id="pyrFlip">⟲ Flip</button><button type="button" id="pyrPrev">‹</button><button type="button" id="pyrPlay">⏸</button><button type="button" id="pyrNext">›</button></div>
+</div>
+
+<!-- hologram / on-my-table viewer -->
+<div class="xr m-holo" id="xr" role="dialog" aria-modal="true" aria-label="3D dish view">
+    <video id="xrVideo" playsinline muted autoplay></video>
+    <canvas class="xr-fx" id="xrFx"></canvas>
+    <div class="xr-holo">
+        <div class="xr-grid"></div>
+        <div class="xr-beam"></div>
+        <div class="xr-pad"><i></i><i></i><i></i></div>
+        <div class="xr-stage"><div class="xr-disc" id="xrDisc"></div></div>
+        <div class="xr-label"><small id="xrCat"></small><b id="xrName"></b><em id="xrPrice"></em></div>
+    </div>
+    <div class="xr-table" id="xrTable">
+        <div class="xr-plate" id="xrPlate"><div class="sc" id="xrSc"><div class="sh"></div><div class="fl" id="xrFlat"></div></div></div>
+        <div class="xr-tag"><span id="xrName2"></span><small id="xrPrice2"></small></div>
+    </div>
+    <div class="xr-top">
+        <button type="button" class="xr-x" id="xrClose" aria-label="Close">✕</button>
+        <div class="xr-modes"><button type="button" data-m="holo" class="on">✨ Hologram</button><button type="button" data-m="table">📷 On my table</button></div>
+        <span style="width:44px"></span>
+    </div>
+    <div class="xr-hint" id="xrHint"></div>
+    <button type="button" class="xr-snap" id="xrSnap" aria-label="Take a photo">📸</button>
+    <div class="xr-msg" id="xrMsg"></div>
 </div>
 
 <!-- dish detail (opens when a card is tapped) -->
@@ -890,11 +1132,12 @@
     function unlock() { locks = Math.max(0, locks - 1); if (!locks) document.body.style.overflow = ""; }
     function openDish(card) {
         var img = card.querySelector(".food-image");
-        document.getElementById("dishImg").src = img ? img.currentSrc || img.src : "";
+        document.getElementById("dishImg").src = img ? (img.dataset.full || img.currentSrc || img.src) : "";
         document.getElementById("dishCat").textContent = (card.querySelector(".category") || {}).textContent ? card.querySelector(".category").textContent.trim() : "";
         document.getElementById("dishName").textContent = card.querySelector("h2") ? card.querySelector("h2").textContent.trim() : "";
         document.getElementById("dishDesc").textContent = card.querySelector(".description") ? card.querySelector(".description").textContent.trim() : "";
         document.getElementById("dishPrice").textContent = card.querySelector("h3") ? card.querySelector("h3").textContent.trim() : "";
+        dishBack.setAttribute("data-id", card.getAttribute("data-id") || "");
         if (!dishBack.classList.contains("open")) lock();
         dishBack.classList.add("open");
     }
@@ -1100,13 +1343,204 @@
         search.addEventListener("input", function () { clearTimeout(rt); rt = setTimeout(run, 120); });
     })();
 
-    /* ===== menu assistant (runs on this phone, no internet service needed) ===== */
+    /* ===== menu assistant v2: runs on this phone, remembers the chat, understands budgets, groups, Swahili ===== */
     (function () {
         var fab = document.getElementById("aiFab"), back = document.getElementById("aiBack"), log = document.getElementById("aiLog");
         var form = document.getElementById("aiForm"), input = document.getElementById("aiInput");
         if (!fab || !back || !window.__smartFind) return;
-        var started = false;
+        var started = false, PAGE = 1000;
+        var ctx = { list: [], pos: 0, last: [], dish: null, sw: false, avoid: [], name: "" };
+
         function money(n) { return "KSh " + n.toLocaleString("en-US", n % 1 ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : { maximumFractionDigits: 0 }); }
+        function pick1(a) { return a[Math.floor(Math.random() * a.length)]; }
+        function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+        function kenyaHour() { var d = new Date(); return new Date(d.getTime() + d.getTimezoneOffset() * 60000 + 3 * 3600000).getHours(); }
+        function say(en, sw) { return (ctx.sw && sw) ? sw : en; }
+
+        /* ---- menu knowledge ---- */
+        var all = window.__smartFind("").hits;
+        all.forEach(function (d) {
+            d.name = ((d.c.querySelector("h2") || {}).textContent || "").trim();
+            d.nlow = d.name.toLowerCase();
+            d.nwords = d.nlow.split(/[^a-z0-9]+/).filter(Boolean);
+            d.cat = (d.c.getAttribute("data-category") || "").trim();
+            d.catl = d.cat.toLowerCase();
+            d.desc = ((d.c.querySelector(".description") || {}).textContent || "").trim();
+            var tag = d.catl + " " + d.nlow;
+            d.drink = /drink|juice|shake|smoothie|coffee|\btea\b|soda|mocktail|lemonade|water|beverage|cocktail|beer|wine|latte|cappuccino|chiller|soft/.test(tag);
+            d.sweet = !d.drink && /dessert|cake|ice cream|brownie|pudding|sweet|waffle|pancake/.test(tag);
+            d.main = !d.drink && !d.sweet;
+        });
+        var cats = []; all.forEach(function (d) { if (d.cat && cats.indexOf(d.cat) < 0) cats.push(d.cat); });
+        var drinks = all.filter(function (d) { return d.drink; });
+        var sweets = all.filter(function (d) { return d.sweet; });
+        var mains = all.filter(function (d) { return d.main; });
+        var byPrice = all.slice().sort(function (a, b) { return a.price - b.price; });
+
+        /* ---- Swahili / sheng words turned into menu words ---- */
+        var SW = [
+            [/\bbei nafuu\b|\bpoa\b/g, "cheap"], [/\bnataka\b|\bninataka\b|\bnaomba\b|\bnipe\b|\bnipatie\b|\bleta\b/g, " "],
+            [/\bkuku\b/g, "chicken"], [/\bnyama\b/g, "meat"], [/\bsamaki\b/g, "fish"], [/\bng'?ombe\b/g, "beef"], [/\bmbuzi\b/g, "goat"],
+            [/\bchai\b/g, "tea"], [/\bkahawa\b/g, "coffee"], [/\bmaji\b/g, "water"], [/\bjuisi\b|\bjuisy\b/g, "juice"], [/\bmayai\b/g, "egg"],
+            [/\bchipsi\b|\bviazi\b/g, "fries"], [/\bwali\b/g, "rice"], [/\bchakula\b/g, "food"], [/\bvinywaji\b|\bkinywaji\b/g, "drink"],
+            [/\btamu\b|\bkitamu\b/g, "sweet"], [/\bbaridi\b/g, "cold"], [/\bmoto\b/g, "hot"], [/\bpilipili\b|\bkali\b/g, "spicy"],
+            [/\bbei\b/g, "price"], [/\bshilingi\b|\bbob\b/g, " "], [/\basante\b|\basanteni\b/g, "thanks"], [/\bkwaheri\b/g, "bye"],
+            [/\bmambo\b|\bvipi\b|\bhabari\b|\bsasa\b|\bjambo\b|\bhujambo\b/g, "hello"], [/\bwatu\b|\bwatu wa\b/g, "people"]
+        ];
+        var SWWORDS = /\b(nataka|ninataka|naomba|nipe|nipatie|kuku|nyama|samaki|chai|kahawa|maji|juisi|mayai|chipsi|wali|chakula|vinywaji|tamu|baridi|moto|pilipili|bei|asante|kwaheri|habari|jambo|mambo|vipi|poa|watu|leta|mbuzi|nani|alikutengeneza|amekutengeneza|aliyekutengeneza|mmiliki)\b/;
+        function swapSw(q) { SW.forEach(function (p) { q = q.replace(p[0], p[1]); }); return q.replace(/\s+/g, " ").trim(); }
+
+        /* ---- numbers: budget, group size ---- */
+        function parseNums(q) {
+            var o = { people: 0, budget: 0, q: q };
+            q = q.replace(/(\d),(\d{3})/g, "$1$2").replace(/(\d+(?:\.\d+)?)\s*k\b/g, function (m, n) { return String(Math.round(parseFloat(n) * 1000)); });
+            var m = q.match(/(?:for|we are|we're|were|us|party of|table of|group of)\s*(\d{1,2})(?:\s*(?:people|persons|pax|of us|guests|adults|friends))?\b/) || q.match(/\b(\d{1,2})\s*(?:people|persons|pax|of us|guests|adults|friends)\b/);
+            if (m && parseInt(m[1], 10) >= 1 && parseInt(m[1], 10) <= 30) { o.people = parseInt(m[1], 10); q = q.replace(m[0], " "); }
+            var b = q.match(/(?:under|below|less than|max|upto|up to|within|budget(?: of| is)?|have|only|around|about|ksh|kes|kshs)\s*(\d{2,6})/) || q.match(/\b(\d{3,6})\b/);
+            if (b) { o.budget = parseInt(b[1], 10); q = q.replace(b[0], " "); }
+            o.q = q.replace(/\s+/g, " ").trim();
+            return o;
+        }
+
+        /* ---- find a dish by (part of) its name, forgiving typos ---- */
+        var FILLN = ["what", "whats", "the", "of", "is", "are", "how", "much", "price", "cost", "does", "do", "tell", "about", "me", "describe", "explain", "a", "an", "and", "in", "it", "this", "that", "dish", "food", "have", "you", "got", "please", "for", "your", "with", "its"];
+        function lev(a, b) {
+            if (Math.abs(a.length - b.length) > 2) return 9;
+            var p = [], i, j; for (j = 0; j <= b.length; j++) p[j] = j;
+            for (i = 1; i <= a.length; i++) { var prev = p[0]; p[0] = i; for (j = 1; j <= b.length; j++) { var tmp = p[j]; p[j] = Math.min(p[j] + 1, p[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = tmp; } }
+            return p[b.length];
+        }
+        function findDishes(text) {
+            var toks = text.toLowerCase().split(/[^a-z0-9]+/).filter(function (w) { return w.length >= 3 && FILLN.indexOf(w) < 0; });
+            if (!toks.length) return [];
+            var scored = [];
+            all.forEach(function (d) {
+                var hit = 0;
+                toks.forEach(function (t) {
+                    for (var i = 0; i < d.nwords.length; i++) {
+                        var w = d.nwords[i];
+                        if (w.indexOf(t) === 0 || t.indexOf(w) === 0 && w.length > 3 || (t.length >= 5 && lev(t, w) <= 1)) { hit++; return; }
+                    }
+                });
+                if (hit) scored.push({ d: d, s: hit / toks.length + hit / (d.nwords.length + 2) * 0.4 });
+            });
+            scored.sort(function (a, b) { return b.s - a.s; });
+            if (!scored.length || scored[0].s < 0.55) return [];
+            return scored.slice(0, 3).map(function (x) { return x.d; });
+        }
+
+
+        /* ---- things the guest doesn't eat (remembered for the whole chat) ---- */
+        function av(arr) {
+            if (!ctx.avoid.length) return arr;
+            return arr.filter(function (d) {
+                var h = d.nlow + " " + d.desc.toLowerCase();
+                for (var i = 0; i < ctx.avoid.length; i++) if (h.indexOf(ctx.avoid[i]) >= 0) return false;
+                return true;
+            });
+        }
+        var MEATRE = /beef|chicken|mutton|lamb|goat|fish|prawn|meat|steak|ribs|sausage|bacon|tilapia|calamari|lobster|crab|squid|shawarma|kebab|burger/;
+        function between(arr, lo, hi) { return arr.filter(function (d) { return (!lo || d.price >= lo) && (!hi || d.price <= hi); }); }
+        function pickLine(d) { return d.name + " (" + money(d.price) + ")"; }
+
+
+        /* ---- small talk, jokes, riddles, time, maths, Swahili, simple facts ---- */
+        var JOKES = [
+            "Why did the chicken join a band? It already had the drumsticks! 🥁",
+            "I told my friend I'd give him a free lesson in cooking rice. He said, “Sounds grate!” Then he wanted a refund.",
+            "Why did the tomato blush? It saw the salad dressing! 🍅",
+            "What do you call cheese that isn't yours? Nacho cheese! 🧀",
+            "Why don't eggs tell jokes? They'd crack each other up! 🥚",
+            "What is a robot's favourite snack? Microchips! 🤖",
+            "Why did the coffee file a police report? It got mugged! ☕",
+            "How does a lion greet the other animals in the jungle? “Pleased to eat you!” 🦁",
+            "Why was the math book sad? It had too many problems.",
+            "What did the plate say to the other plate? Dinner's on me! 🍽️"
+        ];
+        var RIDDLES = [
+            ["I have keys but open no locks, and space but no room. What am I?", "a keyboard"],
+            ["What has hands but cannot clap?", "a clock"],
+            ["What gets wetter the more it dries?", "a towel"],
+            ["What can you catch but not throw?", "a cold"],
+            ["The more you take, the more you leave behind. What am I?", "footsteps"],
+            ["I'm full of holes but still hold water. What am I?", "a sponge"]
+        ];
+        var SWDICT = { "hello": "Jambo / Habari", "thank you": "Asante", "thanks": "Asante", "please": "Tafadhali", "water": "Maji", "food": "Chakula", "welcome": "Karibu", "goodbye": "Kwaheri", "bye": "Kwaheri", "how are you": "Habari yako? / Uko aje?", "delicious": "Tamu sana", "bill": "Bili / Hesabu", "yes": "Ndiyo", "no": "Hapana", "friend": "Rafiki", "good": "Nzuri", "very good": "Nzuri sana", "love": "Upendo", "beautiful": "Nzuri / Mrembo", "chicken": "Kuku", "fish": "Samaki", "meat": "Nyama", "rice": "Wali", "tea": "Chai", "coffee": "Kahawa", "milk": "Maziwa", "sugar": "Sukari", "salt": "Chumvi", "i love you": "Nakupenda", "good morning": "Habari za asubuhi", "good night": "Usiku mwema", "sorry": "Pole / Samahani", "no problem": "Hakuna matata", "table": "Meza", "eat": "Kula", "drink": "Kunywa", "hungry": "Njaa", "thirsty": "Kiu", "one": "Moja", "two": "Mbili", "three": "Tatu", "four": "Nne", "five": "Tano", "ten": "Kumi" };
+        var CAPS = { "kenya": "Nairobi", "uganda": "Kampala", "tanzania": "Dodoma", "rwanda": "Kigali", "ethiopia": "Addis Ababa", "somalia": "Mogadishu", "south sudan": "Juba", "burundi": "Gitega", "nigeria": "Abuja", "ghana": "Accra", "south africa": "Pretoria (also Cape Town and Bloemfontein)", "egypt": "Cairo", "morocco": "Rabat", "france": "Paris", "england": "London", "uk": "London", "united kingdom": "London", "germany": "Berlin", "italy": "Rome", "spain": "Madrid", "usa": "Washington, D.C.", "united states": "Washington, D.C.", "america": "Washington, D.C.", "canada": "Ottawa", "china": "Beijing", "japan": "Tokyo", "india": "New Delhi", "brazil": "Brasilia", "saudi arabia": "Riyadh", "oman": "Muscat", "yemen": "Sanaa", "uae": "Abu Dhabi", "dubai": "Dubai is a city, the UAE capital is Abu Dhabi", "turkey": "Ankara", "australia": "Canberra", "russia": "Moscow", "argentina": "Buenos Aires" };
+        var riddle = null, jokeIx = -1;
+        function calc(expr) {
+            expr = expr.replace(/×|x(?=\s*\d)/g, "*").replace(/÷/g, "/").replace(/\^/g, "**").replace(/,/g, "");
+            if (!/^[0-9+\-*/().\s%*]+$/.test(expr) || !/\d/.test(expr)) return null;
+            try { var v = Function('"use strict";return (' + expr + ")")(); return (typeof v === "number" && isFinite(v)) ? v : null; } catch (e) { return null; }
+        }
+        function fmt(n) { return Math.abs(n) >= 1000 ? Math.round(n * 100) / 100 + "" : (Math.round(n * 1000) / 1000) + ""; }
+        function talkAnswer(q, low) {
+            var hr = kenyaHour(), d = new Date(Date.now() + new Date().getTimezoneOffset() * 60000 + 3 * 3600000);
+            var days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], mons = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            var m;
+
+            /* riddle answers */
+            if (riddle) {
+                if (/(give up|i don'?t know|dont know|answer|tell me|sijui)/.test(q)) { var a = riddle[1]; riddle = null; return { t: "The answer is " + a + "! 😄 Want another?", chips: ["Another riddle", "Tell me a joke", "Surprise me"] }; }
+                if (q.length < 40 && q.indexOf(riddle[1].replace(/^(a|an) /, "")) >= 0) { riddle = null; return { t: "Correct! You're sharp! 🎉", chips: ["Another riddle", "Tell me a joke"] }; }
+                if (!/(joke|food|menu|hello|hi|thanks|price|cheap)/.test(q) && q.split(" ").length <= 4) return { t: "Not quite, try again, or say “give up”.", chips: ["Give up"] };
+                riddle = null;
+            }
+            if (/\b(riddle|puzzle|brain teaser)\b/.test(q)) { riddle = pick1(RIDDLES); return { t: riddle[0], chips: ["Give up", "Tell me a joke"] }; }
+            if (/\b(joke|funny|make me laugh|cheka|laugh)\b/.test(q)) { var j; do { j = Math.floor(Math.random() * JOKES.length); } while (j === jokeIx && JOKES.length > 1); jokeIx = j; return { t: JOKES[j], chips: ["Another joke", "Tell me a riddle", "Surprise me"] }; }
+
+            /* time and date */
+            if (/(what('?s| is) the time|what time is it|the time now|saa ngapi|current time|time now)/.test(q) || /^time\??$/.test(q)) { var h12 = hr % 12 || 12, mm = ("0" + d.getMinutes()).slice(-2); return { t: "It is " + h12 + ":" + mm + (hr < 12 ? " AM" : " PM") + " in Nairobi.", chips: ["Surprise me"] }; }
+            if (/(what('?s| is) (the )?(date|day)|today'?s date|what day is (it|today)|leo ni siku gani|which day)/.test(q) || /^(date|day)\??$/.test(q)) return { t: "Today is " + days[d.getDay()] + ", " + d.getDate() + " " + mons[d.getMonth()] + " " + d.getFullYear() + ".", chips: ["Surprise me"] };
+
+            /* feelings and about the assistant */
+            if (/^(how are you|how r u|how('?s| is) it going|how do you do|are you ok|you good|uko aje|niaje|how('?s| is) your day|what('?s| is) up|wassup|whats up)/.test(q) || /^(hujambo|u hajambo)/.test(low)) return { t: pick1(["I'm doing great, thank you for asking! 😊 How is your day going?", "Feeling fantastic and ready to help! How about you?", "Poa sana! Hope you're having a lovely time. What can I do for you?"]), chips: ["Surprise me", "Tell me a joke"] };
+            if (/^(i('?m| am) (fine|good|great|well|okay|ok|happy|excited|doing well)|(fine|good|great|poa|nzuri|am fine|am good)\b)/.test(q)) return { t: "That's wonderful to hear! 😊 Shall I find you something delicious?", chips: ["Surprise me", "Under 500"] };
+            if (/^(i('?m| am)|am|im) (sad|tired|stressed|down|upset|angry|not ok|not okay|bored|lonely|sick|unwell)|\b(bad day|rough day|stressed out)\b/.test(q)) return { t: "I'm sorry you're feeling that way. 💛 A warm meal or a hot drink can help a little. Take your time, and I can suggest something comforting if you like.", chips: ["Something comforting", "Hot drink", "Tell me a joke"] };
+            if (/comforting|comfort food/.test(q)) { var cf = av(all).filter(function (x) { return /soup|tea|chai|coffee|rice|mandi|biryani|cake|chocolate|pasta/.test(x.nlow + " " + x.catl); }); return listAnswer(shuffle(cf).slice(0, 5), "Something warm and comforting:", "Try a hot drink or something with rice."); }
+            if (/(it'?s my birthday|my birthday|birthday|happy birthday|anniversary|celebrat)/.test(q)) { var cake = av(sweets).slice(0, 4); var r0 = { t: (/anniversary/.test(q) ? "Happy anniversary! 🎉💛" : "Happy birthday! 🎉🎂") + " What a lovely day to dine with us. Here are some sweet ideas:", chips: ["Surprise me", "Cold drink"] }; if (cake.length) { ctx.list = cake; ctx.pos = cake.length; ctx.last = cake; r0.picks = cake; } return r0; }
+            if (/\b(are you (a )?(real|human|robot|bot|ai|person|alive)|are you human|you are a robot)\b/.test(q)) return { t: "I'm a digital assistant, not a person. I live inside this menu and I never get tired, so ask me anything! 🤖", chips: ["Tell me a joke", "Surprise me"] };
+            if (/(how old are you|your age|when were you born)/.test(q)) return { t: "I'm brand new, but I know this menu very well! 😄", chips: ["Surprise me"] };
+            if (/(where do you live|where are you from|your home)/.test(q)) return { t: "I live right here in this menu, at Magic Mandi & Grill Hotel in Nairobi. 🇰🇪", chips: ["Surprise me"] };
+            if (/(favou?rite (food|dish|meal)|what do you (like|love|eat)|what would you eat)/.test(q)) { var fv = pick1(av(mains)); return { t: "If I could eat, I'd go for the " + fv.name + "! 😋", picks: [fv], chips: ["Something else", "Surprise me"] }; }
+            if (/\b(do you (sleep|eat|dance|sing)|can you (dance|sing|cook|eat))\b/.test(q)) return { t: "Not quite, I'm just words on a screen. But I'm great at picking the tastiest dishes! 😄", chips: ["Surprise me", "Tell me a joke"] };
+            if (/\b(i love you|love you|you are (the )?(best|great|smart|clever|amazing|awesome|good|cool|nice|wonderful)|good (bot|job|assistant)|well done|nice one|you'?re (the )?(best|great|smart|amazing|awesome))\b/.test(q)) return { t: pick1(["Aww, thank you! You just made my day. 😊", "You're too kind! I'm happy to help.", "Asante sana! Enjoy your meal. 💛"]), chips: ["Surprise me", "Tell me a joke"] };
+            if (/\b(stupid|useless|dumb|idiot|rubbish|you suck|bad bot)\b/.test(q)) return { t: "I'm sorry I wasn't helpful. Please tell me what you're looking for, in other words, and I'll try again.", chips: ["Surprise me", "Show the menu sections"] };
+            if (/(good night|goodnight|sleep well|usiku mwema)/.test(q)) return { t: "Good night, and thank you for dining with us! 🌙", chips: [] };
+            if (/^(ok|okay|cool|nice|alright|sawa|fine|great|wow|awesome|lol|haha|hehe|😂|😊|👍)\W*$/.test(low)) return { t: pick1(["😊", "Sawa! Anything else I can help with?", "Glad you like it! Want a suggestion?"]), chips: ["Surprise me", "Tell me a joke"] };
+
+            /* maths and money */
+            if ((m = q.match(/(\d+(?:\.\d+)?)\s*%\s*of\s*(\d[\d,.]*)/))) { var pc = parseFloat(m[1]) * parseFloat(m[2].replace(/,/g, "")) / 100; return { t: m[1] + "% of " + m[2] + " is " + fmt(pc) + ".", chips: ["Surprise me"] }; }
+            if ((m = q.match(/(?:split|divide|share)\s*(?:ksh\s*)?(\d[\d,]*)\s*(?:by|between|among|for|with)\s*(\d{1,2})/))) { var tot = parseFloat(m[1].replace(/,/g, "")), n = parseInt(m[2], 10); if (n > 0) return { t: "Splitting " + money(tot) + " between " + n + " people is " + money(Math.ceil(tot / n)) + " each.", chips: ["Surprise me"] }; }
+            if ((m = q.match(/\btip\b.*?(\d[\d,]{2,})|(\d[\d,]{2,}).*\btip\b/))) { var bill = parseFloat((m[1] || m[2]).replace(/,/g, "")); return { t: "A 10% tip on " + money(bill) + " is " + money(Math.round(bill * 0.1)) + " (so " + money(Math.round(bill * 1.1)) + " in total). Tipping is always your choice. 😊", chips: ["Surprise me"] }; }
+            var ex = q.replace(/\b(what is|what's|whats|calculate|compute|how much is|equals?|solve|=|\?)\b/g, " ").replace(/\bplus\b/g, "+").replace(/\bminus\b/g, "-").replace(/\b(times|multiplied by)\b/g, "*").replace(/\b(divided by|over)\b/g, "/").replace(/\s+/g, " ").trim();
+            if (/[+*/×÷^]|\d\s*x\s*\d|\bplus\b|\bminus\b|\btimes\b|\bdivided\b|\bcalculate\b/.test(q) && /^[0-9+\-*/().\s%x×÷^,]+$/.test(ex)) { var v = calc(ex); if (v !== null) return { t: ex.replace(/\s+/g, " ") + " = " + fmt(v), chips: ["Surprise me"] }; }
+
+            /* Swahili corner */
+            if ((m = q.match(/(?:how do (?:you|i) say|how to say|say)\s+(.+?)\s+in swahili|(?:what is|what's)\s+(.+?)\s+in swahili|swahili (?:word )?for\s+(.+)/))) { var w = (m[1] || m[2] || m[3]).replace(/[?.!]/g, "").trim(); if (SWDICT[w]) return { t: "“" + w + "” in Swahili is: " + SWDICT[w] + ".", chips: ["Teach me Swahili", "Surprise me"] }; return { t: "I don't know that word yet. I know greetings, food words, numbers and polite phrases. Try “Teach me Swahili”.", chips: ["Teach me Swahili"] }; }
+            if (/(teach me (some )?swahili|swahili lesson|learn swahili|swahili phrases)/.test(q)) { var keys = shuffle(Object.keys(SWDICT)).slice(0, 5); return { t: "Five Swahili words for today:\n" + keys.map(function (k) { return "• " + k + " = " + SWDICT[k]; }).join("\n"), chips: ["Teach me Swahili", "Tell me a joke"] }; }
+            if (/hakuna matata/.test(q)) return { t: "“Hakuna matata” means “no worries”, a Swahili phrase Kenyans love to use. 🌍", chips: ["Teach me Swahili"] };
+
+            /* simple facts */
+            if ((m = q.match(/capital (?:city )?of\s+(?:the\s+)?([a-z .]+?)\??$/))) { var c = m[1].trim(); if (CAPS[c]) return { t: "The capital of " + c.replace(/\b\w/g, function (x) { return x.toUpperCase(); }) + " is " + CAPS[c] + ".", chips: ["Tell me a joke", "Surprise me"] }; }
+            if (/(tallest mountain|highest mountain)/.test(q)) return { t: "Mount Everest is the tallest mountain on Earth. In Kenya, Mount Kenya is the highest at 5,199 m.", chips: ["Surprise me"] };
+            if (/(biggest|largest) (animal|mammal)/.test(q)) return { t: "The blue whale is the largest animal ever known. 🐋", chips: ["Surprise me"] };
+            if (/(fastest animal|fastest land animal)/.test(q)) return { t: "The cheetah is the fastest land animal, reaching about 100 km/h. 🐆 You can see them in the Maasai Mara!", chips: ["Surprise me"] };
+            if (/(how many (days|months|hours|minutes) (in|are in))/.test(q)) return { t: "A week has 7 days, a year has 12 months (365 days), a day has 24 hours and an hour has 60 minutes.", chips: ["Surprise me"] };
+            if (/(tell me about (kenya|nairobi)|about nairobi|about kenya|facts? about (kenya|nairobi))/.test(q)) return { t: "Nairobi is Kenya's capital and largest city, nicknamed “the Green City in the Sun”. Kenya is famous for safaris in the Maasai Mara, Mount Kenya, long distance runners and, of course, great food! 🇰🇪", chips: ["Surprise me", "Teach me Swahili"] };
+            if (/(weather|rain|raining|sunny|cold today|hot today|temperature)/.test(q) && !/(cold drink|hot drink)/.test(q)) return { t: "I can't check the live weather, but whatever it is outside, I can match it: a cold drink if it's warm, or something hot if it's chilly. ☀️🌧️", chips: ["Cold drink", "Hot drink"] };
+            if (/(football|soccer|arsenal|man(chester)? (united|city)|chelsea|liverpool|real madrid|barcelona|gor mahia|afc leopards|harambee stars|premier league|champions league|world cup|\bmatch\b|\bscore\b)/.test(q)) return { t: "Football fans are welcome here! ⚽ I can't see live scores or predict results, but a good meal makes any match better. What are you eating while you watch?", chips: ["Surprise me", "Something to share", "Cold drink"] };
+            if (/(president|politic|election|\bparty\b.*\bvote|raila|ruto|trump|biden|government)/.test(q)) return { t: "I'll leave politics to the news. 😄 I'm much better at food and good company!", chips: ["Surprise me", "Tell me a joke"] };
+            if (/(\bmoney\b|rich|how to get rich|bitcoin|invest)/.test(q) && !/(price|cheap|budget|under)/.test(q)) return { t: "I'm not a money expert, but I can help you eat well on any budget. Tell me how much you'd like to spend!", chips: ["Under 500", "Under 1000"] };
+            if (/(motivat|inspire|quote|advice|wisdom|encourage)/.test(q)) return { t: pick1(["“The secret of getting ahead is getting started.” Start with a good meal! 💪", "“Small steps every day lead to big results.” 🌱", "“Eat well, laugh often, be kind.” That's a good plan for any day. 💛", "“Hard work pays off, and so does dessert.” 🍰"]), chips: ["Another quote", "Surprise me"] };
+            if (/^(another quote)/.test(q)) return { t: "“Every great day begins with a good meal.” 🍽️", chips: ["Another quote", "Surprise me"] };
+            if (/(thank you for dining|rate (you|the)|feedback|review|complain|complaint)/.test(q)) return { t: "We'd love your feedback! Please tell your waiter or the manager, and tap “Done dining” when you leave. Thank you! 💛", chips: ["Surprise me"] };
+            if (/(who is (the )?(owner|manager|boss) of (this|the) (hotel|restaurant)|who owns (this|the) (hotel|restaurant))/.test(q)) return { t: "For anything about the hotel or its management, please ask our staff. They'll be glad to help!", chips: ["Surprise me"] };
+            return null;
+        }
+
+        /* ---- UI helpers ---- */
+        function clearChips() { var c = log.querySelectorAll(".chips"); for (var i = 0; i < c.length; i++) c[i].parentNode.removeChild(c[i]); }
         function addMsg(text, who) { var d = document.createElement("div"); d.className = "msg " + who; d.textContent = text; log.appendChild(d); log.scrollTop = log.scrollHeight; return d; }
         function addPicks(list) {
             var wrap = document.createElement("div"); wrap.className = "picks";
@@ -1114,33 +1548,280 @@
                 var c = d.c, img = c.querySelector(".food-image"), b = document.createElement("button");
                 b.type = "button"; b.className = "pick"; b.style.animationDelay = (i * 80) + "ms";
                 var im = document.createElement("img"); im.src = img ? (img.currentSrc || img.src) : ""; im.alt = ""; im.loading = "lazy";
-                var sp = document.createElement("span"); sp.textContent = (c.querySelector("h2") || {}).textContent.trim();
-                var sm = document.createElement("small"); sm.textContent = c.getAttribute("data-category") || ""; sp.appendChild(sm);
+                var sp = document.createElement("span"); sp.textContent = d.name;
+                var sm = document.createElement("small"); sm.textContent = d.cat; sp.appendChild(sm);
                 var em = document.createElement("em"); em.textContent = money(d.price);
                 b.appendChild(im); b.appendChild(sp); b.appendChild(em);
-                b.addEventListener("click", function () { closeAi(); setTimeout(function () { openDish(c); }, 120); });
+                b.addEventListener("click", function () { ctx.dish = d; closeAi(); setTimeout(function () { openDish(c); }, 120); });
                 wrap.appendChild(b);
             });
             log.appendChild(wrap); log.scrollTop = log.scrollHeight;
         }
-        function allData() { return window.__smartFind("").hits; }
-        function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
-        function answer(q) {
-            var low = q.toLowerCase();
-            if (/^(hi|hello|hey|habari|jambo|sasa|good (morning|afternoon|evening))\b/.test(low) && low.split(/\s+/).length < 4) return { t: "Hello and welcome to Magic Mandi & Grill! Tell me what you feel like, for example “something with chicken” or “cold drink under 300”." };
-            if (/(recommend|suggest|surprise|popular|best|special|don'?t know|not sure|anything)/.test(low) && !/under|below|cheap/.test(low)) {
-                var r = shuffle(allData()).slice(0, 3);
-                return { t: "Here are three picks you might love:", picks: r };
-            }
-            var res = window.__smartFind(q);
-            if (!res.anyCriteria) return { t: "Tell me what you feel like. Try a food (chicken, fish, burger), a type (cold drink, dessert, seafood) or a budget (under 500)." };
-            if (!res.hits.length) return { t: "I couldn't find that on our menu. Try another word, a higher budget, or ask me to recommend something." };
-            var n = res.hits.length, shown = res.hits.slice(0, 5);
-            var t = n === 1 ? "I found one dish for you:" : (n > 5 ? "I found " + n + " dishes. Here are the first 5:" : "I found " + n + " dishes for you:");
-            return { t: t, picks: shown };
+        function addChips(list) {
+            if (!list || !list.length) return;
+            var w = document.createElement("div"); w.className = "chips";
+            list.forEach(function (t) {
+                var b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = t;
+                b.addEventListener("click", function () { ask(t); });
+                w.appendChild(b);
+            });
+            log.appendChild(w); log.scrollTop = log.scrollHeight;
         }
+
+        /* ---- turn a list into an answer, remembering it so "more" / "cheaper" work ---- */
+        function listAnswer(list, intro, noneText) {
+            var before = list.length; list = av(list);
+            if (before && !list.length) return { t: "Everything I found contains " + ctx.avoid.join(" / ") + ", which you asked me to skip. Say “reset” if you want to see it anyway.", chips: ["Reset", "Surprise me"] };
+            if (ctx.avoid.length && list.length < before && intro) intro += " (skipping " + ctx.avoid.join(", ") + ")";
+            if (!list.length) return { t: noneText, chips: ["Surprise me", "Under 500", "Cold drink"] };
+            ctx.list = list; ctx.pos = 0;
+            return page(intro);
+        }
+        function page(intro) {
+            var shown = ctx.list.slice(ctx.pos, ctx.pos + PAGE);
+            ctx.pos += shown.length; ctx.last = shown;
+            if (shown.length) ctx.dish = shown[0];
+            var left = ctx.list.length - ctx.pos, chips = [];
+            if (left > 0) chips.push(say("Show more", "Zaidi"));
+            chips.push(say("Cheaper", "Bei nafuu zaidi"), say("Something else", "Kitu kingine"));
+            if (shown.length && !shown[0].drink) chips.push(say("What goes with it?", "Nini kinaenda nayo?"));
+            var t = intro || (ctx.list.length > shown.length ? "I found " + ctx.list.length + " dishes. Here are the first " + shown.length + ":" : "Here you go:");
+            return { t: t, picks: shown, chips: chips };
+        }
+
+        /* ---- the brain ---- */
+        function answer(raw) {
+            var low = raw.toLowerCase().replace(/[’`]/g, "'").trim();
+            ctx.sw = SWWORDS.test(low);
+            var q = swapSw(low);
+
+            /* --- remember foods to skip --- */
+            if (/^(reset|clear|forget (that|it|everything)|start over|show everything)\b/.test(q)) { ctx.avoid = []; ctx.list = []; ctx.last = []; ctx.pos = 0; return { t: "Done, I'm showing everything again.", chips: ["Surprise me", "Under 500"] }; }
+            var nm = low.match(/(?:my name is|call me|i am called|name'?s)\s+([a-z]{2,15})/);
+            if (nm) { ctx.name = nm[1].charAt(0).toUpperCase() + nm[1].slice(1); return { t: "Nice to meet you, " + ctx.name + "! What would you like today?", chips: ["Surprise me", "Under 500", "For 4 people with 3000"] }; }
+            var av0 = q.match(/(?:\bno|without|except|excluding|don'?t (?:eat|like|want|take)|do not (?:eat|like|want)|dont (?:eat|like|want)|allergic to|avoid|hate|i can'?t eat|cannot eat)\s+([a-z ]{3,24}?)(?=$|\s(?:and|but|please|for|under|below|with|dishes|food|anything)\b|[,.!?])/);
+            if (av0) {
+                var words = av0[1].split(/\s+/).filter(function (w) { return w.length > 2 && ["thanks", "thank", "problem", "worries", "more", "one", "spicy", "too", "much", "sugar", "the", "any", "all", "other", "else", "nothing"].indexOf(w) < 0; });
+                if (words.length) {
+                    words = words.map(function (w) { return w.replace(/(ies)$/, "y").replace(/s$/, ""); });
+                    words.forEach(function (w) { if (ctx.avoid.indexOf(w) < 0) ctx.avoid.push(w); });
+                    var allergy = /allerg/.test(q);
+                    var rest0 = q.replace(av0[0], " ").replace(/\s+/g, " ").trim();
+                    var msg = "Okay, I'll skip " + ctx.avoid.join(", ") + " from now on." + (allergy ? " For an allergy, please also tell your waiter, because I can only check dish names and descriptions." : "");
+                    if (!rest0 || !/[a-z]{3,}/.test(rest0.replace(/\b(please|for|me|and|but|show|give|something|anything|else|i|want|like|need|can|you|have|any|dish|dishes|food)\b/g, ""))) return { t: msg, chips: ["Surprise me", "Under 500", "Reset"] };
+                    q = rest0;
+                }
+            }
+            if (/\b(vegetarian|veggie|no meat|meatless|without meat)\b/.test(q) && !/\bveg(etable)?s?\b salad/.test(q)) {
+                var vg = av(all).filter(function (d) { return !d.drink && !MEATRE.test(d.nlow + " " + d.desc.toLowerCase()); });
+                return listAnswer(vg, "No meat or fish in these (check with your waiter if it is strict):", "I couldn't find meat-free dishes in the names and descriptions.");
+            }
+
+            /* --- questions about the restaurant, not the food --- */
+            if (/\b(waiter|waitress|server|staff|bill|pay|payment|mpesa|m-pesa|card|order|place an order|book|reserve|reservation|wifi|wi-fi|toilet|washroom|parking|opening|closing|open hours|location|where are you)\b/.test(q) && !/\b(how much|price)\b/.test(q))
+                return { t: say("I can't take orders or answer about payments, bookings or opening hours, but our staff can. Please call a waiter at your table. I'm best at choosing what to eat!", "Siwezi kuchukua oda wala kujibu kuhusu malipo au muda wa kufungua. Tafadhali mwite mhudumu. Mimi ni mzuri wa kukusaidia kuchagua chakula!"), chips: ["Surprise me", "Under 500"] };
+            if (/\b(halal|pork|alcohol|beer|wine)\b/.test(q)) return { t: "I can't confirm that for sure. Please ask our staff, and I'll help with everything else.", chips: ["Surprise me", "Under 500"] };
+            if (/(how many (dishes|items|foods)|how big is the menu|number of dishes)/.test(q)) return { t: "There are " + all.length + " dishes in " + cats.length + " sections.", chips: shuffle(cats).slice(0, 4) };
+            if (/(categories|sections|what do you (have|sell|serve)|show (me )?the menu|what('?s| is) on the menu|menu list)/.test(q)) return { t: "Our sections: " + cats.join(", ") + ". Say a section name and I'll list it.", chips: shuffle(cats).slice(0, 4) };
+            if (/(sort|order) (by )?(price|cheapest|lowest)|lowest first|cheapest first/.test(q) && ctx.list.length) { ctx.list = ctx.list.slice().sort(function (a, b) { return a.price - b.price; }); ctx.pos = 0; return page("Lowest price first:"); }
+            if (/(highest first|most expensive first|sort (by )?(highest|expensive))/.test(q) && ctx.list.length) { ctx.list = ctx.list.slice().sort(function (a, b) { return b.price - a.price; }); ctx.pos = 0; return page("Highest price first:"); }
+
+
+            /* ====== general chat: the assistant can talk about more than food ====== */
+            var T = talkAnswer(q, low);
+            if (T) return T;
+
+            /* --- compare two dishes --- */
+            var cmp = q.match(/(?:compare\s+)?(.{3,30}?)\s+(?:vs\.?|versus|or|compared to|and)\s+(.{3,30})/);
+            if (cmp && /(compare|vs|versus|better|difference|which|or)/.test(q)) {
+                var A = findDishes(cmp[1])[0], B = findDishes(cmp[2])[0];
+                if (A && B && A !== B) {
+                    var diff = Math.abs(A.price - B.price), cheaper = A.price <= B.price ? A : B;
+                    ctx.list = [A, B]; ctx.pos = 2; ctx.last = [A, B]; ctx.dish = A;
+                    return { t: A.name + ": " + money(A.price) + (A.desc ? ". " + A.desc : "") + "\n\n" + B.name + ": " + money(B.price) + (B.desc ? ". " + B.desc : "") + "\n\n" + (diff ? cheaper.name + " is " + money(diff) + " cheaper." : "They cost the same."), picks: [A, B], chips: ["Cheaper", "Surprise me"] };
+                }
+            }
+
+            /* --- "how much is it" about the dish we just talked about --- */
+            if (/\b(how much|price|cost|bei)\b.*\b(it|this|that|one)\b|^(and )?(the )?price\??$/.test(q) && ctx.dish) return { t: ctx.dish.name + " costs " + money(ctx.dish.price) + ".", picks: [ctx.dish], chips: ["What goes with it?", "Cheaper"] };
+
+            /* --- price ranges --- */
+            var rg = q.match(/between\s*(?:ksh\s*)?(\d{2,6})\s*(?:and|to|-)\s*(?:ksh\s*)?(\d{2,6})/) || q.match(/(\d{2,6})\s*(?:-|to)\s*(\d{2,6})/);
+            var ab = q.match(/(?:above|over|more than|at least|from|starting at)\s*(?:ksh\s*)?(\d{2,6})/);
+            if (rg || ab) {
+                var lo = rg ? Math.min(+rg[1], +rg[2]) : +ab[1], hi = rg ? Math.max(+rg[1], +rg[2]) : 0;
+                var restq = q.replace((rg || ab)[0], " ").replace(/\s+/g, " ").trim(), pr = restq ? window.__smartFind(restq) : null;
+                var base2 = pr && pr.anyCriteria ? pr.hits : all;
+                var inr = between(base2, lo, hi).sort(function (a, b) { return a.price - b.price; });
+                return listAnswer(inr, rg ? "Between " + money(lo) + " and " + money(hi) + ":" : "From " + money(lo) + " and up:", "Nothing in that price range. Try a wider range.");
+            }
+
+            /* --- two things at once: "chicken and a juice" --- */
+            if (/(\band\b|&|\+|,|\bplus\b|\bpamoja na\b)/.test(q) && !/\b(vs|versus|compare)\b/.test(q) && !/\bpeople\b/.test(q)) {
+                var parts = q.split(/\band\b|&|\+|,|\bplus\b|\bpamoja na\b/).map(function (x) { return x.replace(/\b(a|an|some|the|with|me|give|i|want|need|please|something)\b/g, " ").replace(/\s+/g, " ").trim(); }).filter(function (x) { return x.length > 2; });
+                if (parts.length >= 2) {
+                    var groups = [], picksM = [], okAll = true;
+                    parts.forEach(function (pt) { var r = window.__smartFind(pt); var hh = av(r.hits); if (r.anyCriteria && hh.length) { groups.push({ w: pt, hits: hh }); } else okAll = false; });
+                    if (okAll && groups.length >= 2) {
+                        var txt = [];
+                        groups.forEach(function (g) { var top = g.hits.slice(0, 3); txt.push(g.w + ": " + top.map(pickLine).join(", ") + (g.hits.length > 3 ? " (+" + (g.hits.length - 3) + " more)" : "")); top.forEach(function (d) { picksM.push(d); }); });
+                        ctx.list = picksM; ctx.pos = picksM.length; ctx.last = picksM; ctx.dish = picksM[0];
+                        return { t: "Here is something for each:\n" + txt.join("\n"), picks: picksM, chips: ["Cheaper", "Something else"] };
+                    }
+                }
+            }
+            var hr = kenyaHour();
+
+            if (/^(thanks|thank you|thx|asante|ty|cheers|appreciate)/.test(q) || /^thanks/.test(low)) return { t: say("You're welcome! Enjoy your meal 🍽️ Tap “Done dining” when you finish.", "Karibu sana! Furahia chakula chako 🍽️"), chips: ["Surprise me", "Dessert"] };
+            if (/^(bye|goodbye|see you|later)/.test(q)) return { t: say("Goodbye, and thank you for dining with us!", "Kwaheri, karibu tena!") };
+            if (/^(hi|hello|hey|yo|good (morning|afternoon|evening))\b/.test(q) && q.split(/\s+/).length < 4) {
+                var g = hr < 12 ? "Good morning" : hr < 17 ? "Good afternoon" : "Good evening";
+                return { t: say(g + "! What are you in the mood for?", "Karibu! Unataka nini leo?"), chips: ["Surprise me", "Under 500", "Something spicy", "For 4 people"] };
+            }
+            if (/(who (made|created|built|designed|developed|owns|owner|programmed|is behind)|who(?:'s| is) your (creator|owner|maker|developer)|your (creator|owner|maker|developer)|made you|created you|built you|what is debasa|who is debasa|\bdebasa\b|aliyekutengeneza|nani alikutengeneza|nani amekutengeneza|mmiliki)/.test(q) && !/(price|how much)/.test(q))
+                return { t: say("I was created by DEBASA, the owner and creator of this whole system: the QR digital menu and me, your menu assistant. DEBASA built it for Magic Mandi & Grill Hotel.", "Nilitengenezwa na DEBASA, mmiliki na mbunifu wa mfumo huu wote: menyu ya QR na mimi, msaidizi wako wa menyu. DEBASA aliutengeneza kwa ajili ya Magic Mandi & Grill Hotel."), chips: ["Surprise me", "Under 500"] };
+            if (/^(who are you|what are you|your name|who r u)/.test(q)) return { t: say("I'm the Magic Mandi menu assistant, created by DEBASA. Ask me about any dish, price or budget.", "Mimi ni msaidizi wa menyu ya Magic Mandi, nilitengenezwa na DEBASA."), chips: ["Surprise me", "Under 500"] };
+            if (/(what can you|how do you work|help me|^help$|what do you do)/.test(q)) return { t: "I can find dishes by food, type or budget (“chicken under 800”), plan a meal for a group (“for 4 people with 3000”), tell you the price or what is in a dish, and suggest what goes with it. I also understand Swahili.", chips: ["Surprise me", "For 4 people with 3000", "Something spicy"] };
+
+            /* follow ups that use the chat memory */
+            if (/^(more|show more|next|zaidi|others|other ones|anything else|keep going)\b/.test(q)) {
+                if (ctx.pos < ctx.list.length) return page(say("Here are more:", "Hizi hapa zaidi:"));
+                return { t: say("That's everything for that search. Want something different?", "Hiyo ndiyo yote. Unataka kitu kingine?"), chips: ["Surprise me", "Dessert", "Cold drink"] };
+            }
+            if (/(cheaper|less expensive|lower price|cheap one|more affordable|nafuu zaidi)/.test(q) && ctx.last.length) {
+                var mn = Math.min.apply(null, ctx.last.map(function (d) { return d.price; }));
+                var pool = (ctx.list.length ? ctx.list : all).filter(function (d) { return d.price < mn; }).sort(function (a, b) { return b.price - a.price; });
+                if (!pool.length) return { t: say("Those are already the lowest prices for that. Want me to look at something else?", "Hizo ndizo bei za chini zaidi."), chips: ["Under 500", "Something else"] };
+                ctx.list = pool; ctx.pos = 0; return page(say("Cheaper options:", "Bei nafuu zaidi:"));
+            }
+            if (/(more expensive|pricier|premium|something better|upgrade|bigger|ghali zaidi)/.test(q) && ctx.last.length) {
+                var mx = Math.max.apply(null, ctx.last.map(function (d) { return d.price; }));
+                var pool2 = (ctx.list.length ? ctx.list : all).filter(function (d) { return d.price > mx; }).sort(function (a, b) { return a.price - b.price; });
+                if (pool2.length) { ctx.list = pool2; ctx.pos = 0; return page(say("A step up:", "Kiwango cha juu:")); }
+            }
+            if (/(something else|different|another one|another|other option|try another|kitu kingine)/.test(q)) {
+                var base = ctx.list.length > 8 ? ctx.list : all;
+                var seen = ctx.last, fresh = shuffle(base.filter(function (d) { return seen.indexOf(d) < 0; })).slice(0, 4);
+                ctx.list = fresh; ctx.pos = 0; return page(say("How about these?", "Vipi hizi?"));
+            }
+            if (/(go with|goes with|pair|match with|side|to drink with|with it|nini kinaenda|accompan)/.test(q) && ctx.dish) {
+                var d0 = ctx.dish, extra = [];
+                var dr = shuffle(drinks.filter(function (d) { return d !== d0; })).slice(0, 2);
+                var sw = shuffle(av(sweets)).slice(0, 1);
+                extra = d0.drink ? sw.concat(shuffle(av(mains)).slice(0, 2)) : dr.concat(sw);
+                if (extra.length) { ctx.list = extra; ctx.pos = 0; ctx.last = extra; return { t: "With " + d0.name + " I'd go for:", picks: extra, chips: ["Surprise me", "Cheaper"] }; }
+            }
+
+            /* price / description of one dish */
+            var pm = q.match(/(?:how much (?:is|are|for)?|price (?:of|for)?|cost of|bei)\s+(?:the\s+)?(.+)/);
+            if (pm) { var f = findDishes(pm[1]); if (f.length) { ctx.dish = f[0]; ctx.last = [f[0]]; return { t: f[0].name + " costs " + money(f[0].price) + ".", picks: f.slice(0, 2), chips: ["What goes with it?", "Cheaper"] }; } }
+            var dm = q.match(/(?:what(?:'s| is| are)|tell me about|describe|explain|about|what is in|ingredients of)\s+(?:the\s+)?(.+)/);
+            if (dm) { var f2 = findDishes(dm[1]); if (f2.length) { ctx.dish = f2[0]; ctx.last = [f2[0]]; var ds = f2[0].desc && f2[0].desc.length > 8 ? f2[0].desc : "A freshly prepared house favourite."; return { t: f2[0].name + ": " + ds + " (" + money(f2[0].price) + ")", picks: [f2[0]], chips: ["What goes with it?", "Cheaper", "Surprise me"] }; } }
+
+            /* numbers: group size and budget */
+            var N = parseNums(q);
+
+            if (N.people >= 1 && (N.budget || /(meal|plan|eat|food|dinner|lunch|share|group|family|table|party)/.test(q) || N.people > 1)) {
+                var people = N.people, mainsPool = av(mains).filter(function (d) { return d.price > 0; });
+                if (!mainsPool.length) mainsPool = all;
+                var per = N.budget ? N.budget / people : 0, combos = [];
+                var tries = shuffle(mainsPool);
+                for (var i = 0; i < tries.length && combos.length < 3; i++) {
+                    var m = tries[i], dk = shuffle(av(drinks)).filter(function (x) { return !per || m.price + x.price <= per; })[0] || null;
+                    var cost = m.price + (dk ? dk.price : 0);
+                    if (per && cost > per * 1.02) continue;
+                    combos.push({ m: m, dk: dk, cost: cost });
+                }
+                if (!combos.length) {
+                    var cheap = byPrice.filter(function (d) { return d.main; })[0];
+                    return { t: "That budget is a bit tight for " + people + " people. The lowest priced main dish is " + (cheap ? cheap.name + " at " + money(cheap.price) : "on the menu") + " each. Try a higher budget or fewer people.", chips: ["Under 500", "Surprise me"] };
+                }
+                var lines = [], picks = [];
+                combos.forEach(function (c, ix) {
+                    lines.push("Option " + (ix + 1) + ": " + c.m.name + (c.dk ? " + " + c.dk.name : "") + " = " + money(c.cost) + " each, " + money(c.cost * people) + " for " + people);
+                    picks.push(c.m); if (c.dk) picks.push(c.dk);
+                });
+                ctx.list = picks; ctx.pos = picks.length; ctx.last = picks; ctx.dish = picks[0];
+                return { t: (N.budget ? "For " + people + " people with " + money(N.budget) + " (about " + money(Math.floor(per)) + " each):\n" : "A meal plan for " + people + " people:\n") + lines.join("\n"), picks: picks, chips: ["Something else", "Cheaper", "Add dessert"] };
+            }
+            if (/add dessert|dessert for|and dessert/.test(q) && !N.budget) { var ds2 = shuffle(av(sweets)).slice(0, 3); if (ds2.length) { ctx.list = ds2; ctx.pos = ds2.length; ctx.last = ds2; return { t: "Sweet endings:", picks: ds2, chips: ["Surprise me", "Cold drink"] }; } }
+
+            /* surprise / recommend / time of day */
+            if (/(recommend|suggest|surprise|popular|special|don'?t know|not sure|chef|what should i|what do you|anything good|ushauri)/.test(q) && !N.budget && !/under|below|cheap/.test(q)) {
+                var rec = shuffle(av(mains)).slice(0, 2).concat(shuffle(av(drinks)).slice(0, 1));
+                if (hr >= 17 && sweets.length) rec.push(pick1(sweets));
+                ctx.list = rec; ctx.pos = rec.length; ctx.last = rec; ctx.dish = rec[0];
+                return { t: (hr < 11 ? "A good start to the day:" : hr < 16 ? "Great for lunch:" : "Perfect for tonight:"), picks: rec, chips: ["Something else", "Cheaper", "Something spicy"] };
+            }
+            if (/\b(breakfast|morning)\b/.test(q) && !N.budget) { var bf = all.filter(function (d) { return /egg|pancake|sandwich|coffee|tea|juice|toast|omelet|smoothie|chapati/.test(d.nlow + " " + d.catl); }); return listAnswer(bf, "For breakfast:", "I don't see breakfast items on our menu. Try asking for coffee, tea or juice."); }
+            if (/\b(lunch|dinner|supper|full meal|heavy|filling|hungry|very hungry|njaa)\b/.test(q) && !N.budget) { var fm = mains.filter(function (d) { return /mandi|biryani|rice|beef|chicken|mutton|goat|lamb|pizza|burger|pasta|steak|ribs|platter/.test(d.nlow + " " + d.catl); }); return listAnswer(shuffle(fm.length ? fm : mains), "Filling choices:", "Let me look again. Try “chicken” or “mandi”."); }
+
+            /* cheapest / most expensive (optionally for a food word) */
+            var sup = q.match(/\b(cheapest|lowest price|least expensive|most affordable|most expensive|priciest|highest price|top dish|luxury)\b/);
+            if (sup) {
+                var rest = q.replace(sup[0], " ").trim(), res = window.__smartFind(rest), pool3 = rest && res.anyCriteria ? res.hits : all;
+                pool3 = pool3.slice().sort(function (a, b) { return a.price - b.price; });
+                if (/expensive|priciest|highest|luxury|top/.test(sup[0])) pool3.reverse();
+                return listAnswer(pool3.slice(0, 5), (/cheap|lowest|least|affordable/.test(sup[0]) ? "The most affordable" : "The most premium") + (rest ? " " + rest : "") + ":", "I couldn't find that. Try another food word.");
+            }
+
+            /* category browse */
+            for (var ci = 0; ci < cats.length; ci++) {
+                var cl = cats[ci].toLowerCase().replace(/[^a-z0-9 ]/g, "").trim();
+                if (cl.length > 2 && (q === cl || q === cl + "s" || q.indexOf(cl) === 0 && q.split(" ").length <= 3 && !N.budget)) {
+                    var inCat = all.filter(function (d) { return d.cat === cats[ci]; });
+                    return listAnswer(inCat, say("From " + cats[ci] + ":", "Kutoka " + cats[ci] + ":"), "That section is empty right now.");
+                }
+            }
+
+            /* spicy / mild / kids / sharing */
+            if (/\b(spicy|hot and spicy)\b/.test(q) && !/\bcold\b/.test(q)) { var sp = all.filter(function (d) { return /spicy|chilli|chili|pepper|peri|curry|hot/.test(d.nlow + " " + d.desc.toLowerCase()) && !d.drink; }); if (N.budget) sp = sp.filter(function (d) { return d.price <= N.budget; }); return listAnswer(sp, "With a kick:", "Nothing spicy matched. Try “chicken” or “curry”."); }
+            if (/\b(mild|not spicy|no spice|plain)\b/.test(q)) return listAnswer(shuffle(mains.filter(function (d) { return !/spicy|chilli|chili|pepper|peri|hot/.test(d.nlow + " " + d.desc.toLowerCase()); })).slice(0, 8), "Gentle on the tongue:", "Let me think again. Try “chicken” or “rice”.");
+            if (/\b(kids?|child|children|toddler|watoto|mtoto)\b/.test(q)) { var kd = all.filter(function (d) { return /kid|nugget|fries|pizza|burger|pancake|ice cream|juice|milkshake|sausage/.test(d.nlow + " " + d.catl); }); return listAnswer(kd, "Kid friendly:", "Try fries, nuggets, juice or ice cream."); }
+            if (/\b(share|sharing|platter|family)\b/.test(q)) { var sh = all.filter(function (d) { return /platter|family|mandi|sharing|large|whole|combo/.test(d.nlow + " " + d.catl); }); if (sh.length) return listAnswer(sh, "Great for sharing:", ""); }
+
+            /* general search with budget, group-free */
+            var qq = N.q + (N.budget ? " under " + N.budget : "");
+            var found = window.__smartFind(qq);
+            if (found.anyCriteria && found.hits.length) {
+                var intro = found.hits.length === 1 ? "I found one dish for you:" : "I found " + found.hits.length + " dishes for you:";
+                return listAnswer(found.hits, say(intro, "Nimepata:"), "");
+            }
+
+            /* nothing matched: try the dish name with typos, then loosen the budget */
+            if (N.budget && N.q) {
+                var lo = window.__smartFind(N.q);
+                if (lo.anyCriteria && lo.hits.length) { var near = lo.hits.slice().sort(function (a, b) { return a.price - b.price; }).slice(0, 3); return listAnswer(near, "Nothing for " + money(N.budget) + " or less, but the closest are:", ""); }
+            }
+            var fz = findDishes(N.q || q);
+            if (fz.length && !N.budget) return listAnswer(fz, "Did you mean one of these?", "");
+            if (/^(who|what|why|when|where|how|can|could|do|does|did|is|are|will|which|tell|explain)\b/.test(q) && q.split(/\s+/).length >= 3)
+                return { t: say("Good question! I don't know that one, because I'm built mainly to help with this menu. But I can chat, tell jokes and riddles, do quick maths, split a bill, teach Swahili, or find you something delicious.", "Swali zuri! Sijui jibu hilo, kwa sababu nimetengenezwa hasa kusaidia na menyu hii. Lakini naweza kuzungumza, kutania, kuhesabu, na kukusaidia kuchagua chakula."), chips: ["Tell me a joke", "Teach me Swahili", "Surprise me"] };
+            var cc = shuffle(cats).slice(0, 3);
+            return { t: say("I couldn't find that on our menu. Try a food word (chicken, fish, burger), a type (cold drink, dessert), a budget (under 500) or say “for 4 people with 3000”.", "Samahani, sijapata hicho. Jaribu kuku, samaki, au bei kama “under 500”."), chips: ["Surprise me"].concat(cc) };
+        }
+
+        function ask(text) {
+            clearChips();
+            addMsg(text, "me");
+            var tp = addMsg("", "bot"); tp.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
+            setTimeout(function () {
+                var a;
+                try { a = answer(text); } catch (e) { a = { t: "Sorry, I got confused. Try asking another way, for example “chicken under 800”.", chips: ["Surprise me"] }; }
+                tp.textContent = a.t; tp.style.whiteSpace = "pre-line";
+                if (a.picks) addPicks(a.picks);
+                addChips(a.chips);
+                log.scrollTop = log.scrollHeight;
+            }, 450 + Math.min(500, text.length * 12));
+        }
+
         function openAi() {
-            if (!started) { started = true; addMsg("Hi! I'm the Magic Mandi menu assistant. Tell me what you feel like and I'll find it for you.", "bot"); }
+            if (!started) {
+                started = true;
+                var hr = kenyaHour(), g = hr < 12 ? "Good morning" : hr < 17 ? "Good afternoon" : "Good evening";
+                addMsg("I'm the Magic Mandi menu assistant 👋", "bot");
+                addChips(["Surprise me", "Under 500", "Something spicy"]);
+            }
             if (!back.classList.contains("open")) lock();
             back.classList.add("open");
             setTimeout(function () { try { input.focus(); } catch (e) {} }, 300);
@@ -1153,15 +1834,502 @@
         form.addEventListener("submit", function (e) {
             e.preventDefault();
             var q = input.value.trim(); if (!q) return;
-            input.value = ""; addMsg(q, "me");
-            var tp = addMsg("", "bot"); tp.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
-            setTimeout(function () {
-                var a = answer(q);
-                tp.textContent = a.t;
-                if (a.picks) addPicks(a.picks);
-                log.scrollTop = log.scrollHeight;
-            }, 650);
+            input.value = ""; ask(q);
         });
+        window.__aiAsk = ask;
+    })();
+
+
+    /* ===== hologram + "on my table" viewer (works from the dish photo, no 3D files needed) ===== */
+    (function () {
+        var xr = document.getElementById("xr"), priceEl = document.getElementById("dishPrice");
+        if (!xr || !priceEl) return;
+        var video = document.getElementById("xrVideo"), fx = document.getElementById("xrFx"), fctx = fx.getContext("2d");
+        var disc = document.getElementById("xrDisc"), sc = document.getElementById("xrSc"), flat = document.getElementById("xrFlat");
+        var hint = document.getElementById("xrHint"), msg = document.getElementById("xrMsg"), table = document.getElementById("xrTable");
+        var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var mode = "holo", isOpen = false, data = {}, raf = 0, stream = null, t0 = 0, hintTimer = 0;
+        var dragRY = 0, dragRX = 0, tiltX = 0, tiltY = 0, tgtX = 0, tgtY = 0, baseB = null, baseG = null, listening = false;
+        var tx = 0, ty = 0, sScale = 1, ptrs = {}, pinch0 = 0, scale0 = 1, dragging = false;
+        var parts = [], PN = (navigator.hardwareConcurrency || 4) <= 4 ? 22 : 44;
+
+        /* buttons inside the dish sheet */
+        var row = document.createElement("div"); row.className = "xr-row";
+        row.innerHTML = '<button type="button" class="xr-go" data-m="holo">✨ See it as a hologram</button><button type="button" class="xr-go t" data-m="table">📷 See it on my table</button>';
+        priceEl.parentNode.insertBefore(row, priceEl.nextSibling);
+        row.addEventListener("click", function (e) { var b = e.target.closest(".xr-go"); if (b) openXr(b.getAttribute("data-m")); });
+
+        function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+        function urlOf(s) { return "url(" + JSON.stringify(s) + ")"; }
+        function readDish() {
+            return { src: document.getElementById("dishImg").src, name: (document.getElementById("dishName").textContent || "").trim(), cat: (document.getElementById("dishCat").textContent || "").trim(), price: (document.getElementById("dishPrice").textContent || "").trim() };
+        }
+        function buildDisc() {
+            var h = "", i;
+            for (i = 5; i >= 1; i--) h += '<div class="l b" style="background-image:' + urlOf(data.src).replace(/"/g, "&quot;") + ';transform:translateZ(' + (-i * 5) + 'px)"></div>';
+            h += '<div class="l f" style="background-image:' + urlOf(data.src).replace(/"/g, "&quot;") + '"></div><div class="sheen" style="transform:translateZ(3px)"></div><div class="scan" style="transform:translateZ(4px)"></div>';
+            disc.innerHTML = h;
+            flat.style.backgroundImage = urlOf(data.src);
+            document.getElementById("xrCat").textContent = data.cat;
+            document.getElementById("xrName").textContent = data.name;
+            document.getElementById("xrPrice").textContent = data.price;
+            document.getElementById("xrName2").textContent = data.name;
+            document.getElementById("xrPrice2").textContent = data.price;
+        }
+        function size() { var d = Math.min(window.devicePixelRatio || 1, 1.5); fx.width = Math.round(innerWidth * d); fx.height = Math.round(innerHeight * d); fctx.setTransform(d, 0, 0, d, 0, 0); }
+        function seed() { parts = []; for (var i = 0; i < PN; i++) parts.push({ u: Math.random(), y: Math.random(), v: .05 + Math.random() * .12, r: .6 + Math.random() * 1.8, o: Math.random() * 6.28 }); }
+        function showHint(t) { hint.textContent = t; hint.style.opacity = 1; clearTimeout(hintTimer); hintTimer = setTimeout(function () { hint.style.opacity = 0; }, 5200); }
+
+        /* motion sensor (tilt the phone and the scene follows) */
+        function onOri(e) {
+            if (e.beta == null) return;
+            if (baseB === null) { baseB = e.beta; baseG = e.gamma; }
+            tgtX = clamp(e.beta - baseB, -28, 28); tgtY = clamp(e.gamma - baseG, -28, 28);
+        }
+        function listen() { if (listening) return; listening = true; window.addEventListener("deviceorientation", onOri); }
+        function askMotion() {
+            var D = window.DeviceOrientationEvent;
+            if (D && typeof D.requestPermission === "function") { D.requestPermission().then(function (r) { if (r === "granted") listen(); }).catch(function () {}); }
+            else if (D) listen();
+        }
+
+        /* camera */
+        function startCam() {
+            if (stream) return Promise.resolve();
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return Promise.reject(new Error("nocam"));
+            return navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false }).then(function (s) {
+                stream = s; video.srcObject = s; var p = video.play(); if (p && p.catch) p.catch(function () {});
+            });
+        }
+        function stopCam() { if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; } video.srcObject = null; }
+
+        function setMode(m) {
+            msg.style.display = "none";
+            if (m === "table") {
+                startCam().then(function () {
+                    mode = "table"; xr.className = "xr open m-table"; sync(); resetTable();
+                    showHint("Point at your table. Drag the dish to move it, pinch to resize it.");
+                }).catch(function () {
+                    mode = "holo"; xr.className = "xr open m-holo"; sync();
+                    msg.innerHTML = "We couldn't open your camera.<br>Please allow camera access in your browser, then try again.<br><button type=\"button\" id=\"xrRetry\">Try again</button>";
+                    msg.style.display = "block";
+                    document.getElementById("xrRetry").onclick = function () { setMode("table"); };
+                });
+            } else {
+                stopCam(); mode = "holo"; xr.className = "xr open m-holo"; sync();
+                showHint("Drag to turn the dish. Tilt your phone to look around it.");
+            }
+        }
+        function sync() { var bs = xr.querySelectorAll(".xr-modes button"); for (var i = 0; i < bs.length; i++) bs[i].classList.toggle("on", bs[i].getAttribute("data-m") === mode); }
+        function resetTable() { tx = 0; ty = 0; sScale = Math.min(1, innerWidth * .72 / 300); applyTable(0, 0); }
+        function applyTable(px, py) { sc.style.transform = "translate(" + (tx + px) + "px," + (ty + py) + "px) scale(" + sScale + ")"; }
+
+        function openXr(m) {
+            data = readDish(); if (!data.src) return;
+            buildDisc(); size(); seed(); baseB = null; dragRX = 0; dragRY = 0; tiltX = tiltY = tgtX = tgtY = 0;
+            if (!isOpen) { isOpen = true; lock(); }
+            xr.className = "xr open m-holo"; mode = "holo"; sync();
+            askMotion();
+            t0 = performance.now(); cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
+            setMode(m === "table" ? "table" : "holo");
+        }
+        function closeXr() {
+            if (!isOpen) return; isOpen = false; cancelAnimationFrame(raf); stopCam();
+            xr.className = "xr m-holo"; unlock();
+        }
+
+        function frame(ts) {
+            if (!isOpen) return;
+            raf = requestAnimationFrame(frame);
+            var t = (ts - t0) / 1000, W = innerWidth, H = innerHeight;
+            tiltX += (tgtX - tiltX) * .08; tiltY += (tgtY - tiltY) * .08;
+            if (!dragging) { dragRY *= .96; dragRX *= .96; }
+            fctx.clearRect(0, 0, W, H);
+            if (mode === "holo") {
+                var auto = reduce ? 0 : Math.sin(t * .9) * 24, bob = reduce ? 0 : Math.sin(t * 1.6) * 9;
+                disc.style.transform = "translateY(" + bob.toFixed(1) + "px) rotateX(" + (16 + dragRX + tiltX * .6).toFixed(1) + "deg) rotateY(" + (auto + dragRY + tiltY * .9).toFixed(1) + "deg)";
+                var top = H * .3, bot = H * .84;
+                for (var i = 0; i < parts.length; i++) {
+                    var p = parts[i]; p.y -= p.v * .016; if (p.y < 0) { p.y = 1; p.u = Math.random(); }
+                    var py = bot - (bot - top) * (1 - p.y), spread = (.05 + .17 * (1 - p.y)) * W, px = W / 2 + (p.u - .5) * 2 * spread + Math.sin(t + p.o) * 6;
+                    fctx.globalAlpha = (.15 + .6 * p.y) * (.6 + .4 * Math.sin(t * 3 + p.o));
+                    fctx.fillStyle = "#8ff8ff"; fctx.beginPath(); fctx.arc(px, py, p.r, 0, 6.283); fctx.fill();
+                }
+                fctx.globalAlpha = 1;
+            } else {
+                applyTable(-tiltY * 3.2, -tiltX * 2.4);
+            }
+        }
+
+        /* touch: drag + pinch */
+        function ptrCount() { var n = 0; for (var k in ptrs) n++; return n; }
+        function dist() { var a = []; for (var k in ptrs) a.push(ptrs[k]); return a.length > 1 ? Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) : 0; }
+        xr.addEventListener("pointerdown", function (e) {
+            if (e.target.closest(".xr-top, .xr-snap, .xr-msg")) return;
+            ptrs[e.pointerId] = { x: e.clientX, y: e.clientY }; dragging = true;
+            if (ptrCount() === 2) { pinch0 = dist(); scale0 = sScale; }
+            try { xr.setPointerCapture(e.pointerId); } catch (x) {}
+        });
+        xr.addEventListener("pointermove", function (e) {
+            var p = ptrs[e.pointerId]; if (!p) return;
+            var dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
+            if (mode === "holo") { dragRY = clamp(dragRY + dx * .45, -70, 70); dragRX = clamp(dragRX + dy * .25, -25, 25); }
+            else if (ptrCount() === 2 && pinch0) { sScale = clamp(scale0 * dist() / pinch0, .35, 2.4); }
+            else { tx += dx; ty += dy; }
+        });
+        function up(e) { delete ptrs[e.pointerId]; if (!ptrCount()) dragging = false; }
+        xr.addEventListener("pointerup", up); xr.addEventListener("pointercancel", up);
+
+        document.getElementById("xrClose").addEventListener("click", closeXr);
+        document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeXr(); });
+        xr.querySelector(".xr-modes").addEventListener("click", function (e) { var b = e.target.closest("button"); if (b && b.getAttribute("data-m") !== mode) setMode(b.getAttribute("data-m")); });
+        window.addEventListener("resize", function () { if (isOpen) size(); });
+        document.addEventListener("visibilitychange", function () { if (document.hidden && isOpen && mode === "table") { /* keep camera, nothing to do */ } });
+
+        /* photo of the dish on your table (share to WhatsApp / social, free advertising for the hotel) */
+        document.getElementById("xrSnap").addEventListener("click", function () {
+            var vw = video.videoWidth, vh = video.videoHeight; if (!vw) return;
+            var W = innerWidth, H = innerHeight, k = Math.min(2, 1080 / W), cv = document.createElement("canvas");
+            cv.width = Math.round(W * k); cv.height = Math.round(H * k);
+            var c = cv.getContext("2d"); c.scale(k, k);
+            var s = Math.max(W / vw, H / vh); c.drawImage(video, (W - vw * s) / 2, (H - vh * s) / 2, vw * s, vh * s);
+            var im = new Image(); im.crossOrigin = "anonymous";
+            function finish(img) {
+                var par = { x: -tiltY * 3.2, y: -tiltX * 2.4 }, cx = W / 2 + tx + par.x, cy = H * .58 + ty + par.y, r = 150 * sScale, sq = Math.cos(62 * Math.PI / 180);
+                c.save(); c.translate(cx, cy); c.scale(1, sq);
+                c.shadowColor = "rgba(0,0,0,.6)"; c.shadowBlur = 40 * sScale; c.shadowOffsetY = 26 * sScale;
+                c.beginPath(); c.arc(0, 0, r, 0, 6.283); c.fillStyle = "#222"; c.fill(); c.shadowColor = "transparent";
+                c.clip();
+                if (img) { var iw = img.naturalWidth, ih = img.naturalHeight, m = Math.min(iw, ih); c.drawImage(img, (iw - m) / 2, (ih - m) / 2, m, m, -r, -r, 2 * r, 2 * r); }
+                c.restore();
+                c.fillStyle = "rgba(0,0,0,.55)"; c.fillRect(0, H - 74, W, 74);
+                c.fillStyle = "#fff"; c.textAlign = "center"; c.font = "800 19px system-ui, sans-serif"; c.fillText(data.name + (data.price ? "  ·  " + data.price : ""), W / 2, H - 42);
+                c.fillStyle = "#ffd36a"; c.font = "600 13px system-ui, sans-serif"; c.fillText("Magic Mandi & Grill Hotel  ·  menu by DEBASA", W / 2, H - 20);
+                cv.toBlob(function (blob) {
+                    if (!blob) return;
+                    var file = new File([blob], "magic-mandi-" + data.name.replace(/[^a-z0-9]+/gi, "-").toLowerCase() + ".jpg", { type: "image/jpeg" });
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) { navigator.share({ files: [file], title: data.name }).catch(function () {}); }
+                    else { var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = file.name; document.body.appendChild(a); a.click(); a.remove(); }
+                }, "image/jpeg", .9);
+                showHint("Saved! Share it with your friends 📸");
+            }
+            im.onload = function () { finish(im); }; im.onerror = function () { finish(null); };
+            im.src = data.src;
+        });
+    })();
+
+
+    /* ===== menu hovering out of your phone: momentum, snapping, depth, tilt, mouse, wheel, keys ===== */
+    (function () {
+        var fab = document.getElementById("airFab"), air = document.getElementById("air");
+        if (!fab || !air) return;
+        var video = document.getElementById("airVideo"), world = document.getElementById("airWorld"), hintEl = document.getElementById("airHint");
+        var catsEl = document.getElementById("airCats"), dotsEl = document.getElementById("airDots"), burstEl = document.getElementById("airBurst");
+        var scene = air.querySelector(".air-scene");
+        var PAGE = 12;
+        var all = [], cats = [], cat = "", page = 0, items = [], focusIx = -1;
+        var isOpen = false, raf = 0, stream = null, listening = false, hintT = 0, tOpen = 0;
+        var orbit = 0, vel = 0, snap = null, step = Math.PI / 6, few = false, fewSel = 0, fewTgt = 0;
+        var dragging = false, lastX = 0, lastT = 0, moved = 0, idleAt = 0, lastAuto = 0, autoDir = 1, AUTO = .0045;
+        function pause(ms) { idleAt = performance.now() + (ms || 500); }
+        var tiltX = 0, tiltY = 0, tgtX = 0, tgtY = 0, baseB = null, baseG = null, mx = 0, my = 0, tmx = 0, tmy = 0;
+        var low = (navigator.hardwareConcurrency || 4) <= 4 || (navigator.deviceMemory || 4) <= 2;
+        var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var G = { Rx: 150, Rz: 290, sc: .6 };
+
+        function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+        function wrapPi(a) { a = (a + Math.PI) % (2 * Math.PI); if (a < 0) a += 2 * Math.PI; return a - Math.PI; }
+        function layout() {
+            var w = innerWidth, h = innerHeight, wide = w > h * 1.1, m = Math.min(w, h * (wide ? .52 : .7));
+            var ph = Math.min(w, h) < 600;
+            G.Rx = clamp(w * .34, 100, 360); G.Rz = clamp(m * (ph ? .6 : .72), 170, 440); G.sc = ph ? clamp(m / 520 * .62, .3, .5) : clamp(m / 520, .5, .95);
+            world.style.top = wide ? "36%" : "46%";
+            air.style.setProperty("--ac", G.sc.toFixed(3));
+            if (scene) scene.style.perspective = Math.round(clamp(Math.min(w, h) * 1.5, 650, 1100)) + "px";
+        }
+        function collect() {
+            all = []; cats = [];
+            Array.prototype.forEach.call(document.querySelectorAll(".card"), function (c) {
+                var im = c.querySelector(".food-image"), h = c.querySelector("h2"), p = c.querySelector("h3");
+                var o = { c: c, src: im ? (im.currentSrc || im.src) : "", full: im ? (im.getAttribute("data-full") || "") : "", name: h ? h.textContent.trim() : "", price: p ? p.textContent.trim() : "", cat: c.getAttribute("data-category") || "" };
+                all.push(o); if (o.cat && cats.indexOf(o.cat) < 0) cats.push(o.cat);
+            });
+        }
+        function showHint(t, ms) { hintEl.textContent = t; hintEl.style.opacity = 1; clearTimeout(hintT); hintT = setTimeout(function () { hintEl.style.opacity = 0; }, ms || 6000); }
+        function buildChips() {
+            catsEl.innerHTML = "";
+            cats.forEach(function (n) {
+                var b = document.createElement("button"); b.type = "button"; b.textContent = n; if (n === cat) b.className = "on";
+                b.addEventListener("click", function () { if (n === cat) return; cat = n; page = 0; render(); buildChips(); });
+                catsEl.appendChild(b);
+            });
+            var on = catsEl.querySelector(".on"); if (on && on.scrollIntoView) { try { on.scrollIntoView({ inline: "center", block: "nearest" }); } catch (e) {} }
+            var n = all.filter(function (o) { return o.cat === cat; }).length;
+            if (n > PAGE) {
+                var more = document.createElement("button"); more.type = "button"; more.textContent = "More ›";
+                more.addEventListener("click", function () { page = (page + 1) % Math.ceil(n / PAGE); render(); });
+                catsEl.insertBefore(more, catsEl.firstChild);
+            }
+        }
+        function render() {
+            var inCat = all.filter(function (o) { return o.cat === cat; }).slice(page * PAGE, page * PAGE + PAGE);
+            world.innerHTML = ""; items = []; dotsEl.innerHTML = "";
+            var n = inCat.length; few = n < 5; step = n ? 2 * Math.PI / Math.max(n, 1) : Math.PI / 6;
+            inCat.forEach(function (o, i) {
+                var it = document.createElement("div"); it.className = "air-item";
+                it.style.transform = "translate3d(0,0,0) scale(0)";
+                it.innerHTML = '<div class="air-card"><div class="pic"></div><b></b><em></em></div>';
+                it.querySelector(".pic").style.backgroundImage = "url(" + JSON.stringify(o.src) + ")" + (o.full && o.full !== o.src ? ",url(" + JSON.stringify(o.full) + ")" : "");
+                it.querySelector("b").textContent = o.name; it.querySelector("em").textContent = o.price;
+                (function (idx) { it.addEventListener("click", function () { if (moved > 8) return; if (idx === focusIx) openDetails(); else goTo(idx); }); })(i);
+                world.appendChild(it); items.push({ el: it, o: o, blur: -1 });
+                dotsEl.appendChild(document.createElement("i"));
+            });
+            pause(1200); lastAuto = performance.now(); orbit = 0; vel = 0; snap = 0; fewSel = (n - 1) / 2; fewTgt = fewSel; focusIx = -1; tOpen = performance.now();
+            burstEl.classList.remove("go"); void burstEl.offsetWidth; burstEl.classList.add("go");
+            if (navigator.vibrate) { try { navigator.vibrate([18, 30, 18]); } catch (e) {} }
+        }
+        function goTo(i) {
+            pause(700);
+            if (few) { fewTgt = i; return; }
+            snap = orbit + wrapPi(-i * step - orbit); vel = 0;
+        }
+        function go(dir) { pause(700); if (few) { fewTgt = clamp(Math.round(fewTgt) + dir, 0, items.length - 1); return; } snap = Math.round(orbit / step) * step - dir * step; }
+        function setFocus(best) {
+            if (best === focusIx || !items.length) return;
+            if (focusIx >= 0 && items[focusIx]) items[focusIx].el.classList.remove("focus");
+            focusIx = best; items[best].el.classList.add("focus");
+            document.getElementById("airCat").textContent = items[best].o.cat;
+            document.getElementById("airName").textContent = items[best].o.name + "  ·  " + items[best].o.price;
+            var ds = dotsEl.children; for (var k = 0; k < ds.length; k++) ds[k].className = k === best ? "on" : "";
+            if (navigator.vibrate) { try { navigator.vibrate(7); } catch (e) {} }
+        }
+        function openDetails() {
+            if (focusIx < 0 || !items[focusIx]) return; var card = items[focusIx].o.c;
+            closeAir(); setTimeout(function () { openDish(card); }, 150);
+        }
+        document.getElementById("airGo").addEventListener("click", openDetails);
+
+        /* phone tilt */
+        function onOri(e) {
+            if (e.beta == null) return;
+            if (baseB === null) { baseB = e.beta; baseG = e.gamma; }
+            tgtX = clamp(e.beta - baseB, -28, 28); tgtY = clamp((e.gamma || 0) - (baseG || 0), -35, 35);
+        }
+        function listen() { if (listening) return; listening = true; window.addEventListener("deviceorientation", onOri); }
+        function askMotion() {
+            var D = window.DeviceOrientationEvent;
+            if (D && typeof D.requestPermission === "function") { D.requestPermission().then(function (r) { if (r === "granted") listen(); }).catch(function () {}); }
+            else if (D) listen();
+        }
+        function startCam() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false }).then(function (s) {
+                if (!isOpen) { s.getTracks().forEach(function (t) { t.stop(); }); return; }
+                stream = s; video.srcObject = s; var p = video.play(); if (p && p.catch) p.catch(function () {}); air.classList.add("cam");
+            }).catch(function () { showHint("Camera is off, so the menu floats on a dark stage. Allow the camera to see it in your room.", 7000); });
+        }
+        function stopCam() { if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; } video.srcObject = null; air.classList.remove("cam"); }
+
+        function frame(ts) {
+            if (!isOpen) return; raf = requestAnimationFrame(frame);
+            var t = ts / 1000, n = items.length || 1;
+            var el = Math.min(1, (ts - tOpen) / 1300), ease = 1 - Math.pow(1 - el, 3) * (1 + 2.2 * (1 - el));
+            /* physics: drag -> momentum -> spring snap to the nearest dish */
+            var auto = !reduce && ts > idleAt && !dragging && el >= 1;
+            if (!few) {
+                if (!dragging) {
+                    if (auto) { snap = null; vel += (AUTO - vel) * .04; orbit += vel; }
+                    else {
+                        if (snap === null && Math.abs(vel) < .004) snap = Math.round(orbit / step) * step;
+                        if (snap !== null) { vel += (snap - orbit) * .1; vel *= .8; } else vel *= .95;
+                        orbit += vel;
+                        if (snap !== null && Math.abs(snap - orbit) < .0004 && Math.abs(vel) < .0004) { orbit = snap; vel = 0; }
+                    }
+                }
+            } else {
+                if (auto && items.length > 1 && ts - lastAuto > 2600) {
+                    lastAuto = ts; var nx = Math.round(fewTgt) + autoDir;
+                    if (nx > items.length - 1 || nx < 0) { autoDir = -autoDir; nx = Math.round(fewTgt) + autoDir; }
+                    fewTgt = clamp(nx, 0, items.length - 1);
+                }
+                if (!dragging) { fewSel += (fewTgt - fewSel) * .14; }
+            }
+            tiltX += (tgtX - tiltX) * .08; tiltY += (tgtY - tiltY) * .08; mx += (tmx - mx) * .08; my += (tmy - my) * .08;
+            var bestC = -2, best = 0;
+            for (var i = 0; i < items.length; i++) {
+                var th = few ? (i - fewSel) * .95 + 0 : orbit + i * step;
+                var c = Math.cos(th), sn = Math.sin(th);
+                var x = G.Rx * sn * ease, z = (G.Rz * c + 20) * ease, y = (c * 22) * ease - 30 * (1 - ease);
+                var it = items[i], e2 = it.el;
+                e2.style.transform = "translate3d(" + x.toFixed(1) + "px," + y.toFixed(1) + "px," + z.toFixed(1) + "px) scale(" + (.15 + .85 * ease).toFixed(3) + ")";
+                e2.style.opacity = (.3 + .7 * (c + 1) / 2).toFixed(2);
+                e2.style.zIndex = Math.round(c * 100 + 100);
+                if (!low) { var bl = c < .55 ? Math.round((.55 - c) * 7) / 2 : 0; if (bl !== it.blur) { it.blur = bl; e2.style.filter = bl ? "blur(" + bl + "px)" : ""; } }
+                if (c > bestC) { bestC = c; best = i; }
+            }
+            setFocus(best);
+            world.style.transform = "rotateX(" + (tiltX * 0 + my * 0).toFixed(2) + "deg) rotateY(" + (tiltY * 0 + mx * 0).toFixed(2) + "deg)";
+        }
+        function openAir() {
+            collect(); if (!all.length) return;
+            if (!cat || cats.indexOf(cat) < 0) cat = cats[0];
+            isOpen = true; lock(); air.classList.add("open"); page = 0; baseB = null; tiltX = tiltY = tgtX = tgtY = 0; layout();
+            buildChips(); render(); askMotion(); startCam();
+            showHint("The dishes float and turn by themselves. Touch to stop them, swipe to spin them, tap one to see it.", 6500);
+            cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
+        }
+        function closeAir() { if (!isOpen) return; isOpen = false; cancelAnimationFrame(raf); stopCam(); air.classList.remove("open"); unlock(); }
+        fab.addEventListener("click", openAir);
+        document.getElementById("airClose").addEventListener("click", closeAir);
+        window.addEventListener("resize", function () { if (isOpen) layout(); });
+        document.addEventListener("keydown", function (e) {
+            if (!isOpen) return;
+            if (e.key === "Escape") closeAir(); else if (e.key === "ArrowRight") go(1); else if (e.key === "ArrowLeft") go(-1);
+            else if (e.key === "Enter") openDetails();
+        });
+
+        /* touch + mouse: drag with momentum, wheel, hover parallax */
+        air.addEventListener("pointerdown", function (e) {
+            if (e.target.closest(".air-info, .air-cats, .xr-top")) return;
+            dragging = true; lastX = e.clientX; lastT = performance.now(); moved = 0; vel = 0; snap = null; pause(1e9);
+            try { air.setPointerCapture(e.pointerId); } catch (x) {}
+        });
+        air.addEventListener("pointermove", function (e) {
+            if (e.pointerType === "mouse") { tmx = (e.clientX / innerWidth - .5) * 2; tmy = (e.clientY / innerHeight - .5) * 2; }
+            if (!dragging) return;
+            var dx = e.clientX - lastX, now = performance.now(), dt = Math.max(8, now - lastT); lastX = e.clientX; lastT = now; moved += Math.abs(dx);
+            if (few) { fewTgt = clamp(fewTgt - dx / 110, 0, Math.max(0, items.length - 1)); fewSel = fewTgt; return; }
+            var d = dx / (G.Rx * 1.5); orbit += d; vel = vel * .6 + (d / dt * 16) * .4;
+        });
+        function end() {
+            if (!dragging) return; dragging = false; pause(500);
+            if (few) { fewTgt = clamp(Math.round(fewTgt), 0, Math.max(0, items.length - 1)); }
+            else if (Math.abs(vel) < .004) snap = Math.round(orbit / step) * step;
+            setTimeout(function () { moved = 0; }, 60);
+        }
+        air.addEventListener("pointerup", end); air.addEventListener("pointercancel", end);
+        air.addEventListener("wheel", function (e) {
+            if (!isOpen) return; e.preventDefault(); pause(600);
+            var d = clamp(e.deltaY || e.deltaX, -120, 120);
+            if (few) { fewTgt = clamp(fewTgt + (d > 0 ? 1 : -1) * .35, 0, Math.max(0, items.length - 1)); } else { vel += d * .0007; snap = null; }
+        }, { passive: false });
+    })();
+
+    /* ===== real AR: put a 3D copy of the dish on the real table (phone's own AR) ===== */
+    (function () {
+        var arv = document.getElementById("arv"), row = document.querySelector(".xr-row");
+        if (!arv || !row) return;
+        var stage = document.getElementById("arvStage"), msg = document.getElementById("arvMsg"), place = document.getElementById("arvPlace");
+        var note = document.getElementById("arvNote"), alt = document.getElementById("arvAlt"), mv = null, loadingLib = false;
+        var MV = "https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js";
+
+        var b = document.createElement("button"); b.type = "button"; b.className = "xr-go ar"; b.textContent = "🥽 Place it on my real table (AR)";
+        row.insertBefore(b, row.firstChild);
+        b.addEventListener("click", function () { openArv(); });
+
+        function loadLib(cb, fail) {
+            if (window.customElements && customElements.get("model-viewer")) return cb();
+            if (!loadingLib) {
+                loadingLib = true;
+                var sc = document.createElement("script"); sc.type = "module"; sc.src = MV;
+                sc.onerror = function () { loadingLib = false; fail(); };
+                document.head.appendChild(sc);
+            }
+            var tries = 0, iv = setInterval(function () {
+                if (customElements.get("model-viewer")) { clearInterval(iv); cb(); }
+                else if (++tries > 80) { clearInterval(iv); loadingLib = false; fail(); }
+            }, 150);
+        }
+        function openArv() {
+            var id = document.getElementById("dishBack").getAttribute("data-id");
+            if (!id) return;
+            document.getElementById("arvName").textContent = (document.getElementById("dishName").textContent || "").trim();
+            place.className = "arv-place"; note.textContent = ""; alt.style.display = "none";
+            msg.style.display = "block"; msg.textContent = "Building your 3D dish…";
+            if (mv && mv.parentNode) mv.parentNode.removeChild(mv); mv = null;
+            if (!arv.classList.contains("open")) { arv.classList.add("open"); lock(); }
+            function fail(t) { msg.style.display = "block"; msg.textContent = t || "We couldn't build the 3D dish right now. Check your internet and try again."; alt.style.display = "inline-block"; }
+            loadLib(function () {
+                mv = document.createElement("model-viewer");
+                mv.setAttribute("src", "/ar/dish/" + encodeURIComponent(id) + ".glb");
+                mv.setAttribute("alt", "3D dish");
+                mv.setAttribute("ar", ""); mv.setAttribute("ar-modes", "webxr scene-viewer quick-look");
+                mv.setAttribute("ar-scale", "auto"); mv.setAttribute("ar-placement", "floor");
+                mv.setAttribute("camera-controls", ""); mv.setAttribute("auto-rotate", "");
+                mv.setAttribute("camera-orbit", "35deg 62deg auto");
+                mv.setAttribute("shadow-intensity", "1.2"); mv.setAttribute("exposure", "1.15");
+                mv.setAttribute("interaction-prompt", "none"); mv.setAttribute("touch-action", "pan-y");
+                mv.addEventListener("load", function () {
+                    msg.style.display = "none";
+                    if (mv.canActivateAR) { place.className = "arv-place show"; note.textContent = "Point your phone at the table, then tap to place the dish. Walk around it!"; }
+                    else { note.textContent = "This phone or browser can't place 3D objects in the room. Open the menu in Chrome (Android) or Safari (iPhone) to use real AR. You can still spin the dish here."; alt.style.display = "inline-block"; }
+                });
+                mv.addEventListener("error", function () { fail(); });
+                stage.appendChild(mv);
+            }, function () { fail("The 3D viewer couldn't load. Check your internet connection and try again."); });
+        }
+        function closeArv() { if (!arv.classList.contains("open")) return; arv.classList.remove("open"); unlock(); if (mv && mv.parentNode) mv.parentNode.removeChild(mv); mv = null; }
+        place.addEventListener("click", function () { if (mv && mv.activateAR) { try { mv.activateAR(); } catch (e) { note.textContent = "AR could not start. Allow camera access and try again."; } } });
+        document.getElementById("arvClose").addEventListener("click", closeArv);
+        alt.addEventListener("click", function () { closeArv(); var t = row.querySelector('.xr-go.t'); if (t) t.click(); });
+        document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeArv(); });
+    })();
+
+
+    /* ===== pyramid hologram mode: a real floating hologram with a clear pyramid on the screen ===== */
+    (function () {
+        var pyr = document.getElementById("pyr"), row = document.querySelector(".xr-row");
+        if (!pyr || !row) return;
+        var box = document.getElementById("pyrBox"), faces = pyr.querySelectorAll(".pyr-face");
+        var list = [], ix = 0, timer = 0, playing = true, k = .78, wake = null, helpT = 0;
+        function collect() {
+            list = [];
+            Array.prototype.forEach.call(document.querySelectorAll(".card"), function (c) {
+                var im = c.querySelector(".food-image"), h = c.querySelector("h2"), p = c.querySelector("h3");
+                var src = im ? (im.getAttribute("data-full") || im.currentSrc || im.src) : "";
+                if (src) list.push({ src: src, name: h ? h.textContent.trim() : "", price: p ? p.textContent.trim() : "" });
+            });
+        }
+        function show(i) {
+            if (!list.length) return; ix = (i + list.length) % list.length; var d = list[ix];
+            pyr.classList.add("swap");
+            setTimeout(function () {
+                for (var f = 0; f < faces.length; f++) {
+                    faces[f].querySelector(".pyr-disc").style.backgroundImage = "url(" + JSON.stringify(d.src) + ")";
+                    faces[f].querySelector(".pyr-name").textContent = d.name;
+                    faces[f].querySelector(".pyr-price").textContent = d.price;
+                }
+                pyr.classList.remove("swap");
+            }, 450);
+        }
+        function tick() { clearInterval(timer); if (playing) timer = setInterval(function () { show(ix + 1); }, 7000); }
+        function openPyr() {
+            collect(); if (!list.length) return;
+            var cur = (document.getElementById("dishName") || {}).textContent;
+            ix = Math.max(0, list.findIndex(function (d) { return d.name === (cur || "").trim(); }));
+            pyr.classList.add("open"); lock(); show(ix); tick();
+            var help = document.getElementById("pyrHelp"); help.style.opacity = 1; clearTimeout(helpT); helpT = setTimeout(function () { help.style.opacity = 0; }, 9000);
+            try { if (navigator.wakeLock) navigator.wakeLock.request("screen").then(function (w) { wake = w; }).catch(function () {}); } catch (e) {}
+            try { var el = document.documentElement; if (el.requestFullscreen) el.requestFullscreen().catch(function () {}); } catch (e) {}
+        }
+        function closePyr() {
+            if (!pyr.classList.contains("open")) return; pyr.classList.remove("open"); clearInterval(timer); unlock();
+            try { if (wake) { wake.release(); wake = null; } } catch (e) {}
+            try { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen(); } catch (e) {}
+        }
+        var b = document.createElement("button"); b.type = "button"; b.className = "xr-go pyrb"; b.textContent = "🔺 Real hologram (with a clear pyramid)";
+        row.appendChild(b); b.addEventListener("click", openPyr);
+        document.getElementById("pyrClose").addEventListener("click", closePyr);
+        document.getElementById("pyrSm").addEventListener("click", function () { k = Math.max(.4, k - .06); box.style.setProperty("--k", k); });
+        document.getElementById("pyrBg").addEventListener("click", function () { k = Math.min(1.1, k + .06); box.style.setProperty("--k", k); });
+        document.getElementById("pyrFlip").addEventListener("click", function () { pyr.classList.toggle("flip"); });
+        document.getElementById("pyrPrev").addEventListener("click", function () { show(ix - 1); tick(); });
+        document.getElementById("pyrNext").addEventListener("click", function () { show(ix + 1); tick(); });
+        document.getElementById("pyrPlay").addEventListener("click", function () { playing = !playing; this.textContent = playing ? "⏸" : "▶"; tick(); });
+        document.addEventListener("keydown", function (e) { if (e.key === "Escape") closePyr(); });
+        if (location.hash === "#hologram") setTimeout(openPyr, 1500);
+        window.__openPyramid = openPyr;
     })();
 
     /* ===== one floating category button + picker ===== */
@@ -1279,7 +2447,15 @@
         Array.prototype.slice.call(back.querySelectorAll(".spark")).forEach(function (n) { n.remove(); });
     }
     btn.addEventListener("click", open);
-    document.getElementById("thanksClose").addEventListener("click", close);
+    function shutMenu() {
+        close();
+        var im = document.getElementById("mcImg"), t = document.getElementById("thanksImg");
+        if (im && t && t.src) im.src = t.src;
+        document.body.classList.add("menu-shut"); document.body.style.overflow = "hidden"; window.scrollTo(0, 0);
+        try { window.close(); } catch (e) {}
+    }
+    document.getElementById("thanksClose").addEventListener("click", shutMenu);
+    document.getElementById("mcReopen").addEventListener("click", function () { document.body.classList.remove("menu-shut"); document.body.style.overflow = ""; });
     back.addEventListener("click", function (e) { if (e.target === back) close(); });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && back.classList.contains("open")) close(); });
 })();
