@@ -10,7 +10,217 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script>
+/* chart-lite: small built-in chart drawer (bars, lines, doughnut). No internet needed.
+   Understands the part of the Chart.js settings this page uses. */
+(function () {
+    "use strict";
+    var REG = {}, DPR = function () { return Math.min(window.devicePixelRatio || 1, 2); };
+    function isFn(f) { return typeof f === "function"; }
+    function ease(t) { return 1 - Math.pow(1 - t, 4); }
+    function nice(max, n) {
+        if (max <= 0) return { max: n, step: 1 };
+        var raw = max / n, mag = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10)), r = raw / mag;
+        var step = (r <= 1 ? 1 : r <= 2 ? 2 : r <= 5 ? 5 : 10) * mag;
+        if (step < 1) step = 1;
+        return { max: Math.ceil(max / step) * step, step: step };
+    }
+    function rr(c, x, y, w, h, r, side) {            /* rounded bar; side: "top" or "right" */
+        r = Math.max(0, Math.min(r || 0, w / 2, h / 2)); c.beginPath();
+        if (side === "right") {
+            c.moveTo(x, y); c.lineTo(x + w - r, y); c.arcTo(x + w, y, x + w, y + r, r);
+            c.lineTo(x + w, y + h - r); c.arcTo(x + w, y + h, x + w - r, y + h, r); c.lineTo(x, y + h);
+        } else {
+            c.moveTo(x, y + h); c.lineTo(x, y + r); c.arcTo(x, y, x + r, y, r);
+            c.lineTo(x + w - r, y); c.arcTo(x + w, y, x + w, y + r, r); c.lineTo(x + w, y + h);
+        }
+        c.closePath();
+    }
+
+    function Chart(el, cfg) {
+        if (typeof el === "string") el = document.getElementById(el);
+        var self = this;
+        this.canvas = el; this.ctx = el.getContext("2d");
+        this.config = cfg; this.data = cfg.data; this.options = cfg.options || {};
+        this.type = cfg.type || "bar"; this.chartArea = null; this.hover = -1;
+        this.box = el.parentNode; this.prog = 0; this.tw = null; this.raf = 0;
+        el.style.position = "absolute"; el.style.left = "0"; el.style.top = "0";
+        if (el.id) REG[el.id] = this;
+        this.tip = document.createElement("div");
+        this.tip.style.cssText = "position:absolute;z-index:5;pointer-events:none;opacity:0;transition:opacity .12s;padding:10px 12px;border-radius:10px;font:12px Inter,system-ui,sans-serif;white-space:nowrap;";
+        this.box.appendChild(this.tip);
+        this.snap();
+        var again = function () { self.resize(); };
+        if (window.ResizeObserver) { this.ro = new ResizeObserver(again); this.ro.observe(this.box); }
+        window.addEventListener("resize", again);
+        el.addEventListener("pointermove", function (e) { self.onMove(e); });
+        el.addEventListener("pointerdown", function (e) { self.onMove(e); });
+        el.addEventListener("pointerleave", function () { self.hover = -1; self.tip.style.opacity = 0; self.draw(); });
+        var anim = Chart.defaults.animation;
+        this.resize(true);
+        if (anim) this.run(function (t) { self.prog = t; }, 750); else this.prog = 1;
+        this.draw();
+    }
+    Chart.defaults = { color: "#8b8b95", font: { family: "system-ui", size: 11 }, devicePixelRatio: 1, animation: false };
+    Chart.getChart = function (id) { return REG[typeof id === "string" ? id : (id && id.id)] || null; };
+
+    Chart.prototype.snap = function () {          /* remember the values being shown */
+        this.shown = (this.data.datasets || []).map(function (d) { return (d.data || []).slice(); });
+    };
+    Chart.prototype.run = function (fn, ms, done) {
+        var self = this, t0 = null; cancelAnimationFrame(this.raf);
+        function step(ts) {
+            if (t0 === null) t0 = ts;
+            var p = Math.min((ts - t0) / ms, 1); fn(ease(p)); self.draw();
+            if (p < 1) self.raf = requestAnimationFrame(step); else if (done) done();
+        }
+        this.raf = requestAnimationFrame(step);
+    };
+    Chart.prototype.update = function () {
+        var self = this, ds = this.data.datasets || [], from = this.cur || this.shown, ok = true, i;
+        for (i = 0; i < ds.length; i++) if (!from[i] || from[i].length !== (ds[i].data || []).length) ok = false;
+        var to = ds.map(function (d) { return (d.data || []).slice(); });
+        this.prog = 1;
+        if (!ok || !Chart.defaults.animation) { this.cur = null; this.shown = to; this.draw(); return; }
+        this.run(function (t) {
+            self.cur = to.map(function (arr, k) { return arr.map(function (v, j) { return from[k][j] + (v - from[k][j]) * t; }); });
+        }, 450, function () { self.cur = null; self.shown = to; });
+    };
+    Chart.prototype.destroy = function () { if (this.ro) this.ro.disconnect(); delete REG[this.canvas.id]; if (this.tip.parentNode) this.tip.parentNode.removeChild(this.tip); };
+    Chart.prototype.resize = function (quiet) {
+        var w = this.box.clientWidth, h = this.box.clientHeight, d = DPR();
+        if (!w || !h) return;
+        if (this.w === w && this.h === h && this.d === d) return;
+        this.w = w; this.h = h; this.d = d;
+        this.canvas.width = Math.round(w * d); this.canvas.height = Math.round(h * d);
+        this.canvas.style.width = w + "px"; this.canvas.style.height = h + "px";
+        if (!quiet) this.draw();
+    };
+    Chart.prototype.values = function (k) { return (this.cur || this.shown)[k] || []; };
+    Chart.prototype.color = function (v, i, k) {
+        var ds = this.data.datasets[k];
+        return isFn(v) ? v({ chart: this, dataIndex: i, datasetIndex: k, dataset: ds }) : (Array.isArray(v) ? v[i % v.length] : v);
+    };
+
+    Chart.prototype.draw = function () {
+        var c = this.ctx, W = this.w, H = this.h;
+        if (!W || !H) return;
+        c.setTransform(this.d, 0, 0, this.d, 0, 0); c.clearRect(0, 0, W, H);
+        if (this.type === "doughnut") return this.drawDonut();
+        var o = this.options, horiz = o.indexAxis === "y", labels = this.data.labels || [], n = labels.length;
+        var sc = o.scales || {}, gridCol = ((horiz ? sc.x : sc.y) || {}).grid; gridCol = (gridCol && gridCol.color) || "rgba(255,255,255,.06)";
+        var tcol = Chart.defaults.color, fs = (Chart.defaults.font && Chart.defaults.font.size) || 11, ff = (Chart.defaults.font && Chart.defaults.font.family) || "system-ui";
+        c.font = fs + "px " + ff; c.fillStyle = tcol;
+        var max = 0, k, j, ds = this.data.datasets;
+        for (k = 0; k < ds.length; k++) { var vv = this.values(k); for (j = 0; j < vv.length; j++) if (vv[j] > max) max = vv[j]; }
+        var sc2 = nice(max, 4), ticks = []; for (j = 0; j <= sc2.max + 1e-9; j += sc2.step) ticks.push(j);
+        var maxLab = 0; for (j = 0; j < n; j++) maxLab = Math.max(maxLab, c.measureText(String(labels[j])).width);
+        var vLab = c.measureText(String(sc2.max)).width;
+        var L = horiz ? Math.min(maxLab, W * .38) + 14 : vLab + 14, R = 12, T = 10, B = 26;
+        var area = this.chartArea = { left: L, right: W - R, top: T, bottom: H - B, width: W - R - L, height: H - B - T };
+        /* grid + value labels */
+        c.strokeStyle = gridCol; c.lineWidth = 1; c.textBaseline = "middle";
+        for (j = 0; j < ticks.length; j++) {
+            var f = ticks[j] / sc2.max;
+            if (horiz) { var gx = Math.round(area.left + f * area.width) + .5; c.beginPath(); c.moveTo(gx, area.top); c.lineTo(gx, area.bottom); c.stroke(); c.textAlign = "center"; c.textBaseline = "top"; c.fillText(String(ticks[j]), gx, area.bottom + 7); }
+            else { var gy = Math.round(area.bottom - f * area.height) + .5; c.beginPath(); c.moveTo(area.left, gy); c.lineTo(area.right, gy); c.stroke(); c.textAlign = "right"; c.textBaseline = "middle"; c.fillText(String(ticks[j]), area.left - 8, gy); }
+        }
+        /* category labels */
+        var slot = (horiz ? area.height : area.width) / Math.max(n, 1), mt = ((sc.x || {}).ticks || {}).maxTicksLimit || 12;
+        var every = horiz ? 1 : Math.max(1, Math.ceil(n / mt));
+        c.fillStyle = tcol;
+        for (j = 0; j < n; j += every) {
+            var s = String(labels[j]);
+            if (horiz) { c.textAlign = "right"; c.textBaseline = "middle"; while (s.length > 3 && c.measureText(s).width > L - 14) s = s.slice(0, -2) + "…"; c.fillText(s, area.left - 8, area.top + slot * (j + .5)); }
+            else { c.textAlign = "center"; c.textBaseline = "top"; c.fillText(s, area.left + slot * (j + .5), area.bottom + 8); }
+        }
+        var p = this.prog, base = horiz ? area.left : area.bottom;
+        /* bars */
+        for (k = 0; k < ds.length; k++) {
+            var d = ds[k], t = d.type || this.type; if (t !== "bar") continue;
+            var vals = this.values(k), bt = Math.min(d.maxBarThickness || 40, slot * .72);
+            for (j = 0; j < vals.length; j++) {
+                var len = (vals[j] / sc2.max) * (horiz ? area.width : area.height) * p;
+                if (len <= 0) continue;
+                var col = (this.hover === j && d.hoverBackgroundColor) ? this.color(d.hoverBackgroundColor, j, k) : this.color(d.backgroundColor, j, k);
+                c.fillStyle = col || "#38bdf8";
+                if (horiz) rr(c, area.left, area.top + slot * (j + .5) - bt / 2, len, bt, d.borderRadius, "right");
+                else rr(c, area.left + slot * (j + .5) - bt / 2, area.bottom - len, bt, len, d.borderRadius, "top");
+                c.fill();
+            }
+        }
+        /* lines */
+        for (k = 0; k < ds.length; k++) {
+            var dl = ds[k]; if ((dl.type || this.type) !== "line") continue;
+            var lv = this.values(k), pts = [];
+            for (j = 0; j < lv.length; j++) pts.push({ x: area.left + slot * (j + .5), y: area.bottom - (lv[j] / sc2.max) * area.height * p });
+            c.save(); c.beginPath(); c.rect(area.left - 6, 0, area.width + 12, H); c.clip();
+            c.strokeStyle = dl.borderColor || "#34d399"; c.lineWidth = dl.borderWidth || 2; c.lineJoin = "round"; c.beginPath();
+            var tn = (dl.tension || 0) / 2;
+            for (j = 0; j < pts.length; j++) {
+                if (j === 0) { c.moveTo(pts[0].x, pts[0].y); continue; }
+                var a = pts[j - 1], b = pts[j], a0 = pts[j - 2] || a, b1 = pts[j + 1] || b;
+                if (tn) c.bezierCurveTo(a.x + (b.x - a0.x) * tn, a.y + (b.y - a0.y) * tn, b.x - (b1.x - a.x) * tn, b.y - (b1.y - a.y) * tn, b.x, b.y); else c.lineTo(b.x, b.y);
+            }
+            c.stroke(); c.restore();
+            var pr = dl.pointRadius == null ? 3 : dl.pointRadius;
+            for (j = 0; j < pts.length; j++) {
+                var rad = this.hover === j ? (dl.pointHoverRadius || pr + 3) : pr; if (!rad) continue;
+                c.beginPath(); c.arc(pts[j].x, pts[j].y, rad, 0, 6.2832); c.fillStyle = dl.backgroundColor || dl.borderColor || "#34d399"; c.fill();
+                if (dl.pointBorderWidth) { c.lineWidth = dl.pointBorderWidth; c.strokeStyle = dl.pointBorderColor || "#000"; c.stroke(); }
+            }
+        }
+        /* hover guide */
+        if (this.hover >= 0 && !horiz) { var hx = area.left + slot * (this.hover + .5); c.strokeStyle = "rgba(255,255,255,.14)"; c.lineWidth = 1; c.beginPath(); c.moveTo(hx, area.top); c.lineTo(hx, area.bottom); c.stroke(); }
+    };
+
+    Chart.prototype.drawDonut = function () {
+        var c = this.ctx, W = this.w, H = this.h, d = this.data.datasets[0], vals = this.values(0), labels = this.data.labels || [];
+        var tot = 0, j; for (j = 0; j < vals.length; j++) tot += vals[j];
+        var legendH = 46, r = Math.max(10, Math.min(W, H - legendH) / 2 - 8), cx = W / 2, cy = (H - legendH) / 2 + 4;
+        var cut = parseFloat((this.options.cutout || "60%")) / 100, a = -Math.PI / 2, pr = this.prog;
+        for (j = 0; j < vals.length; j++) {
+            var sw = tot ? vals[j] / tot * 6.2832 * pr : 0;
+            c.beginPath(); c.arc(cx, cy, r, a, a + sw); c.arc(cx, cy, r * cut, a + sw, a, true); c.closePath();
+            c.fillStyle = this.color(d.backgroundColor, j, 0); c.fill();
+            c.lineWidth = d.borderWidth || 0; c.strokeStyle = d.borderColor || "#000"; if (c.lineWidth) c.stroke(); a += sw;
+        }
+        c.font = "11px " + (Chart.defaults.font.family || "system-ui"); c.textBaseline = "middle"; c.textAlign = "left";
+        var x = 8, y = H - legendH + 14;
+        for (j = 0; j < labels.length; j++) {
+            var wd = c.measureText(String(labels[j])).width + 28;
+            if (x + wd > W - 6) { x = 8; y += 18; }
+            c.fillStyle = this.color(d.backgroundColor, j, 0); c.fillRect(x, y - 5, 10, 10);
+            c.fillStyle = Chart.defaults.color; c.fillText(String(labels[j]), x + 16, y); x += wd;
+        }
+    };
+
+    Chart.prototype.onMove = function (e) {
+        if (!this.chartArea) return;
+        var r = this.canvas.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, a = this.chartArea;
+        if (this.type === "doughnut") return;
+        var horiz = this.options.indexAxis === "y", n = (this.data.labels || []).length, slot = (horiz ? a.height : a.width) / Math.max(n, 1);
+        var idx = Math.floor(((horiz ? y - a.top : x - a.left)) / slot);
+        if (idx < 0 || idx >= n || x < a.left - 4 || x > a.right + 4 || y < a.top - 4 || y > a.bottom + 4) { this.hover = -1; this.tip.style.opacity = 0; this.draw(); return; }
+        this.hover = idx; this.draw();
+        var tt = (this.options.plugins && this.options.plugins.tooltip) || {}, tip = this.tip, ds = this.data.datasets, html = "", k;
+        tip.style.background = tt.backgroundColor || "#0b0b0d"; tip.style.border = "1px solid " + (tt.borderColor || "rgba(255,255,255,.2)"); tip.style.color = tt.bodyColor || "#fff";
+        html += '<div style="font-weight:700;margin-bottom:5px;color:' + (tt.titleColor || "#fff") + '"></div>';
+        tip.innerHTML = html; tip.firstChild.textContent = String(this.data.labels[idx]);
+        for (k = 0; k < ds.length; k++) {
+            var v = ds[k].data[idx], parsed = { x: v, y: v }, line = document.createElement("div");
+            var cb = tt.callbacks && tt.callbacks.label;
+            line.textContent = cb ? cb({ parsed: parsed, dataset: ds[k], dataIndex: idx, raw: v }) : ((ds[k].label ? ds[k].label + ": " : "") + v);
+            tip.appendChild(line);
+        }
+        var bw = this.box.clientWidth, tw = tip.offsetWidth, tx = (horiz ? x + 14 : a.left + slot * (idx + .5) + 14);
+        if (tx + tw > bw - 4) tx = tx - tw - 28; if (tx < 4) tx = 4;
+        tip.style.left = tx + "px"; tip.style.top = Math.max(4, Math.min(y - 20, this.h - tip.offsetHeight - 4)) + "px"; tip.style.opacity = 1;
+    };
+
+    window.Chart = Chart;
+})();
+</script>
 
     <style>
         @property --angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
@@ -891,7 +1101,7 @@
             </div>
         </div>
         <div class="chart-box"><canvas id="trendChart"></canvas></div>
-        <div class="noscript-note" id="chartFail" hidden>The charts could not load (the chart library needs an internet connection). The numbers above are still correct.</div>
+        <div class="noscript-note" id="chartFail" hidden>The charts could not load. The numbers above are still correct.</div>
     </section>
 
     <!-- ===== Patterns ===== -->
