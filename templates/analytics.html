@@ -1882,7 +1882,7 @@
         buildFloor();
 
         /* ---------- live updates (no page reload) ---------- */
-        var ar = $("#autoRefresh"), INTERVAL = 15000, timer = null, busy = false, stale = false, unread = 0;
+        var ar = $("#autoRefresh"), INTERVAL = 30000, IDLE_MS = 10 * 60 * 1000, lastAct = Date.now(), idle = false, timer = null, busy = false, stale = false, unread = 0;
         var baseTitle = document.title, kp = $$(".kpi"), lp = $(".live"), seen = {};
         function sig(r) { return r.id + "|" + r.time + "|" + r.table; }
         (D.recent || []).forEach(function (r) { seen[sig(r)] = 1; });
@@ -2000,6 +2000,8 @@
         function tick() {
             if (busy || !ar || !ar.checked) return;
             if (document.hidden) { schedule(); return; }
+            /* nobody has touched the page for 10 minutes: stop asking the database until they do */
+            if (Date.now() - lastAct > IDLE_MS) { if (!idle) { idle = true; toast("Live updates paused", "Tap anywhere to continue.", "info"); } schedule(); return; }
             busy = true;
             fetch(location.pathname + ".json" + location.search, { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } })
                 .then(function (r) { if (!r.ok || r.redirected) throw new Error("auth"); return r.json(); })
@@ -2013,8 +2015,14 @@
             ar.addEventListener("change", function () { schedule(); if (ar.checked) setTimeout(tick, 400); });
             schedule();
         }
+        function touched() {
+            lastAct = Date.now();
+            if (idle) { idle = false; if (ar && ar.checked) { clearTimeout(timer); timer = setTimeout(tick, 300); } }
+        }
+        ["pointerdown", "keydown", "touchstart", "wheel"].forEach(function (ev) { addEventListener(ev, touched, { passive: true }); });
+        addEventListener("scroll", touched, { passive: true });
         document.addEventListener("visibilitychange", function () {
-            if (!document.hidden) { unread = 0; document.title = baseTitle; if (ar && ar.checked) { clearTimeout(timer); timer = setTimeout(tick, 600); } }
+            if (!document.hidden) { lastAct = Date.now(); unread = 0; document.title = baseTitle; if (ar && ar.checked) { clearTimeout(timer); timer = setTimeout(tick, 600); } }
         });
         window.__live = { tick: tick, toast: toast, setTier: setTier };
     })();
