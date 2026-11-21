@@ -463,6 +463,26 @@
         .feed .row { display: flex; align-items: center; gap: 14px; padding: 13px 4px; border-bottom: 1px solid rgba(56,189,248,.09); transition: background .2s; }
         .feed .row:hover { background: rgba(56,189,248,.04); }
         .feed .row.hide, .gcard.hide { display: none; }
+        .fb-top { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; margin: 16px 0 6px; }
+        .fb-big { font-size: 46px; font-weight: 800; line-height: 1; color: #fbbf24; }
+        .fb-stars { color: #fbbf24; letter-spacing: 2px; font-size: 15px; }
+        .fb-bars { flex: 1; min-width: 160px; }
+        .fb-bars div { display: flex; align-items: center; gap: 8px; font-size: 12px; margin: 3px 0; color: var(--muted); }
+        .fb-bars b { min-width: 14px; color: var(--text); }
+        .fb-bars i { display: block; height: 7px; border-radius: 4px; background: linear-gradient(90deg, #fb923c, #fbbf24); min-width: 2px; }
+        .fb-stat { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0 6px; }
+        .fb-stat > div { flex: 1; min-width: 86px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255,255,255,.03); }
+        .fb-stat b { display: block; font-size: 26px; line-height: 1.1; }
+        .fb-stat span { font-size: 11.5px; color: var(--muted); }
+        .fb-list .row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 2px; border-bottom: 1px solid var(--line); }
+        .fb-list .row:last-child { border-bottom: 0; }
+        .fb-list .av { flex: 0 0 auto; }
+        .fb-list .who-col { flex: 1; min-width: 0; }
+        .fb-list .cmt { margin-top: 5px; font-size: 13.5px; line-height: 1.5; color: var(--text); overflow-wrap: anywhere; }
+        .fb-list .end { text-align: right; flex: 0 0 auto; }
+        .fb-list .end .fb-stars { font-size: 13px; letter-spacing: 1px; display: block; }
+        .fb-list .hide { display: none; }
+
         .av { flex: none; width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%; color: #02060c; font-size: 12px; font-weight: 800; letter-spacing: -.3px; text-decoration: none; background: linear-gradient(135deg,var(--gold-1),var(--gold-2) 60%,var(--gold-3)); }
         .who-col { flex: 1; min-width: 0; }
         .who-col .who { border: 0; font-size: 14.5px; }
@@ -1085,6 +1105,20 @@
         <div class="empty">No guests in this period.</div>
         {% endif %}
     </section>
+
+    <!-- ===== Customer feedback ===== -->
+    <div class="grid2" id="feedback">
+        <section class="card">
+            <h2>Customer ratings</h2>
+            <p class="hint" id="fbRateHint">{{ data.range_label }} · who rated and what they said</p>
+            <div id="fbRating"></div>
+        </section>
+        <section class="card">
+            <h2>AR menu views</h2>
+            <p class="hint" id="fbArHint">{{ data.range_label }} · who opened the floating menu</p>
+            <div id="fbAr"></div>
+        </section>
+    </div>
 
     <!-- ===== Trend ===== -->
     <section class="card">
@@ -1982,7 +2016,7 @@
             KEYS.forEach(function (key, i) { setKpi(i, k[key]); });
             setNote(0, k.visitors_today + " unique phones"); setNote(2, k.visitors_week + " unique phones · since Mon");
             setNote(3, k.visitors_month + " unique phones"); setNote(5, k.visitors_all + " unique phones");
-            setDelta(k.today, k.yesterday); setLive(k); setTicker(); updCharts(j); updHeat(j.hours || []);
+            setDelta(k.today, k.yesterday); setLive(k); setTicker(); updCharts(j); updHeat(j.hours || []); if (window.__renderFeedback) window.__renderFeedback(j);
             if (!fresh.length) return;
             fresh.forEach(function (r) { seen[sig(r)] = 1; });
             var ordered = fresh.slice().reverse();                 // oldest first
@@ -2028,5 +2062,70 @@
     })();
 </script>
 
+<script>
+(function () {
+    function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+    function stars(n) { return "★★★★★".slice(0, n) + "☆☆☆☆☆".slice(0, 5 - n); }
+    function link(D, id) { return "?range=" + encodeURIComponent(D.range || "30") + "&guest=" + id + "#latest"; }
+    function rowFor(D, r, kind) {
+        var row = el("div", "row"), av = el("a", "av", (r.name || "Guest").split(" ").pop()), mid = el("div", "who-col"), end = el("div", "end");
+        av.href = link(D, r.id);
+        var who = el("a", "who", r.name); who.href = link(D, r.id); mid.appendChild(who);
+        var meta = el("div", "meta", (r.table !== "-" ? "Table " + r.table : "No table") + (r.phone ? " · " + r.phone : ""));
+        mid.appendChild(meta);
+        if (kind === "rate" && r.comment) mid.appendChild(el("div", "cmt", "“" + r.comment + "”"));
+        if (kind === "rate") end.appendChild(el("span", "fb-stars", stars(r.stars)));
+        end.appendChild(el("div", "when", r.time));
+        row.appendChild(av); row.appendChild(mid); row.appendChild(end);
+        return row;
+    }
+    function list(D, items, kind, empty) {
+        var wrap = el("div");
+        if (!items.length) { wrap.appendChild(el("div", "empty", empty)); return wrap; }
+        var box = el("div", "fb-list");
+        items.forEach(function (r, i) { var row = rowFor(D, r, kind); if (i >= 6) row.classList.add("hide"); box.appendChild(row); });
+        wrap.appendChild(box);
+        if (items.length > 6) {
+            var more = el("button", "more", "Show more"); more.type = "button";
+            more.addEventListener("click", function () { [].forEach.call(box.querySelectorAll(".hide"), function (x) { x.classList.remove("hide"); }); more.remove(); });
+            wrap.appendChild(more);
+        }
+        return wrap;
+    }
+    window.__renderFeedback = function (D) {
+        var f = D && D.feedback; if (!f) return;
+        var rb = document.getElementById("fbRating"), ab = document.getElementById("fbAr");
+        if (rb) {
+            rb.textContent = "";
+            var R = f.rating;
+            if (!R.total) rb.appendChild(el("div", "empty", "No ratings yet. Customers rate with the ⭐ button on the menu."));
+            else {
+                var top = el("div", "fb-top"), left = el("div");
+                left.appendChild(el("div", "fb-big", String(R.avg)));
+                left.appendChild(el("div", "fb-stars", stars(Math.round(R.avg))));
+                left.appendChild(el("div", "meta", R.total + " rating" + (R.total === 1 ? "" : "s")));
+                var bars = el("div", "fb-bars"), mx = Math.max.apply(null, R.dist.concat([1]));
+                R.dist.forEach(function (c, i) {
+                    var line = el("div"), bar = el("i"); bar.style.width = Math.round(100 * c / mx) + "%";
+                    line.appendChild(el("b", null, String(5 - i))); line.appendChild(el("span", null, "★")); line.appendChild(bar); line.appendChild(el("span", null, String(c)));
+                    bars.appendChild(line);
+                });
+                top.appendChild(left); top.appendChild(bars); rb.appendChild(top);
+            }
+            if (R.total) rb.appendChild(list(D, R.recent, "rate", ""));
+        }
+        if (ab) {
+            ab.textContent = "";
+            var A = f.ar, st = el("div", "fb-stat");
+            [["Opens", A.total], ["Today", A.today], ["Different guests", A.guests]].forEach(function (p) {
+                var d = el("div"); d.appendChild(el("b", null, String(p[1]))); d.appendChild(el("span", null, p[0])); st.appendChild(d);
+            });
+            ab.appendChild(st);
+            ab.appendChild(list(D, A.recent, "ar", "Nobody has opened the AR menu in this period."));
+        }
+    };
+    window.__renderFeedback(window.__D);
+})();
+</script>
 </body>
 </html>

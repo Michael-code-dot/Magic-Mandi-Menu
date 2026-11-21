@@ -22,7 +22,7 @@ load_dotenv()
 
 from flask import (
     Flask, render_template, request, redirect, g, session, url_for,
-    make_response, Response, jsonify
+    make_response, Response, jsonify, render_template_string
 )
 from flask_wtf import CSRFProtect
 from flask_limiter import Limiter
@@ -95,16 +95,28 @@ def invalidate_caches():
     SETTINGS_CACHE["data"] = None
     PAGE_CACHE.clear()
 
+# Your WhatsApp number for the menu footer, digits only with the country code
+# (Kenya: 2547XXXXXXXX, no + and no spaces). Set it as WHATSAPP_NUMBER in Render.
+def _wa_number():
+    n = re.sub(r"\D", "", os.getenv("WHATSAPP_NUMBER", "")
+               or os.getenv("CONTACT_PHONE", "0753391398"))
+    if n.startswith("0") and len(n) == 10:
+        n = "254" + n[1:]
+    return n
+
+
+WHATSAPP_NUMBER = _wa_number()
+
 DB_CONFIG = {
-    "host": os.getenv("MYSQLHOST", "magic-mandi-db-lekantrevon-f36c.h.aivencloud.com"),
-    "user": os.getenv("MYSQLUSER", "avnadmin"),
+    "host": os.getenv("MYSQLHOST", "gateway01.us-east-1.prod.aws.tidbcloud.com"),
+    "user": os.getenv("MYSQLUSER", "QxqMnupXAmoRSjG.root"),
     "password": os.getenv("MYSQLPASSWORD"),
-    "database": os.getenv("MYSQLDATABASE", "defaultdb"),
-    "port": int(os.getenv("MYSQLPORT", 15691)),
+    "database": os.getenv("MYSQLDATABASE", "magicmandi"),
+    "port": int(os.getenv("MYSQLPORT", 4000)),
     "ssl_disabled": False,
 }
 
-
+    
 def init_db():
     """Create tables if they don't exist. Runs once at startup, not per request."""
     db = mysql.connector.connect(**DB_CONFIG)
@@ -185,6 +197,33 @@ def init_db():
             browser VARCHAR(20) NULL,
             INDEX idx_scanned_at (scanned_at),
             INDEX idx_visitor (visitor_id)
+        )
+    ''')
+
+    # DEBASA QR: anonymous customer ratings (1-5 stars + optional short comment)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS menu_ratings (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            rated_at DATETIME NOT NULL,
+            visitor_id CHAR(16) NOT NULL,
+            stars TINYINT NOT NULL,
+            comment VARCHAR(300) NULL,
+            table_no VARCHAR(10) NULL,
+            INDEX idx_rated_at (rated_at),
+            INDEX idx_rating_visitor (visitor_id)
+        )
+    ''')
+
+    # DEBASA QR: anonymous feature events (e.g. who opened the AR menu)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS menu_events (
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            event_at DATETIME NOT NULL,
+            visitor_id CHAR(16) NOT NULL,
+            kind VARCHAR(20) NOT NULL,
+            table_no VARCHAR(10) NULL,
+            INDEX idx_event_at (event_at),
+            INDEX idx_event_kind (kind, event_at)
         )
     ''')
 
@@ -669,13 +708,150 @@ def build_menu_page(table):
             app.logger.exception("MENU PAGE FAILED")
             return "Menu temporarily unavailable. Please try again later.", 503
 
-        html = render_template("index.html", menu=menu, table=table)
+        html = render_template("index.html", menu=menu, table=table, whatsapp=WHATSAPP_NUMBER)
         g.menu_shown = True
 
         if cacheable and len(PAGE_CACHE) < PAGE_CACHE_MAX:
             PAGE_CACHE[key] = (time.time(), html)
 
         return html
+
+
+# ---------------------------------------------------------------------------
+# Customer ratings. Anonymous: a random visitor id from the cookie, 1-5 stars
+# and an optional short comment. One rating per phone per 12 hours (a second
+# tap changes the first one). The owner reads them at /debasa-admin/ratings.
+# ---------------------------------------------------------------------------
+@app.route("/event", methods=["POST"])
+@csrf.exempt
+@limiter.limit("60 per hour")
+def log_event():
+    data = request.get_json(silent=True) or {}
+    kind = str(data.get("kind") or "")
+    if kind != "ar_open":
+        return jsonify(ok=False), 400
+    ua = request.headers.get("User-Agent", "")
+    if not ua or BOT_RE.search(ua) or session.get("debasa_admin_logged_in"):
+        return jsonify(ok=True)
+    table = str(data.get("table") or "")
+    table_no = table if (table.isalnum() and len(table) <= 10) else None
+    vid, _ = get_visitor()
+    conn = None
+    try:
+        conn = db_pool.get_connection()
+        cur = conn.cursor()
+        now = now_local()
+        # the same phone opening it again within 5 minutes counts once
+        cur.execute("SELECT id FROM menu_events WHERE visitor_id=%s AND kind=%s AND event_at >= %s LIMIT 1",
+                    (vid, kind, now - timedelta(minutes=5)))
+        if not cur.fetchone():
+            cur.execute("INSERT INTO menu_events (event_at, visitor_id, kind, table_no) VALUES (%s, %s, %s, %s)",
+                        (now, vid, kind, table_no))
+            conn.commit()
+        cur.close()
+    except Exception:
+        app.logger.exception("EVENT FAILED")
+        return jsonify(ok=False), 503
+    finally:
+        if conn is not None:
+            conn.close()
+    return jsonify(ok=True)
+
+
+@app.route("/rate", methods=["POST"])
+@csrf.exempt                      # public, anonymous, and the page is cached for everyone
+@limiter.limit("40 per hour")
+def rate_menu():
+    data = request.get_json(silent=True) or {}
+    try:
+        stars = int(data.get("stars"))
+    except (TypeError, ValueError):
+        stars = 0
+    if stars < 1 or stars > 5:
+        return jsonify(ok=False, error="Pick 1 to 5 stars."), 400
+
+    comment = re.sub(r"\s+", " ", str(data.get("comment") or "")).strip()[:300] or None
+    table = str(data.get("table") or "")
+    table_no = table if (table.isalnum() and len(table) <= 10) else None
+
+    vid, _ = get_visitor()
+    ua = request.headers.get("User-Agent", "")
+    if not ua or BOT_RE.search(ua):
+        return jsonify(ok=True)
+
+    conn = None
+    try:
+        conn = db_pool.get_connection()
+        cur = conn.cursor()
+        now = now_local()
+        cur.execute(
+            "SELECT id FROM menu_ratings WHERE visitor_id=%s AND rated_at >= %s "
+            "ORDER BY id DESC LIMIT 1", (vid, now - timedelta(hours=12)))
+        row = cur.fetchone()
+        if row:
+            cur.execute("UPDATE menu_ratings SET stars=%s, comment=%s, rated_at=%s WHERE id=%s",
+                        (stars, comment, now, row[0]))
+        else:
+            cur.execute("INSERT INTO menu_ratings (rated_at, visitor_id, stars, comment, table_no) "
+                        "VALUES (%s, %s, %s, %s, %s)", (now, vid, stars, comment, table_no))
+        conn.commit()
+        cur.close()
+    except Exception:
+        app.logger.exception("RATING FAILED")
+        return jsonify(ok=False, error="Could not save. Please try again."), 503
+    finally:
+        if conn is not None:
+            conn.close()
+    return jsonify(ok=True)
+
+
+_RATINGS_PAGE = """<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Customer ratings</title>
+<style>
+body{margin:0;background:#050403;color:#f4ead6;font:15px/1.5 system-ui,sans-serif;padding:20px}
+.w{max-width:760px;margin:auto}h1{font-size:22px;margin:0 0 4px}a{color:#ffd24a}
+.top{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin:18px 0}
+.big{font-size:54px;font-weight:800;color:#ffd24a;line-height:1}.st{color:#ffd24a;letter-spacing:2px}
+.bars div{display:flex;align-items:center;gap:8px;font-size:13px;margin:3px 0}
+.bars i{display:block;height:8px;border-radius:4px;background:linear-gradient(90deg,#ff9f1a,#ffd24a)}
+.bars span.n{min-width:70px;color:#b9a98a}.row{border:1px solid #2a2218;border-radius:12px;padding:12px 14px;margin:10px 0;background:#0e0b07}
+.meta{color:#8f8267;font-size:12px}.c{margin-top:4px}
+</style>
+<div class="w"><h1>Customer ratings</h1><a href="{{ url_for('debasa_analytics') }}">&larr; Analytics</a>
+<div class="top"><div><div class="big">{{ avg }}</div><div class="st">{{ stars_txt }}</div><div class="meta">{{ total }} rating{{ '' if total == 1 else 's' }}</div></div>
+<div class="bars" style="flex:1;min-width:220px">
+{% for n, c, pct in dist %}<div><span class="n">{{ n }} star{{ '' if n == 1 else 's' }}</span><i style="width:{{ pct }}%"></i><span>{{ c }}</span></div>{% endfor %}
+</div></div>
+<h3>Latest comments</h3>
+{% for r in rows %}<div class="row"><div><span class="st">{{ '★' * r[1] }}{{ '☆' * (5 - r[1]) }}</span>
+<span class="meta"> &middot; {{ r[0].strftime('%d %b %Y, %H:%M') }}{% if r[3] %} &middot; Table {{ r[3] }}{% endif %}</span></div>
+{% if r[2] %}<div class="c">{{ r[2] }}</div>{% endif %}</div>
+{% else %}<p class="meta">No ratings yet.</p>{% endfor %}</div>"""
+
+
+@app.route("/debasa-admin/ratings")
+@debasa_admin_required
+def debasa_ratings():
+    conn = None
+    try:
+        conn = db_pool.get_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT stars, COUNT(*) FROM menu_ratings GROUP BY stars")
+        counts = {int(k): int(v) for k, v in cur.fetchall()}
+        cur.execute("SELECT rated_at, stars, comment, table_no FROM menu_ratings "
+                    "ORDER BY id DESC LIMIT 100")
+        rows = cur.fetchall()
+        cur.close()
+    finally:
+        if conn is not None:
+            conn.close()
+    total = sum(counts.values())
+    avg = round(sum(k * v for k, v in counts.items()) / total, 1) if total else 0
+    top = max(counts.values()) if counts else 1
+    dist = [(n, counts.get(n, 0), round(100 * counts.get(n, 0) / top)) for n in (5, 4, 3, 2, 1)]
+    full = int(round(avg))
+    return render_template_string(_RATINGS_PAGE, avg=avg, total=total, dist=dist, rows=rows,
+                                  stars_txt="★" * full + "☆" * (5 - full))
 
 
 @app.route('/admin/login', methods=['GET', 'POST'])
@@ -1440,6 +1616,33 @@ def analytics_data(range_key="30", table_f=None, guest_f=None):
             "WHERE table_no IS NOT NULL AND scanned_at >= %s AND scanned_at < %s "
             "GROUP BY table_no, h", (r_from, r_to))
 
+        # customer ratings + AR menu views (kept separate so analytics never breaks)
+        rating_counts, rating_rows, ar_sum, ar_rows, dev = {}, [], {}, [], {}
+        try:
+            for r in many("SELECT stars, COUNT(*) AS c FROM menu_ratings "
+                          "WHERE rated_at >= %s AND rated_at < %s GROUP BY stars", (r_from, r_to)):
+                rating_counts[int(r["stars"])] = int(r["c"])
+            rating_rows = many(
+                "SELECT rated_at, stars, comment, table_no, visitor_id FROM menu_ratings "
+                "WHERE rated_at >= %s AND rated_at < %s ORDER BY id DESC LIMIT 60", (r_from, r_to))
+            ar_sum = one(
+                "SELECT COUNT(*) AS total, COUNT(DISTINCT visitor_id) AS guests, "
+                "SUM(event_at >= %s) AS today FROM menu_events "
+                "WHERE kind = 'ar_open' AND event_at >= %s AND event_at < %s", (d0, r_from, r_to))
+            ar_rows = many(
+                "SELECT event_at, table_no, visitor_id FROM menu_events "
+                "WHERE kind = 'ar_open' AND event_at >= %s AND event_at < %s "
+                "ORDER BY id DESC LIMIT 60", (r_from, r_to))
+            ids = list({r["visitor_id"] for r in rating_rows} | {r["visitor_id"] for r in ar_rows})
+            if ids:
+                for r in many(
+                        "SELECT visitor_id, MAX(device) AS device, MAX(os) AS os FROM menu_scans "
+                        "WHERE visitor_id IN (" + ",".join(["%s"] * len(ids)) + ") GROUP BY visitor_id",
+                        tuple(ids)):
+                    dev[r["visitor_id"]] = " · ".join(x for x in (r["device"], r["os"]) if x)
+        except Exception:
+            app.logger.exception("FEEDBACK STATS FAILED")
+
         # these also need the cursor, so they must run before it is closed
         visitors_today = uniq(d0)
         visitors_week = uniq(week0)
@@ -1492,7 +1695,38 @@ def analytics_data(range_key="30", table_f=None, guest_f=None):
         "browser": r["browser"] or "-",
     } for r in recent_rows]
 
+    rating_total = sum(rating_counts.values())
+    feedback = {
+        "rating": {
+            "total": rating_total,
+            "avg": round(sum(k * v for k, v in rating_counts.items()) / rating_total, 1) if rating_total else 0,
+            "dist": [rating_counts.get(n, 0) for n in (5, 4, 3, 2, 1)],
+            "recent": [{
+                "time": r["rated_at"].strftime("%d %b, %H:%M"),
+                "stars": int(r["stars"]),
+                "comment": r["comment"] or "",
+                "table": r["table_no"] or "-",
+                "id": r["visitor_id"],
+                "name": guest_name(r["visitor_id"]),
+                "phone": dev.get(r["visitor_id"], ""),
+            } for r in rating_rows],
+        },
+        "ar": {
+            "total": num(ar_sum.get("total")),
+            "today": num(ar_sum.get("today")),
+            "guests": num(ar_sum.get("guests")),
+            "recent": [{
+                "time": r["event_at"].strftime("%d %b, %H:%M"),
+                "table": r["table_no"] or "-",
+                "id": r["visitor_id"],
+                "name": guest_name(r["visitor_id"]),
+                "phone": dev.get(r["visitor_id"], ""),
+            } for r in ar_rows],
+        },
+    }
+
     return {
+        "feedback": feedback,
         "generated": now.strftime("%d %b %Y, %H:%M"),
         "table_stats": table_stats,
         "guests": guests,
