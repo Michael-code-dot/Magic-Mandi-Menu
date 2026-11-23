@@ -902,32 +902,45 @@
 
 <!-- ================= FOOTER ================= -->
 <footer class="debasa-footer">
-    <div class="footer-copy footer-copy-top">© 2026 Magic Mandi &amp; Grill. All rights reserved.</div>
-
-    <div class="footer-tagline">
-        Taste The Legacy
+    <div class="ft-icons">
+        <button type="button" class="ft-ic ft-rate rate-open" aria-label="Rate this menu">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
+        </button>
+        <a class="ft-ic ft-wa" aria-label="Chat on WhatsApp" href="https://wa.me/{{ whatsapp or '254759971119' }}?text=Hello%2C%20I%20found%20you%20on%20the%20Magic%20Mandi%20menu." target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+        </a>
     </div>
 
-    <div class="footer-divider"></div>
-
-    <button type="button" class="rate-open">⭐ Rate this menu</button>
-
-    <p class="footer-note">Have an allergy or a special request? Please tell your waiter before you order.</p>
-
-    {% if whatsapp %}
-    <a class="wa-btn" href="https://wa.me/{{ whatsapp }}?text=Hello%2C%20I%20found%20you%20on%20the%20Magic%20Mandi%20menu." target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
-        <span>Chat with us on WhatsApp</span>
-    </a>
-    {% endif %}
-
-    <div class="floating-unit" style="margin-top:26px">
+    <div class="floating-unit">
         <div class="gold-text debasa-qr-title">DEBASA QR</div>
-        <div class="footer-systems">
-            Powered by <span class="gold-text">DEBASA</span>
-        </div>
+        <div class="footer-systems">Powered by <span class="gold-text">DEBASA</span></div>
     </div>
+    <div class="ft-copy">© 2026 Magic Mandi &amp; Grill. All rights reserved.</div>
 </footer>
+<style>
+    .debasa-footer { padding: 56px 20px 300px; }
+    .debasa-footer .footer-tagline, .footer-tagline { font-family: "Great Vibes", "Brush Script MT", "Segoe Script", cursive !important; font-size: clamp(56px, 15vw, 110px) !important; line-height: 1.1 !important; }
+    .ft-icons { display: flex; justify-content: center; gap: 18px; margin: 0 0 34px; }
+    .ft-ic { display: inline-flex; align-items: center; justify-content: center; width: 54px; height: 54px; padding: 0; margin: 0; border-radius: 50%; box-sizing: border-box; cursor: pointer; text-decoration: none; font: inherit; }
+    .ft-ic.ft-rate, .ft-ic { padding: 0 !important; margin: 0 !important; width: 54px !important; height: 54px !important; }
+    .ft-ic:active { transform: scale(.93); }
+    .ft-rate { border: 1px solid rgba(255,210,90,.6); background: rgba(255,196,0,.12); color: #ffd24a; }
+    .ft-wa { border: 0; background: linear-gradient(135deg, #2fe27a, #1fb855); color: #04210f; box-shadow: 0 6px 18px rgba(37,211,102,.3); }
+    .ft-copy { margin-top: 14px; color: #7c745f; font-size: 11px; letter-spacing: .4px; }
+</style>
+<style>
+    .debasa-footer { padding-bottom: 300px; }
+    .ft-sub { margin-top: 4px; color: var(--muted); font-size: 12.5px; letter-spacing: 3px; text-transform: uppercase; }
+    .ft-actions { display: flex; flex-direction: column; gap: 12px; width: min(320px, 100%); margin: 0 auto; }
+    .ft-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 52px; padding: 0 20px; border-radius: 14px; font: inherit; font-size: 15.5px; font-weight: 800; letter-spacing: .2px; text-decoration: none; cursor: pointer; box-sizing: border-box; margin: 0; }
+    .ft-btn:active { transform: scale(.97); }
+    .ft-rate { border: 1px solid rgba(255,210,90,.55); background: linear-gradient(135deg, rgba(255,196,0,.16), rgba(255,122,26,.12)); color: #ffd24a; box-shadow: 0 6px 18px rgba(255,160,20,.12); }
+    .ft-wa { border: 0; background: linear-gradient(135deg, #2fe27a, #1fb855); color: #04210f; box-shadow: 0 8px 22px rgba(37,211,102,.28); }
+    .ft-note { display: flex; align-items: flex-start; gap: 10px; width: min(320px, 100%); margin: 22px auto 0; padding: 12px 14px; box-sizing: border-box; text-align: left; border: 1px solid rgba(255,210,90,.16); border-radius: 12px; background: rgba(255,255,255,.03); color: #a9a085; font-size: 12.5px; line-height: 1.6; }
+    .ft-note svg { flex: 0 0 auto; margin-top: 2px; color: var(--gold-2, #ffb02e); }
+    .ft-copy { margin-top: 18px; color: #7c745f; font-size: 11px; letter-spacing: .4px; }
+    .footer-divider { margin: 26px auto; }
+</style>
 <style>
     .footer-company { font-size: clamp(22px, 6.6vw, 32px); font-weight: 800; letter-spacing: 3px; color: #fff3d1; text-shadow: 0 0 22px rgba(255,190,60,.5), 0 2px 0 rgba(0,0,0,.4); }
     .debasa-footer .footer-tagline, .footer-tagline { margin-top: 4px; font-size: clamp(44px, 12.5vw, 66px); line-height: 1.12; background: none; -webkit-background-clip: border-box; background-clip: border-box; -webkit-text-fill-color: #ffd24a; color: #ffd24a; text-shadow: 0 0 20px rgba(255,170,40,.6), 0 2px 0 rgba(0,0,0,.45); animation: none; }
@@ -936,6 +949,48 @@
     .rate-open { margin-top: 2px; padding: 13px 28px; border-radius: 999px; border: 1px solid rgba(255,210,90,.6); background: linear-gradient(135deg, rgba(255,196,0,.18), rgba(255,122,26,.18)); color: #fff1a8; font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; box-shadow: 0 6px 20px rgba(255,160,20,.18); }
     .rate-open:active { transform: scale(.96); }
     .rate-fab { position: fixed; left: 70px; bottom: 78px; z-index: 60; height: 46px; margin: 0; padding: 0 16px; border-radius: 999px; font-size: 14px; background: linear-gradient(135deg, #5a2a0a, #3b1a08); border: 1px solid rgba(255,210,90,.75); color: #fff1a8; box-shadow: 0 8px 24px rgba(255,150,30,.35); animation: fabIn .6s 2.7s cubic-bezier(.2,.9,.2,1) both; }
+    /* left column of floating buttons: same left edge, same size, same gap */
+    .ai-fab, .rate-fab, .air-fab, .share-fab { left: 16px !important; right: auto !important; width: 124px !important; height: 46px !important; padding: 0 !important; margin: 0 !important; box-sizing: border-box !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 7px !important; font-size: 14px !important; font-weight: 800 !important; }
+    .ai-fab { bottom: 18px !important; }
+    .rate-fab { bottom: 76px !important; }
+    .air-fab { bottom: 134px !important; }
+    .share-fab { bottom: 192px !important; }
+    .share-fab::after { content: "Share"; color: #2a1202; font-size: 14px; font-weight: 800; }
+    .share-fab svg { width: 20px; height: 20px; flex: 0 0 auto; }
+    /* stylish floating buttons: dark glass, coloured gradient edge, glow, shine */
+    .ai-fab, .rate-fab, .air-fab, .share-fab { --c1:#ffd24a; --c2:#ff9a2a; position: fixed !important; overflow: hidden; isolation: isolate; border: 1.5px solid transparent !important; border-radius: 16px !important; color: #fff !important; letter-spacing: .3px; text-shadow: 0 1px 2px rgba(0,0,0,.5); background: linear-gradient(160deg, rgba(34,20,10,.88), rgba(14,8,4,.92)) padding-box, linear-gradient(135deg, var(--c1), var(--c2)) border-box !important; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 8px 22px rgba(0,0,0,.5), 0 0 18px -2px var(--g) !important; transition: transform .18s ease, box-shadow .2s ease; }
+    .ai-fab::before, .rate-fab::before, .air-fab::before, .share-fab::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(100deg, transparent 20%, rgba(255,255,255,.16) 45%, transparent 70%); background-size: 220% 100%; background-position: 130% 0; animation: fabShine 5s ease-in-out infinite; }
+    @keyframes fabShine { 0%, 55% { background-position: 130% 0; } 100% { background-position: -40% 0; } }
+    .ai-fab:active, .rate-fab:active, .air-fab:active, .share-fab:active { transform: scale(.94); }
+    .ai-fab   { --c1:#ff8a3d; --c2:#ff3d3d; --g:rgba(255,90,50,.55); }
+    .rate-fab { --c1:#ffe27a; --c2:#ffb02e; --g:rgba(255,190,50,.5); }
+    .air-fab  { --c1:#5ff0ff; --c2:#4a7bff; --g:rgba(70,200,255,.55); }
+    .share-fab{ --c1:#7dffb0; --c2:#2fd16a; --g:rgba(60,220,120,.5); }
+    .share-fab::after { color: #fff !important; }
+    .share-fab svg { color: #7dffb0; }
+    /* 10/10 buttons: icon badge + label, wider, Done dining moved to the right column */
+    .ai-fab, .rate-fab, .air-fab, .share-fab, .done-btn { width: 138px !important; height: 48px !important; justify-content: flex-start !important; gap: 10px !important; padding: 0 12px 0 7px !important; font-size: 14.5px !important; }
+    .ai-fab .fi, .rate-fab .fi, .air-fab .fi, .share-fab .fi, .done-btn .fi { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-size: 17px; line-height: 1; background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.22), rgba(255,255,255,.05)); border: 1.5px solid var(--c1); box-shadow: 0 0 12px -1px var(--g); text-shadow: none; box-sizing: border-box; }
+    .share-fab .fi svg { width: 18px; height: 18px; color: var(--c1); }
+    .share-fab::after { content: none !important; }
+    .ai-fab .fl, .rate-fab .fl, .air-fab .fl, .share-fab .fl, .done-btn .fl { color: #fff; white-space: nowrap; }
+    .done-btn { width: auto !important; min-width: 0; height: 44px !important; padding: 0 14px 0 6px !important; opacity: .94; --c1:#ffe27a; --c2:#ff9a2a; --g:rgba(255,170,40,.55); left: auto !important; right: 16px !important; translate: none !important; bottom: 18px !important; position: fixed !important; display: inline-flex !important; align-items: center !important; overflow: hidden; border: 1.5px solid transparent !important; border-radius: 16px !important; color: #fff !important; background: linear-gradient(160deg, rgba(34,20,10,.88), rgba(14,8,4,.92)) padding-box, linear-gradient(135deg, var(--c1), var(--c2)) border-box !important; box-shadow: 0 8px 22px rgba(0,0,0,.5), 0 0 18px -2px var(--g) !important; animation: none !important; }
+    .done-btn .fl { font-weight: 800; }
+    .totop { bottom: 72px !important; right: 16px !important; width: 48px !important; height: 48px !important; }
+    /* one launcher button; the four actions open only when tapped, so they never cover dishes */
+    .fab-toggle { position: fixed; left: 16px; bottom: 18px; z-index: 62; width: 54px; height: 54px; padding: 0; border-radius: 50%; border: 0; cursor: pointer; display: grid; place-items: center; color: #2a1202; background: linear-gradient(135deg, #ffe27a, #ff9a2a); box-shadow: 0 8px 24px rgba(255,150,30,.5), 0 0 0 4px rgba(255,190,60,.18); transition: transform .25s, box-shadow .25s; }
+    .fab-toggle svg { transition: transform .3s; }
+    .fab-toggle:active { transform: scale(.92); }
+    body.fabs-open .fab-toggle svg { transform: rotate(45deg); }
+    .ai-fab, .rate-fab, .air-fab, .share-fab { animation: none !important; opacity: 0; pointer-events: none; visibility: hidden; transform: translateY(16px) scale(.9); transition: opacity .22s, transform .22s, visibility 0s .22s; }
+    body.fabs-open .ai-fab, body.fabs-open .rate-fab, body.fabs-open .air-fab, body.fabs-open .share-fab { opacity: 1; pointer-events: auto; visibility: visible; transform: none; transition: opacity .22s, transform .22s; }
+    body.fabs-open .share-fab { transition-delay: .0s; } body.fabs-open .air-fab { transition-delay: .04s; } body.fabs-open .rate-fab { transition-delay: .08s; } body.fabs-open .ai-fab { transition-delay: .12s; }
+    .ai-fab { bottom: 84px !important; }
+    .rate-fab { bottom: 142px !important; }
+    .air-fab { bottom: 200px !important; }
+    .share-fab { bottom: 258px !important; }
+    .fab-scrim { position: fixed; inset: 0; z-index: 58; background: rgba(0,0,0,.35); opacity: 0; pointer-events: none; transition: opacity .2s; }
+    body.fabs-open .fab-scrim { opacity: 1; pointer-events: auto; }
     .rate-top { position: relative; z-index: 3; display: flex; justify-content: center; margin: 12px 0 2px; }
     .rate-open-top { margin: 0; padding: 9px 20px; font-size: 13.5px; }
     .rate-back { position: fixed; inset: 0; z-index: 400; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(8,3,1,.78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
@@ -1000,10 +1055,11 @@
     </div>
 </div>
 <div id="menuClosed" role="status"><div class="mc-logo"><img id="mcImg" alt=""></div><h2>Menu closed</h2><p>Thank you for dining with us. We hope to see you again soon! 🧡<br>To order again, scan the QR code on your table.</p><button type="button" id="mcReopen">Open the menu again</button></div>
-<button type="button" class="done-btn" id="doneBtn" aria-label="Finished dining">🍽️ Done<span class="dd-more"> dining</span></button>
+<button type="button" class="done-btn" id="doneBtn" aria-label="Finished dining"><span class="fi">🍽️</span><span class="fl">Done<span class="dd-more"> dining</span></span></button>
 <button class="totop" id="totop" aria-label="Back to top">↑</button>
-<button type="button" class="share-fab" id="shareFab" aria-label="Share this menu"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.6l6.8-4M8.6 13.4l6.8 4"/></svg></button>
-<button class="ai-fab" id="aiFab" aria-label="Ask the menu assistant">✨ Ask AI</button>
+<button type="button" class="fab-toggle" id="fabToggle" aria-label="Open quick actions" aria-expanded="false"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path class="ft-plus" d="M12 5v14M5 12h14"/></svg></button>
+<button type="button" class="share-fab" id="shareFab" aria-label="Share this menu"><span class="fi"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.6l6.8-4M8.6 13.4l6.8 4"/></svg></span><span class="fl">Share</span></button>
+<button class="ai-fab" id="aiFab" aria-label="Ask the menu assistant"><span class="fi">✨</span><span class="fl">Ask AI</span></button>
 
 <!-- AI helper -->
 <div class="dish-back" id="aiBack">
@@ -1019,8 +1075,8 @@
 </div>
 
 <!-- menu floating in the air -->
-<button type="button" class="rate-fab rate-open" id="rateFab" aria-label="Rate this menu">⭐ Rate</button>
-<button type="button" class="air-fab" id="airFab" aria-label="See the menu floating around you">🌐 AR Menu</button>
+<button type="button" class="rate-fab rate-open" id="rateFab" aria-label="Rate this menu"><span class="fi">⭐</span><span class="fl">Rate</span></button>
+<button type="button" class="air-fab" id="airFab" aria-label="See the menu floating around you"><span class="fi">🌐</span><span class="fl">AR Menu</span></button>
 <div class="air hover" id="air" role="dialog" aria-modal="true" aria-label="Floating menu">
     <video id="airVideo" playsinline muted autoplay></video>
     <div class="air-tint"></div>
@@ -2666,6 +2722,17 @@
         var old = JSON.parse(localStorage.getItem(KEY) || "null");
         if (old && old.v && Date.now() - old.t < 12 * 3600 * 1000) { picked = old.v; paint(picked); label.textContent = WORDS[picked]; title.textContent = "Thank you for rating us! 🧡"; }
     } catch (e) {}
+})();
+</script>
+<div class="fab-scrim" id="fabScrim"></div>
+<script>
+(function () {
+    var t = document.getElementById("fabToggle"), sc = document.getElementById("fabScrim");
+    function set(o) { document.body.classList.toggle("fabs-open", o); t.setAttribute("aria-expanded", o ? "true" : "false"); }
+    t.addEventListener("click", function () { set(!document.body.classList.contains("fabs-open")); });
+    sc.addEventListener("click", function () { set(false); });
+    ["aiFab", "rateFab", "airFab", "shareFab"].forEach(function (id) { var e = document.getElementById(id); if (e) e.addEventListener("click", function () { setTimeout(function () { set(false); }, 50); }); });
+    window.addEventListener("scroll", function () { if (document.body.classList.contains("fabs-open")) set(false); }, { passive: true });
 })();
 </script>
 </body>
