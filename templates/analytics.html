@@ -965,6 +965,11 @@
         .card::before, .card h2::after { display:none !important; }
         .card .hint, .greet, .hscale, #stylePanel, #styleFab { display:none !important; }
         .card h2 { margin-bottom:4px; }
+.fb-del { margin-top: 4px; width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(255,120,120,.4); background: rgba(255,80,80,.1); color: #ff9a9a; font-size: 12px; line-height: 1; cursor: pointer; }
+.fb-del:active { transform: scale(.9); }
+.fb-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.fb-tool { padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.05); color: inherit; font: inherit; font-size: 12.5px; cursor: pointer; }
+.fb-tool.danger { border-color: rgba(255,120,120,.5); color: #ff9a9a; }
 </style>
 
 <script>try{var _f=localStorage.getItem("mm_fx"),_m={light:"low",balanced:"mid",full:"high"},_c=navigator.hardwareConcurrency||4,_mem=navigator.deviceMemory||4,_co=matchMedia("(pointer: coarse)").matches;document.documentElement.setAttribute("data-fx",_m[_f]||((_c<=2||_mem<=2)?"low":(_co||_c<=4||innerWidth<760)?"mid":"high"));}catch(e){document.documentElement.setAttribute("data-fx","mid");}</script>
@@ -1119,6 +1124,12 @@
             <div id="fbAr"></div>
         </section>
     </div>
+
+    <section class="card" id="aiCard">
+        <h2>Ask AI users</h2>
+        <p class="hint">{{ data.range_label }} · who chatted with the menu assistant</p>
+        <div id="fbAi"></div>
+    </section>
 
     <!-- ===== Trend ===== -->
     <section class="card">
@@ -2076,8 +2087,28 @@
         if (kind === "rate" && r.comment) mid.appendChild(el("div", "cmt", "“" + r.comment + "”"));
         if (kind === "rate") end.appendChild(el("span", "fb-stars", stars(r.stars)));
         end.appendChild(el("div", "when", r.time));
+        if (r.rid) {
+            var del = el("button", "fb-del", "✕"); del.type = "button"; del.title = "Remove this entry"; del.setAttribute("aria-label", "Remove this entry");
+            del.addEventListener("click", function () { removeFb(kind === "rate" ? "rating" : kind, "one", r.rid, "Remove this entry?"); });
+            end.appendChild(del);
+        }
         row.appendChild(av); row.appendChild(mid); row.appendChild(end);
         return row;
+    }
+    function removeFb(kind, mode, id, ask) {
+        if (!window.confirm(ask)) return;
+        fetch("/debasa-admin/feedback/remove", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token() }}" }, body: JSON.stringify({ kind: kind, mode: mode, id: id }) })
+            .then(function (r) { return r.json(); })
+            .then(function (j) { if (!j.ok) { alert("Could not remove. Please try again."); return; } location.reload(); })
+            .catch(function () { alert("Could not remove. Please check your connection."); });
+    }
+    function tools(kind, label) {
+        var box = el("div", "fb-tools");
+        var a = el("button", "fb-tool", "Remove guests who never scanned"); a.type = "button";
+        a.addEventListener("click", function () { removeFb(kind, "noscan", 0, "Remove every " + label + " from people who have no menu scan?"); });
+        var b = el("button", "fb-tool danger", "Clear all"); b.type = "button";
+        b.addEventListener("click", function () { removeFb(kind, "all", 0, "Remove ALL " + label + " entries? This cannot be undone."); });
+        box.appendChild(a); box.appendChild(b); return box;
     }
     function list(D, items, kind, empty) {
         var wrap = el("div");
@@ -2094,7 +2125,7 @@
     }
     window.__renderFeedback = function (D) {
         var f = D && D.feedback; if (!f) return;
-        var rb = document.getElementById("fbRating"), ab = document.getElementById("fbAr");
+        var rb = document.getElementById("fbRating"), ab = document.getElementById("fbAr"), ib = document.getElementById("fbAi");
         if (rb) {
             rb.textContent = "";
             var R = f.rating;
@@ -2112,7 +2143,7 @@
                 });
                 top.appendChild(left); top.appendChild(bars); rb.appendChild(top);
             }
-            if (R.total) rb.appendChild(list(D, R.recent, "rate", ""));
+            if (R.total) { rb.appendChild(list(D, R.recent, "rate", "")); rb.appendChild(tools("rating", "rating")); }
         }
         if (ab) {
             ab.textContent = "";
@@ -2122,6 +2153,17 @@
             });
             ab.appendChild(st);
             ab.appendChild(list(D, A.recent, "ar", "Nobody has opened the AR menu in this period."));
+            if (A.total) ab.appendChild(tools("ar", "AR view"));
+        }
+        if (ib && f.ai) {
+            ib.textContent = "";
+            var I = f.ai, st2 = el("div", "fb-stat");
+            [["Chats", I.total], ["Today", I.today], ["Different guests", I.guests]].forEach(function (p) {
+                var d = el("div"); d.appendChild(el("b", null, String(p[1]))); d.appendChild(el("span", null, p[0])); st2.appendChild(d);
+            });
+            ib.appendChild(st2);
+            ib.appendChild(list(D, I.recent, "ai", "Nobody has used Ask AI in this period."));
+            if (I.total) ib.appendChild(tools("ai", "Ask AI"));
         }
     };
     window.__renderFeedback(window.__D);

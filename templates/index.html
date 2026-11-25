@@ -991,6 +991,20 @@
     .share-fab { bottom: 258px !important; }
     .fab-scrim { position: fixed; inset: 0; z-index: 58; background: rgba(0,0,0,.35); opacity: 0; pointer-events: none; transition: opacity .2s; }
     body.fabs-open .fab-scrim { opacity: 1; pointer-events: auto; }
+    /* Ask AI stays on its own at the bottom; the + sits above it and holds the other three */
+    .ai-fab { opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; transform: none !important; bottom: 18px !important; z-index: 63; }
+    .fab-toggle { bottom: 84px !important; }
+    .rate-fab { bottom: 150px !important; }
+    .air-fab { bottom: 208px !important; }
+    .share-fab { bottom: 266px !important; }
+    /* iPhone-style glass: round pills, frosted see-through, soft light edge, no hard boxes */
+    .ai-fab, .rate-fab, .air-fab, .share-fab, .done-btn { border-radius: 999px !important; border: 1px solid rgba(255,255,255,.26) !important; background: linear-gradient(180deg, rgba(255,255,255,.2), rgba(255,255,255,.06) 55%, rgba(255,255,255,.1)) !important; -webkit-backdrop-filter: blur(20px) saturate(185%) !important; backdrop-filter: blur(20px) saturate(185%) !important; box-shadow: inset 0 1.5px 0 rgba(255,255,255,.5), inset 0 -1px 0 rgba(255,255,255,.12), 0 10px 28px rgba(0,0,0,.4) !important; text-shadow: 0 1px 3px rgba(0,0,0,.55); }
+    .ai-fab .fi, .rate-fab .fi, .air-fab .fi, .share-fab .fi, .done-btn .fi { background: radial-gradient(circle at 35% 25%, rgba(255,255,255,.55), var(--g) 70%) !important; border: 1px solid rgba(255,255,255,.55) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 2px 8px rgba(0,0,0,.3) !important; }
+    .share-fab .fi svg { color: #fff; }
+    .ai-fab::before, .rate-fab::before, .air-fab::before, .share-fab::before { border-radius: 999px; background: linear-gradient(105deg, transparent 25%, rgba(255,255,255,.28) 48%, transparent 70%); background-size: 220% 100%; }
+    .fab-toggle { border: 1px solid rgba(255,255,255,.4) !important; background: linear-gradient(180deg, rgba(255,226,122,.55), rgba(255,154,42,.35)) !important; -webkit-backdrop-filter: blur(20px) saturate(185%); backdrop-filter: blur(20px) saturate(185%); color: #fff !important; box-shadow: inset 0 1.5px 0 rgba(255,255,255,.6), inset 0 -1px 0 rgba(255,255,255,.15), 0 10px 28px rgba(0,0,0,.4), 0 0 22px rgba(255,170,40,.35) !important; }
+    .totop { background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.08)) !important; border: 1px solid rgba(255,255,255,.3) !important; color: #fff !important; -webkit-backdrop-filter: blur(20px) saturate(185%); backdrop-filter: blur(20px) saturate(185%); box-shadow: inset 0 1.5px 0 rgba(255,255,255,.5), 0 10px 28px rgba(0,0,0,.4) !important; }
+    .fab-scrim { -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
     .rate-top { position: relative; z-index: 3; display: flex; justify-content: center; margin: 12px 0 2px; }
     .rate-open-top { margin: 0; padding: 9px 20px; font-size: 13.5px; }
     .rate-back { position: fixed; inset: 0; z-index: 400; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(8,3,1,.78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
@@ -1466,7 +1480,7 @@
         var fab = document.getElementById("aiFab"), back = document.getElementById("aiBack"), log = document.getElementById("aiLog");
         var form = document.getElementById("aiForm"), input = document.getElementById("aiInput");
         if (!fab || !back || !window.__smartFind) return;
-        var started = false, PAGE = 1000;
+        var started = false, PAGE = 8, aiLogged = false;
         var ctx = { list: [], pos: 0, last: [], dish: null, sw: false, avoid: [], name: "" };
 
         function money(n) { return "KSh " + n.toLocaleString("en-US", n % 1 ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : { maximumFractionDigits: 0 }); }
@@ -1662,17 +1676,19 @@
         function addMsg(text, who) { var d = document.createElement("div"); d.className = "msg " + who; d.textContent = text; log.appendChild(d); log.scrollTop = log.scrollHeight; return d; }
         function addPicks(list) {
             var wrap = document.createElement("div"); wrap.className = "picks";
+            var frag = document.createDocumentFragment();
             list.forEach(function (d, i) {
                 var c = d.c, img = c.querySelector(".food-image"), b = document.createElement("button");
-                b.type = "button"; b.className = "pick"; b.style.animationDelay = (i * 80) + "ms";
-                var im = document.createElement("img"); im.src = img ? (img.currentSrc || img.src) : ""; im.alt = ""; im.loading = "lazy";
+                b.type = "button"; b.className = "pick"; b.style.animationDelay = (Math.min(i, 6) * 45) + "ms";
+                var im = document.createElement("img"); im.src = img ? String(img.currentSrc || img.src).replace("w=640&q=82", "w=120&q=70") : ""; im.alt = ""; im.loading = "lazy"; im.decoding = "async"; im.width = 56; im.height = 56;
                 var sp = document.createElement("span"); sp.textContent = d.name;
                 var sm = document.createElement("small"); sm.textContent = d.cat; sp.appendChild(sm);
                 var em = document.createElement("em"); em.textContent = money(d.price);
                 b.appendChild(im); b.appendChild(sp); b.appendChild(em);
                 b.addEventListener("click", function () { ctx.dish = d; closeAi(); setTimeout(function () { openDish(c); }, 120); });
-                wrap.appendChild(b);
+                frag.appendChild(b);
             });
+            wrap.appendChild(frag);
             log.appendChild(wrap); log.scrollTop = log.scrollHeight;
         }
         function addChips(list) {
@@ -1920,6 +1936,7 @@
         }
 
         function ask(text) {
+            if (!aiLogged) { aiLogged = true; try { fetch("/event", { method: "POST", keepalive: true, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ kind: "ai_use", table: {{ (table or "")|tojson }} }) }); } catch (e) {} }
             clearChips();
             addMsg(text, "me");
             var tp = addMsg("", "bot"); tp.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
@@ -1930,7 +1947,7 @@
                 if (a.picks) addPicks(a.picks);
                 addChips(a.chips);
                 log.scrollTop = log.scrollHeight;
-            }, 450 + Math.min(500, text.length * 12));
+            }, 120 + Math.min(160, text.length * 6));
         }
 
         function openAi() {

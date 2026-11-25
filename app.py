@@ -87,6 +87,8 @@ PAGE_CACHE = {}            # table key -> (timestamp, finished html)
 PAGE_CACHE_SECONDS = 30
 PAGE_CACHE_MAX = 200
 CACHE_LOCK = threading.Lock()
+STALE_PAGES = {}           # table key -> last good html, kept (even if old) for when the database is down
+DB_DOWN_UNTIL = 0.0        # after a database failure, serve the saved page for a few seconds instead of retrying
 
 
 def invalidate_caches():
@@ -99,7 +101,7 @@ def invalidate_caches():
 # (Kenya: 2547XXXXXXXX, no + and no spaces). Set it as WHATSAPP_NUMBER in Render.
 def _wa_number():
     n = re.sub(r"\D", "", os.getenv("WHATSAPP_NUMBER", "")
-               or os.getenv("CONTACT_PHONE", "0753391398"))
+               or os.getenv("CONTACT_PHONE", "0759971119"))
     if n.startswith("0") and len(n) == 10:
         n = "254" + n[1:]
     return n
@@ -114,9 +116,11 @@ DB_CONFIG = {
     "database": os.getenv("MYSQLDATABASE", "magicmandi"),
     "port": int(os.getenv("MYSQLPORT", 4000)),
     "ssl_disabled": False,
+ "ssl_disabled": False,
+    "connection_timeout": 5,   # never hang for minutes when the database is slow or waking up
 }
 
-    
+
 def init_db():
     """Create tables if they don't exist. Runs once at startup, not per request."""
     db = mysql.connector.connect(**DB_CONFIG)
@@ -675,6 +679,7 @@ def index():
 
 
 def build_menu_page(table):
+    global DB_DOWN_UNTIL
     # Only cache sane table values so nobody can fill the cache with junk.
     cacheable = table is None or (table.isalnum() and len(table) <= 6)
     key = table or ""
@@ -684,6 +689,12 @@ def build_menu_page(table):
         if hit and time.time() - hit[0] < PAGE_CACHE_SECONDS:
             g.menu_shown = True
             return hit[1]
+
+    # Database was just down: show the last good menu straight away, do not make
+    # every customer wait for another failing connection attempt.
+    if time.time() < DB_DOWN_UNTIL and key in STALE_PAGES:
+        g.menu_shown = True
+        return STALE_PAGES[key]
 
     # One thread rebuilds the page; the others wait and then reuse it.
     with CACHE_LOCK:
@@ -706,13 +717,19 @@ def build_menu_page(table):
 
         except Exception:
             app.logger.exception("MENU PAGE FAILED")
-            return "Menu temporarily unavailable. Please try again later.", 503
+            DB_DOWN_UNTIL = time.time() + 10
+            if key in STALE_PAGES:
+                g.menu_shown = True
+                return STALE_PAGES[key]
+            return "Menu temporarily unavailable. Please try again in a moment.", 503
 
         html = render_template("index.html", menu=menu, table=table, whatsapp=WHATSAPP_NUMBER)
         g.menu_shown = True
 
         if cacheable and len(PAGE_CACHE) < PAGE_CACHE_MAX:
             PAGE_CACHE[key] = (time.time(), html)
+            if len(STALE_PAGES) < PAGE_CACHE_MAX:
+                STALE_PAGES[key] = html
 
         return html
 
@@ -728,7 +745,7 @@ def build_menu_page(table):
 def log_event():
     data = request.get_json(silent=True) or {}
     kind = str(data.get("kind") or "")
-    if kind != "ar_open":
+    if kind not in ("ar_open", "ai_use"):
         return jsonify(ok=False), 400
     ua = request.headers.get("User-Agent", "")
     if not ua or BOT_RE.search(ua) or session.get("debasa_admin_logged_in"):
@@ -743,7 +760,7 @@ def log_event():
         now = now_local()
         # the same phone opening it again within 5 minutes counts once
         cur.execute("SELECT id FROM menu_events WHERE visitor_id=%s AND kind=%s AND event_at >= %s LIMIT 1",
-                    (vid, kind, now - timedelta(minutes=5)))
+                    (vid, kind, now - timedelta(minutes=(30 if kind == "ai_use" else 5))))
         if not cur.fetchone():
             cur.execute("INSERT INTO menu_events (event_at, visitor_id, kind, table_no) VALUES (%s, %s, %s, %s)",
                         (now, vid, kind, table_no))
@@ -827,6 +844,48 @@ body{margin:0;background:#050403;color:#f4ead6;font:15px/1.5 system-ui,sans-seri
 <span class="meta"> &middot; {{ r[0].strftime('%d %b %Y, %H:%M') }}{% if r[3] %} &middot; Table {{ r[3] }}{% endif %}</span></div>
 {% if r[2] %}<div class="c">{{ r[2] }}</div>{% endif %}</div>
 {% else %}<p class="meta">No ratings yet.</p>{% endfor %}</div>"""
+
+
+# Owner tools: remove test or unwanted entries from the analytics page.
+@app.route("/debasa-admin/feedback/remove", methods=["POST"])
+@debasa_admin_required
+@limiter.limit("60 per hour")
+def feedback_remove():
+    data = request.get_json(silent=True) or {}
+    kind = str(data.get("kind") or "")
+    mode = str(data.get("mode") or "one")     # one | noscan | all
+    if kind == "rating":
+        table, extra, tcol = "menu_ratings", "", "rated_at"
+    elif kind in ("ar", "ai"):
+        table, extra, tcol = "menu_events", " AND kind = '%s'" % ("ar_open" if kind == "ar" else "ai_use"), "event_at"
+    else:
+        return jsonify(ok=False), 400
+    conn = None
+    try:
+        conn = db_pool.get_connection()
+        cur = conn.cursor()
+        if mode == "one":
+            try:
+                rid = int(data.get("id"))
+            except (TypeError, ValueError):
+                return jsonify(ok=False), 400
+            cur.execute("DELETE FROM " + table + " WHERE id = %s" + extra, (rid,))
+        elif mode == "noscan":
+            cur.execute("DELETE FROM " + table + " WHERE visitor_id NOT IN (SELECT DISTINCT visitor_id FROM menu_scans)" + extra)
+        elif mode == "all":
+            cur.execute("DELETE FROM " + table + " WHERE 1 = 1" + extra)
+        else:
+            return jsonify(ok=False), 400
+        removed = cur.rowcount
+        conn.commit()
+        cur.close()
+    except Exception:
+        app.logger.exception("FEEDBACK REMOVE FAILED")
+        return jsonify(ok=False), 503
+    finally:
+        if conn is not None:
+            conn.close()
+    return jsonify(ok=True, removed=removed)
 
 
 @app.route("/debasa-admin/ratings")
@@ -1618,22 +1677,31 @@ def analytics_data(range_key="30", table_f=None, guest_f=None):
 
         # customer ratings + AR menu views (kept separate so analytics never breaks)
         rating_counts, rating_rows, ar_sum, ar_rows, dev = {}, [], {}, [], {}
+        ai_sum, ai_rows = {}, []
         try:
             for r in many("SELECT stars, COUNT(*) AS c FROM menu_ratings "
                           "WHERE rated_at >= %s AND rated_at < %s GROUP BY stars", (r_from, r_to)):
                 rating_counts[int(r["stars"])] = int(r["c"])
             rating_rows = many(
-                "SELECT rated_at, stars, comment, table_no, visitor_id FROM menu_ratings "
+                "SELECT id, rated_at, stars, comment, table_no, visitor_id FROM menu_ratings "
                 "WHERE rated_at >= %s AND rated_at < %s ORDER BY id DESC LIMIT 60", (r_from, r_to))
             ar_sum = one(
                 "SELECT COUNT(*) AS total, COUNT(DISTINCT visitor_id) AS guests, "
                 "SUM(event_at >= %s) AS today FROM menu_events "
                 "WHERE kind = 'ar_open' AND event_at >= %s AND event_at < %s", (d0, r_from, r_to))
             ar_rows = many(
-                "SELECT event_at, table_no, visitor_id FROM menu_events "
+                "SELECT id, event_at, table_no, visitor_id FROM menu_events "
                 "WHERE kind = 'ar_open' AND event_at >= %s AND event_at < %s "
                 "ORDER BY id DESC LIMIT 60", (r_from, r_to))
-            ids = list({r["visitor_id"] for r in rating_rows} | {r["visitor_id"] for r in ar_rows})
+            ai_sum = one(
+                "SELECT COUNT(*) AS total, COUNT(DISTINCT visitor_id) AS guests, "
+                "SUM(event_at >= %s) AS today FROM menu_events "
+                "WHERE kind = 'ai_use' AND event_at >= %s AND event_at < %s", (d0, r_from, r_to))
+            ai_rows = many(
+                "SELECT id, event_at, table_no, visitor_id FROM menu_events "
+                "WHERE kind = 'ai_use' AND event_at >= %s AND event_at < %s "
+                "ORDER BY id DESC LIMIT 60", (r_from, r_to))
+            ids = list({r["visitor_id"] for r in rating_rows} | {r["visitor_id"] for r in ar_rows} | {r["visitor_id"] for r in ai_rows})
             if ids:
                 for r in many(
                         "SELECT visitor_id, MAX(device) AS device, MAX(os) AS os FROM menu_scans "
@@ -1702,6 +1770,7 @@ def analytics_data(range_key="30", table_f=None, guest_f=None):
             "avg": round(sum(k * v for k, v in rating_counts.items()) / rating_total, 1) if rating_total else 0,
             "dist": [rating_counts.get(n, 0) for n in (5, 4, 3, 2, 1)],
             "recent": [{
+                "rid": int(r["id"]),
                 "time": r["rated_at"].strftime("%d %b, %H:%M"),
                 "stars": int(r["stars"]),
                 "comment": r["comment"] or "",
@@ -1716,12 +1785,26 @@ def analytics_data(range_key="30", table_f=None, guest_f=None):
             "today": num(ar_sum.get("today")),
             "guests": num(ar_sum.get("guests")),
             "recent": [{
+                "rid": int(r["id"]),
                 "time": r["event_at"].strftime("%d %b, %H:%M"),
                 "table": r["table_no"] or "-",
                 "id": r["visitor_id"],
                 "name": guest_name(r["visitor_id"]),
                 "phone": dev.get(r["visitor_id"], ""),
             } for r in ar_rows],
+        },
+        "ai": {
+            "total": num(ai_sum.get("total")),
+            "today": num(ai_sum.get("today")),
+            "guests": num(ai_sum.get("guests")),
+            "recent": [{
+                "rid": int(r["id"]),
+                "time": r["event_at"].strftime("%d %b, %H:%M"),
+                "table": r["table_no"] or "-",
+                "id": r["visitor_id"],
+                "name": guest_name(r["visitor_id"]),
+                "phone": dev.get(r["visitor_id"], ""),
+            } for r in ai_rows],
         },
     }
 
